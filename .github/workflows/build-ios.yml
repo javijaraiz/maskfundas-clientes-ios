@@ -56,9 +56,14 @@ jobs:
           UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< $(security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/MasKFundas_Clientes_App_Store_Profile.mobileprovision) 2>/dev/null || echo "e10db9df-1438-4ee3-a9c1-73efc7a37bc9")
           cp ~/Library/MobileDevice/Provisioning\ Profiles/MasKFundas_Clientes_App_Store_Profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${UUID}.mobileprovision
 
-          # Import .p12 into keychain
+          # Import .p12 into keychain (with legacy 3DES fallback)
           echo "$CERT_P12" | base64 --decode > certificate.p12
-          security import certificate.p12 -k build.keychain -P "$CERT_PASSWORD" -A
+          if ! security import certificate.p12 -k build.keychain -P "$CERT_PASSWORD" -A; then
+            echo "Direct import failed, converting to legacy 3DES..."
+            openssl pkcs12 -in certificate.p12 -out cert_and_key.pem -nodes -passin pass:"$CERT_PASSWORD"
+            openssl pkcs12 -export -in cert_and_key.pem -out legacy_cert.p12 -passout pass:"$CERT_PASSWORD" -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES -macalg sha1
+            security import legacy_cert.p12 -k build.keychain -P "$CERT_PASSWORD" -A
+          fi
           security set-key-partition-list -S apple-tool:,apple: -s -k "$BUILD_KEYCHAIN_PASSWORD" build.keychain
 
       - name: Build Xcode Archive
