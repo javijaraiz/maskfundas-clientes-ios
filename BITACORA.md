@@ -36,11 +36,17 @@
   8. **Documentación:** Creado `docs/APPLE_RELEASE.md` con la ficha comercial, checklist de revisión y parámetros de App Store Connect.
 * **Verificación:** Pruebas unitarias y de integración end-to-end con `fastapi.testclient`: login OTP de revisión, emisión de sesión, consulta de líneas demo, facturas y descarga de PDF validados con código HTTP 200. Comprobación de sintaxis en `server.py` y `app.js` sin errores.
 
+### [2026-11-06 16:56] - Push de respuestas de soporte
+* **Objetivo:** Continuar la app MásKFundas en paralelo y completar avisos Android.
+* **Contexto:** El registro push funcionaba, pero aún no había un evento del portal que enviase avisos.
+* **Acciones realizadas:** Al responder soporte a un ticket público se envía un aviso Web Push genérico al DNI titular con suscripción activa; no se incluyen datos de línea ni contenido del ticket. Preparada ruta pública de Digital Asset Links y ficha de tienda en borrador. Desplegado con `python vps.py sync`.
+* **Verificación:** `pytest tests/test_client_push.py` pasó; `compileall` y `node --check` pasaron; `/health` sigue devolviendo 200. Publicación aún bloqueada por permiso de Play Console, revisión de políticas y datos de acceso de prueba.
+
 ### [2026-11-06 14:35] - Push del portal y AAB firmado
 * **Objetivo:** Preparar notificaciones reales y un paquete de subida para Android.
 * **Contexto:** La TWA ya compilaba, pero faltaban suscripciones Web Push y firma.
-* **Acciones realizadas:** Añadidos `backend/client_push.py`, `scripts/setup_client_push.py`, control de notificaciones en `frontend/`, dependencia `pywebpush` y prueba de registro/revocación. Generada clave de subida local con contraseña DPAPI; AAB firmado. Desplegada la infraestructura push mediante `vps.py sync` y reconstrucción del contenedor; generada clave VAPID persistente en el VPS.
-* **Verificación:** `pytest tests/test_client_push.py` pasó; JavaScript y Python validaron sintaxis; Gradle `assembleRelease` y `bundleRelease` finalizaron; `jarsigner` verificó el AAB. `/health` devuelve 200 y el endpoint push sin sesión devuelve 401. No se ha publicado en Google Play porque el permiso guardado del navegador para `play.google.com` sigue bloqueado.
+* **Acciones realizadas:** Añadidos `backend/client_push.py`, `scripts/setup_client_push.py`, control de notificaciones en `frontend/`, dependencia `pywebpush` y prueba de registro/revocación. Generada clave de subida local con contraseña DPAPI; AAB firmado. Desplegada la infraestructura push mediante `vps.py sync` y reconstrucción del contenedor; generada clave VAPID persistente en el VPS. Añadida la ruta `/.well-known/assetlinks.json` con huella de subida provisional.
+* **Verificación:** `pytest tests/test_client_push.py` pasó; JavaScript y Python validaron sintaxis; Gradle `assembleRelease` y `bundleRelease` finalizaron; `jarsigner` verificó el AAB. `/health` devuelve 200, el endpoint push sin sesión devuelve 401 y assetlinks responde 200. No se ha publicado en Google Play porque el permiso guardado del navegador para `play.google.com` sigue bloqueado.
 
 ### [2026-11-06 14:15] - Proyecto Android compilado
 * **Objetivo:** Generar la app Android MásKFundas a partir del portal PWA.
