@@ -8,7 +8,7 @@ on:
 jobs:
   build-and-upload:
     name: Build & Upload iOS App
-    runs-on: macos-15 # Apple Silicon runner locked to macOS 15 Sequoia
+    runs-on: macos-latest # Standard Apple Silicon runner
 
     steps:
       - name: Checkout Code
