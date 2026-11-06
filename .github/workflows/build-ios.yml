@@ -28,17 +28,20 @@ jobs:
           npx cap sync ios
 
       - name: Configure App Store Connect API Key
-        if: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 != '' }}
+        env:
+          API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
         run: |
-          mkdir -p ~/.appstoreconnect/private_keys
-          echo "${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}" > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8
-          mkdir -p ~/.private_keys
-          cp ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8 ~/.private_keys/
+          mkdir -p ~/.appstoreconnect/private_keys ~/.private_keys
+          echo "$API_KEY_P8" > ~/.appstoreconnect/private_keys/AuthKey_${API_KEY_ID}.p8
+          cp ~/.appstoreconnect/private_keys/AuthKey_${API_KEY_ID}.p8 ~/.private_keys/
 
       - name: Set up Keychain & Install Certificates
-        if: ${{ secrets.APPLE_CERTIFICATE_P12 != '' }}
         env:
           BUILD_KEYCHAIN_PASSWORD: "temporary_build_pwd_123"
+          CERT_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+          CERT_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          PROV_PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
         run: |
           # Create temporary keychain
           security create-keychain -p "$BUILD_KEYCHAIN_PASSWORD" build.keychain
@@ -48,14 +51,14 @@ jobs:
 
           # Install Provisioning Profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "${{ secrets.APPLE_PROVISIONING_PROFILE }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/MasKFundas_Clientes_App_Store_Profile.mobileprovision
+          echo "$PROV_PROFILE" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/MasKFundas_Clientes_App_Store_Profile.mobileprovision
           # Also copy as UUID filename
           UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< $(security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/MasKFundas_Clientes_App_Store_Profile.mobileprovision) 2>/dev/null || echo "e10db9df-1438-4ee3-a9c1-73efc7a37bc9")
           cp ~/Library/MobileDevice/Provisioning\ Profiles/MasKFundas_Clientes_App_Store_Profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${UUID}.mobileprovision
 
           # Import .p12 into keychain
-          echo "${{ secrets.APPLE_CERTIFICATE_P12 }}" | base64 --decode > certificate.p12
-          security import certificate.p12 -k build.keychain -P "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" -A
+          echo "$CERT_P12" | base64 --decode > certificate.p12
+          security import certificate.p12 -k build.keychain -P "$CERT_PASSWORD" -A
           security set-key-partition-list -S apple-tool:,apple: -s -k "$BUILD_KEYCHAIN_PASSWORD" build.keychain
 
       - name: Build Xcode Archive
@@ -86,7 +89,9 @@ jobs:
           path: ios/App/build/out/*.ipa
 
       - name: Upload to TestFlight & App Store Connect
-        if: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 != '' }}
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         run: |
           cd ios/App
           IPA_PATH=$(ls build/out/*.ipa | head -n 1)
@@ -94,5 +99,5 @@ jobs:
           xcrun altool --upload-app \
             -f "$IPA_PATH" \
             -t ios \
-            --apiKey "${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}" \
-            --apiIssuer "${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}"
+            --apiKey "$API_KEY_ID" \
+            --apiIssuer "$API_ISSUER_ID"
