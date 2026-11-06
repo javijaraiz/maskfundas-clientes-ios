@@ -1,0 +1,3104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración de Internet (APN) 5G | MásKFundas Móvil</title>
+    <meta name="description" content="Configurador oficial de APN y datos móviles 5G de MásKFundas. Configura tu smartphone Android o iPhone en menos de 1 minuto sin errores.">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --brand-orange: #FF6B00;
+            --brand-orange-hover: #EA580C;
+            --brand-orange-light: #FFF7ED;
+            --brand-navy: #070F2B;
+            --brand-navy-card: #0B192C;
+            --brand-blue: #0284C7;
+            --brand-blue-glow: rgba(2, 132, 199, 0.35);
+            --brand-green: #10B981;
+            --brand-red: #EF4444;
+            --bg-page: #F8FAFC;
+            --border-card: #E2E8F0;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --card-radius: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg-page);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── NAVBAR ── */
+        .apn-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 20px -5px rgba(15, 23, 42, 0.04);
+            padding: 0.85rem 1.5rem;
+        }
+
+        .apn-navbar-inner {
+            max-width: 1180px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .apn-brand-group {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            text-decoration: none;
+        }
+
+        .apn-logo {
+            height: 38px;
+            width: auto;
+            object-fit: contain;
+            transition: transform 0.2s;
+        }
+        .apn-brand-group:hover .apn-logo {
+            transform: scale(1.03);
+        }
+
+        .apn-brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: #EFF6FF;
+            color: #1E40AF;
+            border: 1px solid #DBEAFE;
+            padding: 0.25rem 0.65rem;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .apn-nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .btn-wa-soporte {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: #25D366;
+            color: #FFFFFF;
+            font-size: 0.82rem;
+            font-weight: 700;
+            padding: 0.55rem 1rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+            transition: all 0.2s ease;
+        }
+        .btn-wa-soporte:hover {
+            background: #20BA5A;
+            transform: translateY(-1.5px);
+            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.35);
+        }
+
+        .btn-portal-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #F1F5F9;
+            color: #334155;
+            border: 1px solid #CBD5E1;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 0.55rem 0.95rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .btn-portal-link:hover {
+            background: #E2E8F0;
+            color: #0F172A;
+        }
+
+        /* ── HERO ── */
+        .apn-hero {
+            position: relative;
+            background: linear-gradient(135deg, #070F2B 0%, #0B192C 45%, #1E3E62 100%);
+            color: #FFFFFF;
+            padding: 3.5rem 1.25rem 4.5rem;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        /* Ambient Glow Circles */
+        .apn-hero::before {
+            content: '';
+            position: absolute;
+            top: -120px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(2, 132, 199, 0.35) 0%, rgba(255, 107, 0, 0.15) 50%, transparent 80%);
+            filter: blur(50px);
+            pointer-events: none;
+        }
+
+        .apn-hero-inner {
+            max-width: 820px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .pill-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.4rem 1rem;
+            border-radius: 9999px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #7DD3FC;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .pill-tag span.dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #38BDF8;
+            box-shadow: 0 0 10px #38BDF8;
+            animation: pulseDot 2s infinite;
+        }
+
+        .apn-hero h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.6rem;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.85rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .apn-hero h1 .highlight-text {
+            background: linear-gradient(90deg, #38BDF8 0%, #60A5FA 50%, #F59E0B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .apn-hero p {
+            font-size: 1.05rem;
+            color: #CBD5E1;
+            line-height: 1.55;
+            max-width: 640px;
+            margin: 0 auto 2rem;
+            font-weight: 400;
+        }
+
+        /* ── PHONE LOOKUP BOX ── */
+        .lookup-glass-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 22px;
+            padding: 1.35rem 1.5rem;
+            box-shadow: 0 20px 45px -10px rgba(7, 15, 43, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.6);
+            max-width: 620px;
+            margin: 0 auto;
+            text-align: left;
+            color: var(--text-main);
+        }
+
+        .lookup-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .lookup-title-text {
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .lookup-title-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #0369A1;
+            background: #E0F2FE;
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .lookup-bar {
+            display: flex;
+            gap: 0.6rem;
+        }
+
+        .lookup-input-wrap {
+            position: relative;
+            flex: 1;
+        }
+
+        .lookup-prefix {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #94A3B8;
+            pointer-events: none;
+        }
+
+        .lookup-input {
+            width: 100%;
+            padding: 0.85rem 1rem 0.85rem 3.2rem;
+            border: 2px solid #E2E8F0;
+            border-radius: 14px;
+            font-size: 1.08rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: #0F172A;
+            background: #F8FAFC;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .lookup-input:focus {
+            border-color: var(--brand-blue);
+            background: #FFFFFF;
+            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15);
+        }
+
+        .lookup-btn {
+            background: linear-gradient(135deg, var(--brand-orange) 0%, #EA580C 100%);
+            color: #FFFFFF;
+            border: none;
+            padding: 0.85rem 1.4rem;
+            border-radius: 14px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.35);
+            transition: all 0.2s ease;
+        }
+        .lookup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 0, 0.45);
+        }
+        .lookup-btn:active {
+            transform: scale(0.98);
+        }
+
+        .lookup-res-box {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem 1.25rem;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            animation: slideDown 0.3s ease;
+        }
+        .lookup-res-box.success {
+            background: #EFF6FF;
+            border: 1.5px solid #BFDBFE;
+            color: #1E3A8A;
+        }
+        .lookup-res-box.error {
+            background: #FEF2F2;
+            border: 1.5px solid #FECACA;
+            color: #991B1B;
+        }
+
+        /* ── MAIN WRAPPER ── */
+        .apn-main-container {
+            max-width: 1320px;
+            margin: -2.2rem auto 3.5rem;
+            padding: 0 1.25rem;
+            position: relative;
+            z-index: 10;
+            width: 100%;
+        }
+
+        /* ── TABS NAVIGATION ── */
+        .tabs-nav-bar {
+            background: #FFFFFF;
+            border-radius: 18px;
+            padding: 0.45rem;
+            display: flex;
+            gap: 0.45rem;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
+            border: 1.5px solid var(--border-card);
+            margin-bottom: 1.8rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.9rem 1.25rem;
+            border: none;
+            background: transparent;
+            border-radius: 14px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #64748B;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .tab-btn:hover {
+            color: #0F172A;
+            background: #F8FAFC;
+        }
+        .tab-btn.active {
+            background: #0B192C;
+            color: #FFFFFF;
+            box-shadow: 0 4px 15px rgba(11, 25, 44, 0.25);
+        }
+
+        /* ── FILTER INPUT (TRADICIONALES) ── */
+        .search-filter-card {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-filter-input {
+            width: 100%;
+            padding: 0.9rem 1.2rem 0.9rem 3rem;
+            border: 1.5px solid var(--border-card);
+            border-radius: 16px;
+            background: #FFFFFF;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #0F172A;
+            outline: none;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);
+            transition: all 0.2s ease;
+        }
+        .search-filter-input:focus {
+            border-color: var(--brand-blue);
+            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.1);
+        }
+
+        .search-filter-icon {
+            position: absolute;
+            left: 1.15rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94A3B8;
+            font-size: 1.1rem;
+        }
+
+        /* ── APN CARDS GRID ── */
+        .apn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.15rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .apn-grid-4cols {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        @media (max-width: 1180px) {
+            .apn-grid-4cols {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .apn-grid-4cols {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .apn-card {
+            background: #FFFFFF;
+            border: 1.5px solid var(--border-card);
+            border-radius: var(--card-radius);
+            padding: 1.25rem 1.15rem;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .apn-card:hover {
+            transform: translateY(-4px);
+            border-color: #CBD5E1;
+            box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.08);
+        }
+
+        .apn-card.highlighted {
+            border-color: var(--brand-orange) !important;
+            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.25), 0 20px 40px -10px rgba(255, 107, 0, 0.2) !important;
+            animation: cardGlow 1.8s ease-in-out infinite alternate;
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.85rem;
+        }
+
+        .card-identity {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-icon-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #FFFFFF;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-name-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #0F172A;
+            line-height: 1.2;
+        }
+
+        .card-network-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.7rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            color: #475569;
+            background: #F1F5F9;
+            padding: 0.15rem 0.5rem;
+            border-radius: 6px;
+            margin-top: 0.2rem;
+            border: 1px solid #E2E8F0;
+        }
+
+        /* Monospace APN Display Box */
+        .apn-code-box {
+            background: #F8FAFC;
+            border: 1.5px dashed #CBD5E1;
+            border-radius: 12px;
+            padding: 0.75rem 0.85rem;
+            margin: 0.8rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            transition: border-color 0.2s;
+        }
+        .apn-card:hover .apn-code-box {
+            border-color: #94A3B8;
+        }
+
+        .apn-code-meta {
+            overflow: hidden;
+        }
+
+        .apn-code-label {
+            font-size: 0.65rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748B;
+            display: block;
+            margin-bottom: 0.15rem;
+        }
+
+        .apn-code-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #0B192C;
+            letter-spacing: 0.1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-copy-action {
+            background: #FFFFFF;
+            border: 1.5px solid #CBD5E1;
+            padding: 0.55rem 0.95rem;
+            border-radius: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #0F172A;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+            transition: all 0.15s ease;
+        }
+        .btn-copy-action:hover {
+            background: #0B192C;
+            color: #FFFFFF;
+            border-color: #0B192C;
+            transform: scale(1.03);
+        }
+        .btn-copy-action.copied {
+            background: #10B981 !important;
+            border-color: #10B981 !important;
+            color: #FFFFFF !important;
+        }
+
+        /* Tech Specs */
+        .apn-specs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            font-size: 0.82rem;
+            margin: 0.8rem 0;
+            border-top: 1px solid #F1F5F9;
+            padding-top: 0.8rem;
+        }
+
+        .spec-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #475569;
+        }
+        .spec-item strong {
+            color: #0F172A;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+        }
+
+        /* Roaming Badges */
+        .roaming-tag {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.6rem 0.85rem;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1.35;
+            margin-top: 0.6rem;
+        }
+        .roaming-tag.required {
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            color: #B91C1C;
+        }
+        .roaming-tag.optional {
+            background: #F0FDF4;
+            border: 1px solid #BBF7D0;
+            color: #15803D;
+        }
+
+        /* ── INTERACTIVE STEPPER & SMARTPHONE SIMULATOR ── */
+        .sim-container {
+            background: #FFFFFF;
+            border: 1.5px solid var(--border-card);
+            border-radius: 26px;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05);
+        }
+
+        .sim-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.2rem;
+            margin-bottom: 1.6rem;
+            border-bottom: 1px solid #F1F5F9;
+            padding-bottom: 1.35rem;
+        }
+
+        .sim-header-info h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0F172A;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+        .sim-header-info p {
+            font-size: 0.88rem;
+            color: #64748B;
+            margin-top: 0.25rem;
+        }
+
+        .sim-controls-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .os-switch-pills {
+            display: inline-flex;
+            background: #F1F5F9;
+            padding: 0.35rem;
+            border-radius: 14px;
+            gap: 0.3rem;
+            border: 1px solid #E2E8F0;
+        }
+
+        .os-tab-btn {
+            border: none;
+            background: transparent;
+            padding: 0.55rem 1.15rem;
+            border-radius: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #64748B;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: all 0.2s ease;
+        }
+        .os-tab-btn.active {
+            background: #0B192C;
+            color: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(11, 25, 44, 0.2);
+        }
+
+        .view-mode-btn {
+            background: #FFFFFF;
+            border: 1.5px solid #CBD5E1;
+            padding: 0.55rem 0.95rem;
+            border-radius: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #334155;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: all 0.2s;
+        }
+        .view-mode-btn:hover {
+            border-color: #0B192C;
+            color: #0B192C;
+        }
+
+        /* Progress Bar */
+        .sim-progress-track {
+            background: #F1F5F9;
+            height: 6px;
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .sim-progress-fill {
+            background: linear-gradient(90deg, var(--brand-blue) 0%, var(--brand-orange) 100%);
+            height: 100%;
+            width: 20%;
+            border-radius: 9999px;
+            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Stepper Tabs Bar */
+        .stepper-nav-bar {
+            display: flex;
+            gap: 0.6rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.8rem;
+            scrollbar-width: none;
+        }
+        .stepper-nav-bar::-webkit-scrollbar { display: none; }
+
+        .step-pill-btn {
+            flex: 1;
+            min-width: 140px;
+            background: #F8FAFC;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 14px;
+            padding: 0.75rem 0.9rem;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        .step-pill-btn:hover {
+            border-color: #94A3B8;
+            background: #FFFFFF;
+            transform: translateY(-2px);
+        }
+        .step-pill-btn.active {
+            background: #0B192C;
+            border-color: #0B192C;
+            color: #FFFFFF;
+            box-shadow: 0 4px 15px rgba(11, 25, 44, 0.2);
+            transform: translateY(-2px);
+        }
+        .step-pill-btn.completed {
+            border-color: #BBF7D0;
+            background: #F0FDF4;
+        }
+        .step-pill-btn.completed .step-pill-sub {
+            color: #16A34A;
+        }
+
+        .step-pill-num {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #94A3B8;
+        }
+        .step-pill-btn.active .step-pill-num {
+            color: #38BDF8;
+        }
+
+        .step-pill-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: #0F172A;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .step-pill-btn.active .step-pill-title {
+            color: #FFFFFF;
+        }
+
+        .step-pill-sub {
+            font-size: 0.72rem;
+            color: #64748B;
+        }
+        .step-pill-btn.active .step-pill-sub {
+            color: #CBD5E1;
+        }
+
+        /* ── STUDIO LAYOUT (LEFT INSTRUCTIONS, RIGHT PHONE MOCKUP) ── */
+        .sim-studio {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        /* Left Side: Step Detail Box */
+        .sim-detail-card {
+            background: #F8FAFC;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 20px;
+            padding: 1.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .sim-step-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sim-step-tag {
+            background: #E0F2FE;
+            color: #0369A1;
+            padding: 0.3rem 0.75rem;
+            border-radius: 9999px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+
+        .sim-step-time {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #64748B;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .sim-step-heading {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: #0F172A;
+            line-height: 1.25;
+        }
+
+        .sim-step-desc {
+            font-size: 0.94rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        /* Interactive Widgets inside Step */
+        .sim-tool-box {
+            background: #FFFFFF;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .sim-tool-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .sim-tool-label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748B;
+        }
+
+        .sim-tool-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #0F172A;
+            background: #F1F5F9;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sim-apn-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.4rem;
+        }
+
+        .sim-chip-btn {
+            background: #F8FAFC;
+            border: 1px solid #CBD5E1;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .sim-chip-btn:hover {
+            border-color: var(--brand-blue);
+            color: var(--brand-blue);
+            background: #EFF6FF;
+        }
+        .sim-chip-btn.active {
+            background: #0284C7;
+            color: #FFFFFF;
+            border-color: #0284C7;
+        }
+
+        /* Interactive Airplane Mode Tester */
+        .sim-airplane-tester {
+            background: #FFF7ED;
+            border: 1.5px solid #FED7AA;
+            border-radius: 14px;
+            padding: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .btn-test-flight {
+            background: #EA580C;
+            color: #FFFFFF;
+            border: none;
+            padding: 0.6rem 1.1rem;
+            border-radius: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+        }
+        .btn-test-flight:hover {
+            background: #C2410C;
+            transform: scale(1.02);
+        }
+
+        /* Stepper Navigation Buttons */
+        .sim-nav-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #E2E8F0;
+            margin-top: 0.5rem;
+        }
+
+        .btn-sim-prev {
+            background: #FFFFFF;
+            border: 1.5px solid #CBD5E1;
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #475569;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+        .btn-sim-prev:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .btn-sim-prev:not(:disabled):hover {
+            background: #F1F5F9;
+            color: #0F172A;
+        }
+
+        .btn-sim-next {
+            background: #0B192C;
+            color: #FFFFFF;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(11, 25, 44, 0.25);
+        }
+        .btn-sim-next:hover {
+            background: var(--brand-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 0, 0.35);
+        }
+
+        /* ── RIGHT SIDE: REALISTIC PHONE SCREEN MOCKUP ── */
+        .sim-phone-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .phone-mockup {
+            width: 310px;
+            height: 580px;
+            background: #000000;
+            border-radius: 46px;
+            padding: 10px;
+            box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.3), 0 0 0 4px #262626, 0 0 0 6px #171717;
+            position: relative;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Dynamic Island / Speaker */
+        .phone-notch {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 24px;
+            background: #000000;
+            border-radius: 20px;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+        .phone-lens {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #1A1A1A;
+            border: 1px solid #333;
+        }
+        .phone-speaker {
+            width: 38px;
+            height: 4px;
+            border-radius: 2px;
+            background: #1E1E1E;
+        }
+
+        /* Screen Interior */
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #FFFFFF;
+            border-radius: 36px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Status Bar */
+        .phone-status-bar {
+            height: 46px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 0 1.25rem 0.5rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #0F172A;
+            background: #F8FAFC;
+            border-bottom: 1px solid #F1F5F9;
+            z-index: 10;
+        }
+        .phone-status-right {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.72rem;
+        }
+
+        /* Screen Dynamic Content Area */
+        .phone-view-container {
+            flex: 1;
+            overflow-y: auto;
+            background: #F8FAFC;
+            position: relative;
+            padding: 0.85rem;
+            scrollbar-width: none;
+        }
+        .phone-view-container::-webkit-scrollbar { display: none; }
+
+        /* Simulated UI Screens */
+        .sim-ui-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #0F172A;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .sim-ui-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .sim-ui-item {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 0.65rem 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #334155;
+            transition: all 0.2s;
+        }
+        .sim-ui-item.active-target {
+            border-color: var(--brand-orange) !important;
+            background: #FFF7ED !important;
+            color: #C2410C !important;
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2) !important;
+            animation: pulseTarget 1.5s infinite;
+        }
+
+        .sim-ui-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            margin-bottom: 0.6rem;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            padding: 0.55rem 0.75rem;
+            border-radius: 10px;
+        }
+        .sim-ui-form-group.highlighted {
+            border-color: var(--brand-blue);
+            background: #F0F9FF;
+        }
+        .sim-ui-form-label {
+            font-size: 0.65rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #64748B;
+        }
+        .sim-ui-form-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #0F172A;
+        }
+
+        .sim-ui-toggle {
+            width: 40px;
+            height: 22px;
+            background: #CBD5E1;
+            border-radius: 9999px;
+            position: relative;
+            transition: background 0.2s;
+        }
+        .sim-ui-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: #FFFFFF;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .sim-ui-toggle.active {
+            background: #10B981;
+        }
+        .sim-ui-toggle.active::after {
+            transform: translateX(18px);
+        }
+
+        /* Pulse Animations */
+        @keyframes pulseTarget {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* ── TROUBLESHOOTING FAQ ── */
+        .troubleshoot-box {
+            background: #FFFFFF;
+            border: 1.5px solid var(--border-card);
+            border-radius: 22px;
+            padding: 1.8rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+        }
+
+        .troubleshoot-box h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #0F172A;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .troubleshoot-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            list-style: none;
+        }
+
+        .trouble-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.85rem;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            color: #334155;
+            padding: 0.85rem 1rem;
+            border-radius: 14px;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+        }
+
+        .trouble-icon-wrap {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.95rem;
+            margin-top: 0.1rem;
+        }
+        .trouble-icon-wrap.warn { background: #FEF3C7; color: #D97706; }
+        .trouble-icon-wrap.plane { background: #E0F2FE; color: #0284C7; }
+        .trouble-icon-wrap.chat { background: #DCFCE7; color: #16A34A; }
+
+        /* ── ROAMING ZONA 1 INFO ── */
+        .roaming-zone-box {
+            background: #FFFFFF;
+            border: 1.5px solid var(--border-card);
+            border-radius: 22px;
+            padding: 1.8rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+        }
+        .roaming-zone-box h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #0F172A;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .roaming-zone-desc {
+            font-size: 0.9rem;
+            color: #475569;
+            line-height: 1.55;
+            margin-bottom: 1.2rem;
+        }
+        .roaming-countries-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin-bottom: 1.2rem;
+        }
+        .country-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            padding: 0.35rem 0.65rem;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #1E293B;
+            transition: all 0.15s ease;
+        }
+        .country-chip:hover {
+            border-color: #CBD5E1;
+            background: #F1F5F9;
+        }
+        .roaming-important-note {
+            background: #EFF6FF;
+            border-left: 4px solid #0284C7;
+            padding: 0.85rem 1.1rem;
+            border-radius: 10px;
+            font-size: 0.84rem;
+            color: #1E3A8A;
+            line-height: 1.5;
+        }
+
+        /* ── TOAST NOTIFICATION ── */
+        .apn-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120px);
+            background: #070F2B;
+            color: #FFFFFF;
+            padding: 0.85rem 1.6rem;
+            border-radius: 9999px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            box-shadow: 0 14px 35px rgba(7, 15, 43, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.15);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 9999;
+            pointer-events: none;
+        }
+        .apn-toast.active {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ── FOOTER ── */
+        .apn-footer {
+            margin-top: auto;
+            background: #FFFFFF;
+            border-top: 1px solid #E2E8F0;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            font-size: 0.84rem;
+            color: #64748B;
+            line-height: 1.6;
+        }
+        .apn-footer strong {
+            color: #0F172A;
+        }
+
+        /* Animations */
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+
+        @keyframes cardGlow {
+            0% { box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.25), 0 15px 30px rgba(255, 107, 0, 0.15); }
+            100% { box-shadow: 0 0 0 6px rgba(255, 107, 0, 0.4), 0 20px 45px rgba(255, 107, 0, 0.3); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive Mobile First Polish */
+        @media (max-width: 900px) {
+            .sim-studio { grid-template-columns: 1fr; }
+            .sim-phone-wrapper { margin-top: 1.5rem; }
+        }
+
+        @media (max-width: 768px) {
+            .apn-hero {
+                padding: 2.2rem 1rem 3.5rem;
+            }
+            .apn-hero h1 { 
+                font-size: 1.65rem; 
+                line-height: 1.25;
+            }
+            .apn-hero p { 
+                font-size: 0.9rem; 
+                margin-bottom: 1.4rem;
+            }
+            .lookup-glass-card {
+                padding: 1.15rem 1rem;
+                border-radius: 18px;
+            }
+            .lookup-bar { 
+                flex-direction: column; 
+                gap: 0.6rem;
+            }
+            .lookup-btn { 
+                width: 100%; 
+                justify-content: center;
+                padding: 0.85rem;
+            }
+            .apn-brand-badge { 
+                display: none; 
+            }
+            .tabs-nav-bar {
+                flex-direction: column;
+                padding: 0.35rem;
+                gap: 0.35rem;
+            }
+            .tab-btn {
+                padding: 0.75rem 1rem;
+                font-size: 0.88rem;
+            }
+            .apn-main-container {
+                margin-top: -1.8rem;
+                padding: 0 0.85rem;
+            }
+            .apn-card {
+                padding: 1.15rem 1rem;
+                border-radius: 18px;
+            }
+            .apn-code-box {
+                padding: 0.7rem 0.8rem;
+            }
+            .apn-code-val {
+                font-size: 0.98rem;
+            }
+            .sim-container {
+                padding: 1.25rem 1rem;
+                border-radius: 20px;
+            }
+            .sim-header { 
+                flex-direction: column; 
+                align-items: flex-start; 
+                gap: 0.85rem;
+            }
+            .sim-controls-group { 
+                width: 100%; 
+                justify-content: space-between; 
+            }
+            .roaming-zone-box {
+                padding: 1.25rem 1rem;
+                border-radius: 18px;
+            }
+            .country-chip {
+                font-size: 0.78rem;
+                padding: 0.3rem 0.55rem;
+            }
+            .troubleshoot-box {
+                padding: 1.25rem 1rem;
+                border-radius: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .card-identity {
+                gap: 0.6rem;
+            }
+            .card-icon-avatar {
+                width: 38px;
+                height: 38px;
+                font-size: 1rem;
+            }
+            .card-name-title {
+                font-size: 0.98rem;
+            }
+            .btn-copy-action {
+                padding: 0.45rem 0.75rem;
+                font-size: 0.78rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR STICKY -->
+    <header class="apn-navbar">
+        <div class="apn-navbar-inner">
+            <a href="/" class="apn-brand-group">
+                <img src="/static/img/logo.png" alt="MásKFundas" class="apn-logo">
+                <span class="apn-brand-badge">
+                    <i class="fa-solid fa-satellite-dish"></i> OMV PROPIO
+                </span>
+            </a>
+            <div class="apn-nav-actions">
+                <a href="https://wa.me/34666677773?text=Hola,%20necesito%20ayuda%20para%20configurar%20el%20internet%20en%20mi%20móvil" target="_blank" class="btn-wa-soporte">
+                    <i class="fa-brands fa-whatsapp"></i> <span>Ayuda WhatsApp</span>
+                </a>
+                <a href="/" class="btn-portal-link">
+                    <i class="fa-solid fa-house"></i> <span>Área Clientes</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO HEADER -->
+    <section class="apn-hero">
+        <div class="apn-hero-inner">
+            <div class="pill-tag">
+                <span class="dot"></span>
+                <span>Configuración APN 5G</span>
+            </div>
+            
+            <h1>
+                Configura tu Internet <span class="highlight-text">en segundos</span>
+            </h1>
+            
+            <p>
+                Introduce tu número o elige tu tarjeta para ver el APN exacto al instante.
+            </p>
+
+            <!-- SMART PHONE LOOKUP -->
+            <div class="lookup-glass-card">
+                <div class="lookup-title">
+                    <span class="lookup-title-text">
+                        <i class="fa-solid fa-magnifying-glass" style="color: var(--brand-orange);"></i>
+                        Detector Automático
+                    </span>
+                    <span class="lookup-title-badge">MásKFundas</span>
+                </div>
+                <div class="lookup-bar">
+                    <div class="lookup-input-wrap">
+                        <span class="lookup-prefix">+34</span>
+                        <input type="tel" id="inputSearchPhone" class="lookup-input" placeholder="Tu número de móvil" maxlength="15" onkeypress="if(event.key==='Enter') buscarAPNTelefono()">
+                    </div>
+                    <button class="lookup-btn" onclick="buscarAPNTelefono()">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Ver mi APN</span>
+                    </button>
+                </div>
+                <div id="lookupResultBox" class="lookup-res-box"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN CONTENT -->
+    <main class="apn-main-container">
+
+        <!-- AVISO BÁSICO DE CONEXIÓN Y ROAMING -->
+        <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-left: 5px solid var(--brand-orange); border-radius: 16px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.85rem; box-shadow: 0 4px 15px rgba(15,23,42,0.03);">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: #FFF7ED; color: #EA580C; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                    <i class="fa-solid fa-tower-broadcast"></i>
+                </div>
+                <div style="font-size: 0.88rem; color: #334155; line-height: 1.45;">
+                    <strong style="color: #0F172A;">Revisión indispensable:</strong> Comprueba que los <strong>Datos Móviles</strong> estén encendidos y la <strong>Itinerancia de Datos (Roaming)</strong> activa. <em>(Nota: en algunos móviles puedes tener opciones de «Roaming Nacional» para navegar en España y «Roaming Internacional» para cuando viajes fuera)</em>.
+                </div>
+            </div>
+            <div style="display: inline-flex; gap: 0.4rem; font-size: 0.76rem; font-weight: 700;">
+                <span style="background: #EFF6FF; color: #1E40AF; padding: 0.25rem 0.6rem; border-radius: 6px;"><i class="fa-solid fa-check"></i> Datos Activos</span>
+                <span style="background: #FEF3C7; color: #92400E; padding: 0.25rem 0.6rem; border-radius: 6px;"><i class="fa-solid fa-plane"></i> Roaming Activo</span>
+            </div>
+        </div>
+
+        <!-- TABS DE CATEGORÍA -->
+        <div class="tabs-nav-bar">
+            <button class="tab-btn active" id="tabBtnMask" onclick="cambiarPestana('maskfundas')">
+                <i class="fa-solid fa-sim-card" style="color: #F59E0B;"></i>
+                <span>Líneas MásKFundas</span>
+            </button>
+            <button class="tab-btn" id="tabBtnTradicionales" onclick="cambiarPestana('tradicionales')">
+                <i class="fa-solid fa-store" style="color: #0284C7;"></i>
+                <span>Otros Operadores (Digi, O2, Simyo...)</span>
+            </button>
+        </div>
+
+        <!-- SECCIÓN 1: LÍNEAS PROPIAS MÁSKFUNDAS -->
+        <div id="sectionMaskfundas">
+            <div class="apn-grid apn-grid-4cols">
+                
+                <!-- 1. Línea Red Vodafone (SIM Roja) -->
+                <div class="apn-card" id="card-mask-voda">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="card-icon-avatar" style="background: linear-gradient(135deg, #E60000 0%, #B91C1C 100%);">
+                                    <i class="fa-solid fa-signal"></i>
+                                </div>
+                                <div>
+                                    <div class="card-name-title">Línea Red Vodafone</div>
+                                    <span class="card-network-pill"><i class="fa-solid fa-bolt text-red-500"></i> Red Vodafone 5G · SIM Roja</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="apn-code-box">
+                            <div class="apn-code-meta">
+                                <span class="apn-code-label">Punto de Acceso (APN)</span>
+                                <div class="apn-code-val" id="apn-voda">fi.omv.es</div>
+                            </div>
+                            <button class="btn-copy-action" onclick="copiarAPN('fi.omv.es', this)">
+                                <i class="fa-regular fa-copy"></i> <span>Copiar</span>
+                            </button>
+                        </div>
+
+                        <div class="apn-specs-list">
+                            <div class="spec-item"><span>Nombre de perfil:</span> <strong>Maskfundas</strong></div>
+                            <div class="spec-item"><span>APN:</span> <strong>fi.omv.es</strong></div>
+                            <div class="spec-item"><span>Usuario y Clave:</span> <strong>(en blanco)</strong></div>
+                            <div class="spec-item"><span>Tipo de APN:</span> <strong>default,supl,dun</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="roaming-tag optional">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>Itinerancia de datos: Opcional en España</span>
+                    </div>
+                </div>
+
+                <!-- 2. Línea Red Azul (SIM Azul) -->
+                <div class="apn-card" id="card-mask-azul">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="card-icon-avatar" style="background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);">
+                                    <i class="fa-solid fa-tower-cell"></i>
+                                </div>
+                                <div>
+                                    <div class="card-name-title">Línea Red Azul</div>
+                                    <span class="card-network-pill"><i class="fa-solid fa-bolt text-blue-500"></i> Red 5G · SIM Azul</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="apn-code-box">
+                            <div class="apn-code-meta">
+                                <span class="apn-code-label">Punto de Acceso (APN)</span>
+                                <div class="apn-code-val" id="apn-azul">inet.es</div>
+                            </div>
+                            <button class="btn-copy-action" onclick="copiarAPN('inet.es', this)">
+                                <i class="fa-regular fa-copy"></i> <span>Copiar</span>
+                            </button>
+                        </div>
+
+                        <div class="apn-specs-list">
+                            <div class="spec-item"><span>Nombre de perfil:</span> <strong>Maskfundas</strong></div>
+                            <div class="spec-item"><span>APN:</span> <strong>inet.es</strong></div>
+                            <div class="spec-item"><span>Usuario y Clave:</span> <strong>(en blanco)</strong></div>
+                            <div class="spec-item"><span>Tipo de APN:</span> <strong>default,supl,dun</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="roaming-tag required">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>OBLIGATORIO: Activar Itinerancia de Datos</span>
+                    </div>
+                </div>
+
+                <!-- 3. Línea Red Amarilla (SIM Amarilla) -->
+                <div class="apn-card" id="card-mask-amarilla">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="card-icon-avatar" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
+                                    <i class="fa-solid fa-tower-cell"></i>
+                                </div>
+                                <div>
+                                    <div class="card-name-title">Línea Red Amarilla</div>
+                                    <span class="card-network-pill"><i class="fa-solid fa-bolt text-amber-500"></i> Red 5G · SIM Amarilla</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="apn-code-box">
+                            <div class="apn-code-meta">
+                                <span class="apn-code-label">Punto de Acceso (APN)</span>
+                                <div class="apn-code-val" id="apn-amarilla">orangeworld</div>
+                            </div>
+                            <button class="btn-copy-action" onclick="copiarAPN('orangeworld', this)">
+                                <i class="fa-regular fa-copy"></i> <span>Copiar</span>
+                            </button>
+                        </div>
+
+                        <div class="apn-specs-list">
+                            <div class="spec-item"><span>Nombre de perfil:</span> <strong>Maskfundas</strong></div>
+                            <div class="spec-item"><span>APN:</span> <strong>orangeworld</strong></div>
+                            <div class="spec-item"><span>Usuario / Clave:</span> <strong>orange / orange</strong></div>
+                            <div class="spec-item"><span>MCC / MNC:</span> <strong>214 / 03</strong></div>
+                            <div class="spec-item"><span>Tipo autenticación:</span> <strong>PAP</strong></div>
+                            <div class="spec-item"><span>Tipo de APN:</span> <strong>default</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="roaming-tag required">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>OBLIGATORIO: Activar Itinerancia de Datos</span>
+                    </div>
+                </div>
+
+                <!-- 4. Línea Red MasOrange (SIM Verde) -->
+                <div class="apn-card" id="card-mask-tmovil">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="card-icon-avatar" style="background: linear-gradient(135deg, #10B981 0%, #047857 100%);">
+                                    <i class="fa-solid fa-mobile-screen"></i>
+                                </div>
+                                <div>
+                                    <div class="card-name-title">Línea Red MasOrange</div>
+                                    <span class="card-network-pill"><i class="fa-solid fa-bolt text-emerald-500"></i> Red 5G · MasOrange</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="apn-code-box">
+                            <div class="apn-code-meta">
+                                <span class="apn-code-label">Punto de Acceso (APN)</span>
+                                <div class="apn-code-val" id="apn-tmovil">internet</div>
+                            </div>
+                            <button class="btn-copy-action" onclick="copiarAPN('internet', this)">
+                                <i class="fa-regular fa-copy"></i> <span>Copiar</span>
+                            </button>
+                        </div>
+
+                        <div class="apn-specs-list">
+                            <div class="spec-item"><span>Nombre de perfil:</span> <strong>Maskfundas</strong></div>
+                            <div class="spec-item"><span>APN:</span> <strong>internet</strong></div>
+                            <div class="spec-item"><span>Usuario y Clave:</span> <strong>(en blanco)</strong></div>
+                            <div class="spec-item"><span>Tipo de APN:</span> <strong>default,supl,dun</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="roaming-tag required">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>OBLIGATORIO: Activar Itinerancia de Datos</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: OPERADORES TRADICIONALES DISTRIBUIDOS -->
+        <div id="sectionTradicionales" style="display: none;">
+            
+            <!-- Buscador en Vivo -->
+            <div class="search-filter-card">
+                <i class="fa-solid fa-magnifying-glass search-filter-icon"></i>
+                <input type="text" id="filterOpInput" class="search-filter-input" placeholder="Buscar operador (Digi, O2, Simyo, Lowi, MásMóvil, Pepephone, Movistar...)" oninput="filtrarOperadores(this.value)">
+            </div>
+
+            <div class="apn-grid" id="gridTradicionales">
+
+                <!-- Digi Mobil -->
+                <div class="apn-card op-item" data-name="digi mobil movistar">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="card-icon-avatar" style="background: #0055A5;">DIGI</div>
+                                <div>
+                                    <div class="card-name-title">Digi Mobil</div>
+                                    <span class="card-network-pill">Red Movistar</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="apn-code-box">
+                            <div class="apn-code-meta">
+                                <span class="apn-code-label">PUNTO DE ACCESO (APN)</span>
+                                <div class="apn-code-val">digimobil</div>
+                            </div>
+                            <button class="btn-copy-action" onclick="copiarAPN('digimobil', this)"><i class="fa-regular fa-copy"></i> <span>Copiar</span></button>
+                        </div>
+                        <div class="apn-specs-list">
+                            <div class="spec-item"><span>Nombre:</span> <strong>DIGI</strong></div>
+                            <div class="spec-item"><span>Usuario / Clave:</span> <strong>(en blanco)</strong></div>
+                        </div>
+                    </div>
+                    <div class="roaming-tag required">
+                        <i class="fa-solid fa-triangle-exclamation"></i> <span>OBLIGATORIO: Activar Itinerancia</span>
+                    </div>
+                </div>
+
+                <!-- O2 -->
+                <div class="apn-card op-item" data-name="o2 movistar telefonica">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="card-icon-avatar" style="background: #032B80;">O2</div>
+                                <div>
+                                    <div class="card-name-title">O2 España</div>
+                                    <span class="card-network-pill">Red Telefónica / Movistar</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="apn-code-box">
+                            <div class="apn-code-meta">
+                                <span class="apn-code-label">PUNTO DE ACCESO (APN)</span>
+                                <div class="apn-code-val">telefonica.es</div>
+                            </div>
+                            <button class="btn-copy-action" onclick="copiarAPN('telefonica.es', this)"><i class="fa-regular fa-copy"></i> <span>Copiar</span></button>
+                        </div>
+                        <div class="apn-specs-list">
+                            <div class="spec-item"><span>Nombre:</span> <strong>O2</strong></div>
+                            <div class="spec-item"><span>Usuario / Clave:</span> <strong>telefonica / telefonica</strong></div>
+                        </div>
+                    </div>
+                    <div class="roaming-tag optional">
+                        <i class="fa-solid fa-circle-check"></i> <span>Itinerancia: No requerida en España</span>
+                    </div>
+                </div>
+
+                <!-- Lowi -->
+                <div class="apn-card op-item" data-name="lowi vodafone">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="card-icon-avatar" style="background: #E11D48;">LW</div>
+                                <div>
+                                    <div class="card-name-title">Lowi</div>
+                                    <span class="card-network-pill">Red Vodafone</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="apn-code-box">
+                            <div class="apn-code-meta">
+                                <span class="apn-code-label">PUNTO DE ACCESO (APN)</span>
+                                <div class="apn-code-val">lowi.es</div>
+                            </div>
+                            <button class="btn-copy-action" onclick="copiarAPN('lowi.es', this)"><i class="fa-regular fa-copy"></i> <span>Copiar</span></button>
+                        </div>
+                        <div class="apn-specs-list">
+                            <div class="spec-item"><span>Nombre:</span> <strong>Lowi</strong></div>
+                            <div class="spec-item"><span>Usuario / Clave:</span> <strong>(en blanco)</strong></div>
+                        </div>
+                    </div>
+                    <div class="roaming-tag optional">
+                        <i class="fa-solid fa-circle-check"></i> <span>Itinerancia: Opcional</span>
+                    </div>
+                </div>
+
+                <!-- Simyo -->
+                <div class="apn-card op-item" data-name="simyo orange">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="card-icon-avatar" style="background: #EA580C;">SM</div>
+                                <div>
+                                    <div class="card-name-title">Simyo</div>
+                                    <span class="card-network-pill">Red Orange</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="apn-code-box">
+                            <div class="apn-code-meta">
+                                <span class="apn-code-label">PUNTO DE ACCESO (APN)</span>
+                                <div class="apn-code-val">gprs-service.com</div>
+                            </div>
+                            <button class="btn-copy-action" onclick="copiarAPN('gprs-service.com', this)"><i class="fa-regular fa-copy"></i> <span>Copiar</span></button>
+                        </div>
+                        <div class="apn-specs-list">
+                            <div class="spec-item"><span>Nombre:</span> <strong>Simyo</strong></div>
+                            <div class="spec-item"><span>Usuario / Clave:</span> <strong>(en blanco)</strong></div>
+                        </div>
+                    </div>
+                    <div class="roaming-tag required">
+                        <i class="fa-solid fa-triangle-exclamation"></i> <span>OBLIGATORIO: Activar Itinerancia</span>
+                    </div>
+                </div>
+
+                <!-- Pepephone -->
+                <div class="apn-card op-item" data-name="pepephone yoigo masmovil">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="card-icon-avatar" style="background: #DC2626;">PP</div>
+                                <div>
+                                    <div class="card-name-title">Pepephone</div>
+                                    <span class="card-network-pill">Red Yoigo / Orange</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="apn-code-box">
+                            <div class="apn-code-meta">
+                                <span class="apn-code-label">PUNTO DE ACCESO (APN)</span>
+                                <div class="apn-code-val">gprsmov.pepephone.com</div>
+                            </div>
+                            <button class="btn-copy-action" onclick="copiarAPN('gprsmov.pepephone.com', this)"><i class="fa-regular fa-copy"></i> <span>Copiar</span></button>
+                        </div>
+                        <div class="apn-specs-list">
+                            <div class="spec-item"><span>Nombre:</span> <strong>Pepephone</strong></div>
+                            <div class="spec-item"><span>Usuario / Clave:</span> <strong>(en blanco)</strong></div>
+                        </div>
+                    </div>
+                    <div class="roaming-tag required">
+                        <i class="fa-solid fa-triangle-exclamation"></i> <span>OBLIGATORIO: Activar Itinerancia</span>
+                    </div>
+                </div>
+
+                <!-- MásMóvil -->
+                <div class="apn-card op-item" data-name="masmovil másmóvil yoigo">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="card-icon-avatar" style="background: #EAB308; color: #000;">MM</div>
+                                <div>
+                                    <div class="card-name-title">MásMóvil</div>
+                                    <span class="card-network-pill">Red Yoigo / Orange</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="apn-code-box">
+                            <div class="apn-code-meta">
+                                <span class="apn-code-label">PUNTO DE ACCESO (APN)</span>
+                                <div class="apn-code-val">internetmas</div>
+                            </div>
+                            <button class="btn-copy-action" onclick="copiarAPN('internetmas', this)"><i class="fa-regular fa-copy"></i> <span>Copiar</span></button>
+                        </div>
+                        <div class="apn-specs-list">
+                            <div class="spec-item"><span>Nombre:</span> <strong>MasMovil</strong></div>
+                            <div class="spec-item"><span>Usuario / Clave:</span> <strong>(en blanco)</strong></div>
+                        </div>
+                    </div>
+                    <div class="roaming-tag required">
+                        <i class="fa-solid fa-triangle-exclamation"></i> <span>OBLIGATORIO: Activar Itinerancia</span>
+                    </div>
+                </div>
+
+                <!-- Movistar -->
+                <div class="apn-card op-item" data-name="movistar telefonica">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="card-icon-avatar" style="background: #00A9E0;">M</div>
+                                <div>
+                                    <div class="card-name-title">Movistar</div>
+                                    <span class="card-network-pill">Red Oficial Movistar</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="apn-code-box">
+                            <div class="apn-code-meta">
+                                <span class="apn-code-label">PUNTO DE ACCESO (APN)</span>
+                                <div class="apn-code-val">telefonica.es</div>
+                            </div>
+                            <button class="btn-copy-action" onclick="copiarAPN('telefonica.es', this)"><i class="fa-regular fa-copy"></i> <span>Copiar</span></button>
+                        </div>
+                        <div class="apn-specs-list">
+                            <div class="spec-item"><span>Nombre:</span> <strong>Movistar</strong></div>
+                            <div class="spec-item"><span>Usuario / Clave:</span> <strong>telefonica / telefonica</strong></div>
+                        </div>
+                    </div>
+                    <div class="roaming-tag optional">
+                        <i class="fa-solid fa-circle-check"></i> <span>Itinerancia: No requerida en España</span>
+                    </div>
+                </div>
+
+                <!-- Vodafone -->
+                <div class="apn-card op-item" data-name="vodafone">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="card-icon-avatar" style="background: #E60000;"><i class="fa-solid fa-phone"></i></div>
+                                <div>
+                                    <div class="card-name-title">Vodafone</div>
+                                    <span class="card-network-pill">Red Oficial Vodafone</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="apn-code-box">
+                            <div class="apn-code-meta">
+                                <span class="apn-code-label">PUNTO DE ACCESO (APN)</span>
+                                <div class="apn-code-val">airtelnet.es</div>
+                            </div>
+                            <button class="btn-copy-action" onclick="copiarAPN('airtelnet.es', this)"><i class="fa-regular fa-copy"></i> <span>Copiar</span></button>
+                        </div>
+                        <div class="apn-specs-list">
+                            <div class="spec-item"><span>Nombre:</span> <strong>Vodafone</strong></div>
+                            <div class="spec-item"><span>Usuario / Clave:</span> <strong>vodafone / vodafone</strong></div>
+                        </div>
+                    </div>
+                    <div class="roaming-tag optional">
+                        <i class="fa-solid fa-circle-check"></i> <span>Itinerancia: No requerida en España</span>
+                    </div>
+                </div>
+
+                <!-- Orange -->
+                <div class="apn-card op-item" data-name="orange">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="card-icon-avatar" style="background: #FF7900;">O</div>
+                                <div>
+                                    <div class="card-name-title">Orange</div>
+                                    <span class="card-network-pill">Red Oficial Orange</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="apn-code-box">
+                            <div class="apn-code-meta">
+                                <span class="apn-code-label">PUNTO DE ACCESO (APN)</span>
+                                <div class="apn-code-val">orangeworld</div>
+                            </div>
+                            <button class="btn-copy-action" onclick="copiarAPN('orangeworld', this)"><i class="fa-regular fa-copy"></i> <span>Copiar</span></button>
+                        </div>
+                        <div class="apn-specs-list">
+                            <div class="spec-item"><span>Nombre:</span> <strong>Orange</strong></div>
+                            <div class="spec-item"><span>Usuario / Clave:</span> <strong>orange / orange</strong></div>
+                        </div>
+                    </div>
+                    <div class="roaming-tag optional">
+                        <i class="fa-solid fa-circle-check"></i> <span>Itinerancia: No requerida en España</span>
+                    </div>
+                </div>
+
+                <!-- Yoigo -->
+                <div class="apn-card op-item" data-name="yoigo masmovil">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="card-icon-avatar" style="background: #802A8F;">Y</div>
+                                <div>
+                                    <div class="card-name-title">Yoigo</div>
+                                    <span class="card-network-pill">Red Yoigo</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="apn-code-box">
+                            <div class="apn-code-meta">
+                                <span class="apn-code-label">PUNTO DE ACCESO (APN)</span>
+                                <div class="apn-code-val">internet</div>
+                            </div>
+                            <button class="btn-copy-action" onclick="copiarAPN('internet', this)"><i class="fa-regular fa-copy"></i> <span>Copiar</span></button>
+                        </div>
+                        <div class="apn-specs-list">
+                            <div class="spec-item"><span>Nombre:</span> <strong>Yoigo</strong></div>
+                            <div class="spec-item"><span>Usuario / Clave:</span> <strong>(en blanco)</strong></div>
+                        </div>
+                    </div>
+                    <div class="roaming-tag required">
+                        <i class="fa-solid fa-triangle-exclamation"></i> <span>OBLIGATORIO: Activar Itinerancia</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ── SIMULADOR INTERACTIVO PASO A PASO ── -->
+        <section class="sim-container" id="guiaPasoAPaso">
+            
+            <!-- Cabecera de la Guía -->
+            <div class="sim-header">
+                <div class="sim-header-info">
+                    <h2>
+                        <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--brand-orange);"></i>
+                        <span>Simulador Interactivo de Configuración</span>
+                    </h2>
+                    <p>Sigue la guía visual paso a paso con simulación en tiempo real de la pantalla de tu teléfono.</p>
+                </div>
+                
+                <div class="sim-controls-group">
+                    <div class="os-switch-pills">
+                        <button class="os-tab-btn active" id="btnOsAndroid" onclick="cambiarSimOS('android')">
+                            <i class="fa-brands fa-android"></i> Android
+                        </button>
+                        <button class="os-tab-btn" id="btnOsIos" onclick="cambiarSimOS('ios')">
+                            <i class="fa-brands fa-apple"></i> iPhone (iOS)
+                        </button>
+                    </div>
+
+                    <button class="view-mode-btn" id="toggleViewModeBtn" onclick="toggleModoVisual()">
+                        <i class="fa-solid fa-list-check"></i> <span id="toggleViewModeText">Ver Todos los Pasos</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Barra de Progreso -->
+            <div class="sim-progress-track">
+                <div class="sim-progress-fill" id="simProgressFill"></div>
+            </div>
+
+            <!-- Barra de Pestañas de Pasos -->
+            <div class="stepper-nav-bar" id="stepperNavBar">
+                <!-- Generado dinámicamente según OS -->
+            </div>
+
+            <!-- MODO 1: SIMULADOR INTERACTIVO STUDIO -->
+            <div class="sim-studio" id="simStudioView">
+                
+                <!-- COLUMNA IZQUIERDA: DETALLES Y HERRAMIENTAS INTERACTIVAS -->
+                <div class="sim-detail-card" id="simStepCard">
+                    <!-- Contenido dinámico del paso -->
+                </div>
+
+                <!-- COLUMNA DERECHA: SMARTPHONE INTERACTIVO -->
+                <div class="sim-phone-wrapper">
+                    <div class="phone-mockup" id="phoneMockup">
+                        <div class="phone-notch">
+                            <span class="phone-lens"></span>
+                            <span class="phone-speaker"></span>
+                        </div>
+
+                        <div class="phone-screen">
+                            <div class="phone-status-bar">
+                                <span id="phoneClock">12:00</span>
+                                <div class="phone-status-right">
+                                    <span style="font-size: 0.65rem; color: #64748B;">5G MásK</span>
+                                    <i class="fa-solid fa-signal"></i>
+                                    <i class="fa-solid fa-wifi" id="phoneWifiIcon"></i>
+                                    <i class="fa-solid fa-battery-full"></i>
+                                </div>
+                            </div>
+
+                            <div class="phone-view-container" id="phoneScreenContent">
+                                <!-- Contenido de pantalla del teléfono dinámico -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- MODO 2: LISTA COMPLETA DE PASOS (GRID RÁPIDO) -->
+            <div id="simListView" style="display: none;">
+                <div class="apn-grid" id="simListGrid">
+                    <!-- Generado dinámicamente -->
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ── ROAMING INCLUIDO ZONA 1 (UE / EEE) ── -->
+        <section class="roaming-zone-box">
+            <h3>
+                <i class="fa-solid fa-earth-europe" style="color: #0284C7;"></i>
+                <span>Roaming Incluido: Países de la Zona 1 (Unión Europea y Espacio Económico Europeo)</span>
+            </h3>
+            <p class="roaming-zone-desc">
+                Si viajas a cualquiera de los países de la <strong>Zona 1</strong>, puedes utilizar tu tarifa de minutos y datos móviles <strong>sin ningún coste adicional</strong> (como si estuvieras en España), únicamente activando la <em>Itinerancia de Datos</em> en tu móvil.
+            </p>
+
+            <div class="roaming-countries-grid">
+                <span class="country-chip">🇩🇪 Alemania</span>
+                <span class="country-chip">🇦🇹 Austria</span>
+                <span class="country-chip">🇧🇪 Bélgica</span>
+                <span class="country-chip">🇧🇬 Bulgaria</span>
+                <span class="country-chip">🇨🇾 Chipre</span>
+                <span class="country-chip">🇭🇷 Croacia</span>
+                <span class="country-chip">🇩🇰 Dinamarca</span>
+                <span class="country-chip">🇸🇰 Eslovaquia</span>
+                <span class="country-chip">🇸🇮 Eslovenia</span>
+                <span class="country-chip">🇪🇪 Estonia</span>
+                <span class="country-chip">🇫🇮 Finlandia</span>
+                <span class="country-chip">🇫🇷 Francia</span>
+                <span class="country-chip">🇬🇮 Gibraltar</span>
+                <span class="country-chip">🇬🇷 Grecia</span>
+                <span class="country-chip">🇬🇵 Guadalupe</span>
+                <span class="country-chip">🇬🇫 Guayana Francesa</span>
+                <span class="country-chip">🇳🇱 Holanda (Países Bajos)</span>
+                <span class="country-chip">🇭🇺 Hungría</span>
+                <span class="country-chip">🇮🇪 Irlanda</span>
+                <span class="country-chip">🇮🇸 Islandia</span>
+                <span class="country-chip">🇮🇹 Italia</span>
+                <span class="country-chip">🇱🇻 Letonia</span>
+                <span class="country-chip">🇱🇮 Liechtenstein</span>
+                <span class="country-chip">🇱🇹 Lituania</span>
+                <span class="country-chip">🇱🇺 Luxemburgo</span>
+                <span class="country-chip">🇲🇹 Malta</span>
+                <span class="country-chip">🇲🇶 Martinica</span>
+                <span class="country-chip">🇲🇾 Mayotte</span>
+                <span class="country-chip">🇳🇴 Noruega</span>
+                <span class="country-chip">🇵🇱 Polonia</span>
+                <span class="country-chip">🇵🇹 Portugal</span>
+                <span class="country-chip">🇬🇧 Reino Unido</span>
+                <span class="country-chip">🇷🇪 Reunión</span>
+                <span class="country-chip">🇷🇴 Rumanía</span>
+                <span class="country-chip">🇸🇪 Suecia</span>
+                <span class="country-chip">🇸🇽 San Martín</span>
+                <span class="country-chip">🇻🇦 Vaticano</span>
+            </div>
+
+            <div class="roaming-important-note">
+                <strong>⚠️ Países NO incluidos en Zona 1 (Tarificación Especial / Zona 2):</strong><br>
+                Destinos como <strong>Andorra, Suiza o Mónaco NO forman parte de la Zona 1</strong>. En estos países el consumo de datos tiene coste adicional tarificado por MB, por lo que te recomendamos desactivar la itinerancia de datos al cruzar sus fronteras o en trayectos en barco/avión.
+            </div>
+        </section>
+
+        <!-- TROUBLESHOOTING FAQ -->
+        <section class="troubleshoot-box">
+            <h3>
+                <i class="fa-solid fa-circle-question" style="color: var(--brand-orange);"></i>
+                <span>¿Sigues sin conexión? Comprueba estos pasos:</span>
+            </h3>
+            <div class="troubleshoot-list">
+                <div class="trouble-item">
+                    <div class="trouble-icon-wrap warn"><i class="fa-solid fa-tower-broadcast"></i></div>
+                    <div>
+                        <strong style="color: #0F172A;">1. Datos Móviles encendidos</strong><br>
+                        Revisa en los ajustes rápidos de tu teléfono que el icono de <strong>Datos Móviles</strong> esté encendido.
+                    </div>
+                </div>
+                <div class="trouble-item">
+                    <div class="trouble-icon-wrap warn"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div>
+                        <strong style="color: #0F172A;">2. Itinerancia de Datos (Roaming Nacional e Internacional)</strong><br>
+                        En muchos smartphones (Xiaomi, Samsung, Motorola, iPhone...) el menú permite elegir entre <strong>Roaming Nacional</strong> (para que los OMVs transmitan con las antenas en España) y <strong>Roaming Internacional</strong> (imprescindible activarlo si viajas a países de la Zona 1 / UE). Asegúrate de tener ambas opciones permitidas.
+                    </div>
+                </div>
+                <div class="trouble-item">
+                    <div class="trouble-icon-wrap plane"><i class="fa-solid fa-plane"></i></div>
+                    <div>
+                        <strong style="color: #0F172A;">3. Modo Avión (5 segundos)</strong><br>
+                        Actívalo 5 segundos y desactívalo para forzar a la SIM a reenganchar la cobertura 5G.
+                    </div>
+                </div>
+                <div class="trouble-item">
+                    <div class="trouble-icon-wrap chat"><i class="fa-brands fa-whatsapp"></i></div>
+                    <div>
+                        <strong style="color: #0F172A;">4. Soporte Técnico WhatsApp</strong><br>
+                        Si sigues sin conexión, escríbenos directamente por <a href="https://wa.me/34666677773" target="_blank" style="color: #16A34A; font-weight: 800; text-decoration: underline;">WhatsApp al 666 67 77 73</a> para ayudarte al instante.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="apn-footer">
+        <p><strong>MásKFundas • Telefonía & Tecnología Móvil</strong> • C/ Sol, 60 - Plasencia (Cáceres) • Tel: <strong>666 67 77 73</strong></p>
+        <p style="margin-top: 0.35rem; font-size: 0.76rem; color: #94A3B8;">Configurador Oficial de Puntos de Acceso (APN) de Operador Móvil Virtual (OMV) y líneas multioperador.</p>
+    </footer>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="apnToast" class="apn-toast">
+        <i class="fa-solid fa-circle-check" style="color: #4ADE80;"></i>
+        <span id="toastMsg">¡Punto de acceso copiado al portapapeles!</span>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        // ESTADO GLOBAL DEL SIMULADOR
+        const SIM_DATA = {
+            os: 'android',
+            currentStep: 1,
+            selectedApn: 'fi.omv.es',
+            selectedApnName: 'Maskfundas',
+            viewMode: 'studio', // 'studio' | 'list'
+            roamingActive: false,
+            airplaneActive: false,
+            completedSteps: {
+                android: [false, false, false, false, false],
+                ios: [false, false, false, false]
+            }
+        };
+
+        const STEPS_CONFIG = {
+            android: [
+                {
+                    id: 1,
+                    num: '1',
+                    shortTitle: 'Ajustes de Red',
+                    sub: 'Conexiones Móviles',
+                    title: 'Entra en Ajustes de Red Móvil',
+                    desc: 'Abre la aplicación <strong>Ajustes</strong> de tu teléfono Android, entra en <strong>Conexiones</strong> (o en algunos modelos <em>Redes e Internet</em>) y selecciona <strong>Redes móviles</strong>.',
+                    tip: 'Consejo: Si no lo encuentras, escribe "APN" o "Puntos de acceso" en la lupa de búsqueda de Ajustes.',
+                    phoneScreen: `
+                        <div class="sim-ui-title"><i class="fa-solid fa-gear"></i> Ajustes</div>
+                        <div class="sim-ui-list">
+                            <div class="sim-ui-item active-target">
+                                <span><i class="fa-solid fa-wifi" style="color:#0284C7; margin-right:8px;"></i> Conexiones</span>
+                                <i class="fa-solid fa-chevron-right" style="font-size:0.7rem; color:#94A3B8;"></i>
+                            </div>
+                            <div class="sim-ui-item">
+                                <span><i class="fa-solid fa-volume-high" style="color:#64748B; margin-right:8px;"></i> Sonidos y vibración</span>
+                            </div>
+                            <div class="sim-ui-item">
+                                <span><i class="fa-solid fa-bell" style="color:#64748B; margin-right:8px;"></i> Notificaciones</span>
+                            </div>
+                            <div class="sim-ui-item">
+                                <span><i class="fa-solid fa-sun" style="color:#64748B; margin-right:8px;"></i> Pantalla</span>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    id: 2,
+                    num: '2',
+                    shortTitle: 'Abrir APN',
+                    sub: 'Puntos de Acceso',
+                    title: 'Accede a Nombres de Punto de Acceso',
+                    desc: 'Dentro de <em>Redes móviles</em>, toca en <strong>Nombres de Puntos de Acceso (APN)</strong>. Pulsa en el botón superior <strong>Añadir (+)</strong> o en los tres puntos para crear un perfil nuevo.',
+                    tip: 'Importante: Si ves otros perfiles antiguos de operadores anteriores, recomendamos borrarlos o desactivarlos.',
+                    phoneScreen: `
+                        <div class="sim-ui-title" style="justify-content: space-between;">
+                            <span><i class="fa-solid fa-arrow-left"></i> APNs</span>
+                            <span class="active-target" style="padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 800;">
+                                <i class="fa-solid fa-plus"></i> Añadir
+                            </span>
+                        </div>
+                        <div class="sim-ui-list">
+                            <div class="sim-ui-item" style="opacity: 0.6;">
+                                <div>
+                                    <div style="font-weight: 700;">APN Antiguo (Inactivo)</div>
+                                    <div style="font-size: 0.65rem; color: #94A3B8;">internet.antiguo.es</div>
+                                </div>
+                                <span style="width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #CBD5E1;"></span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1.5rem; text-align: center; color: #64748B; font-size: 0.76rem;">
+                            <i class="fa-solid fa-hand-pointer" style="color: var(--brand-orange); animation: pulseDot 1.5s infinite;"></i> Pulsa <strong>Añadir (+)</strong> arriba
+                        </div>
+                    `
+                },
+                {
+                    id: 3,
+                    num: '3',
+                    shortTitle: 'Escribir Datos',
+                    sub: 'Nombre y APN',
+                    title: 'Introduce los Parámetros Técnicos',
+                    desc: 'En el campo <strong>Nombre</strong> escribe <code>Maskfundas</code>. En el campo <strong>APN</strong> introduce el punto de acceso exacto de tu línea. Deja el resto de campos (usuario, contraseña, proxy) en blanco.',
+                    tip: 'Usa los botones interactivos de copia rápida que tienes aquí abajo para pegarlo en tu teléfono.',
+                    hasApnTool: true,
+                    phoneScreen: `
+                        <div class="sim-ui-title"><i class="fa-solid fa-pen"></i> Editar APN</div>
+                        <div class="sim-ui-form-group highlighted">
+                            <span class="sim-ui-form-label">Nombre</span>
+                            <span class="sim-ui-form-val">Maskfundas</span>
+                        </div>
+                        <div class="sim-ui-form-group highlighted" style="border-color: var(--brand-orange); background: #FFF7ED;">
+                            <span class="sim-ui-form-label">APN (Punto de acceso)</span>
+                            <span class="sim-ui-form-val" id="mockupApnVal" style="color: #C2410C;">fi.omv.es</span>
+                        </div>
+                        <div class="sim-ui-form-group">
+                            <span class="sim-ui-form-label">Nombre de usuario</span>
+                            <span class="sim-ui-form-val" style="color: #94A3B8;">(No definido)</span>
+                        </div>
+                        <div class="sim-ui-form-group">
+                            <span class="sim-ui-form-label">Contraseña</span>
+                            <span class="sim-ui-form-val" style="color: #94A3B8;">(No definido)</span>
+                        </div>
+                        <div class="sim-ui-form-group">
+                            <span class="sim-ui-form-label">Tipo de APN</span>
+                            <span class="sim-ui-form-val">default,supl,dun</span>
+                        </div>
+                    `
+                },
+                {
+                    id: 4,
+                    num: '4',
+                    shortTitle: 'Guardar y Activar',
+                    sub: 'Confirmar Perfil',
+                    title: 'Guarda y Marca el Nuevo APN',
+                    desc: 'Toca en los <strong>3 puntos verticales</strong> arriba a la derecha y selecciona <strong>Guardar</strong>. Una vez guardado, <strong>marca el botón circular</strong> al lado de Maskfundas para que el punto quede en azul/verde.',
+                    tip: '¡Si no pulsas Guardar, el teléfono descartará los cambios al salir!',
+                    phoneScreen: `
+                        <div class="sim-ui-title" style="justify-content: space-between;">
+                            <span><i class="fa-solid fa-arrow-left"></i> APNs</span>
+                            <span style="font-size: 0.95rem; color: #0F172A;"><i class="fa-solid fa-ellipsis-vertical"></i></span>
+                        </div>
+                        <div style="background: #FFFFFF; border: 1.5px solid #0B192C; border-radius: 8px; padding: 6px 12px; margin-bottom: 12px; text-align: right; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                            <span class="active-target" style="padding: 2px 6px; border-radius: 4px; font-weight: 800; font-size: 0.8rem; display: inline-block;">
+                                <i class="fa-solid fa-check"></i> Guardar
+                            </span>
+                        </div>
+                        <div class="sim-ui-list">
+                            <div class="sim-ui-item active-target">
+                                <div>
+                                    <div style="font-weight: 800; color: #0F172A;">Maskfundas</div>
+                                    <div style="font-size: 0.68rem; color: #0284C7;" id="mockupSavedApn">fi.omv.es</div>
+                                </div>
+                                <span style="width: 14px; height: 14px; border-radius: 50%; background: #0284C7; border: 2px solid #FFFFFF; box-shadow: 0 0 0 2px #0284C7;"></span>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    id: 5,
+                    num: '5',
+                    shortTitle: 'Itinerancia & 5G',
+                    sub: 'Conexión Definitiva',
+                    title: 'Itinerancia de Datos y Modo Avión',
+                    desc: 'Vuelve al menú de <em>Redes móviles</em> y <strong>activa la casilla de Itinerancia de Datos</strong>. Por último, pon el smartphone en <strong>Modo Avión 5 segundos</strong> y quítalo para recibir la señal 5G.',
+                    tip: 'Es 100% seguro: los OMVs necesitan la itinerancia activa para conectarse a las antenas nacionales.',
+                    hasRoamingTester: true,
+                    phoneScreen: `
+                        <div class="sim-ui-title"><i class="fa-solid fa-signal"></i> Redes Móviles</div>
+                        <div class="sim-ui-list">
+                            <div class="sim-ui-item" style="padding: 10px 12px; border-color: #BBF7D0; background: #F0FDF4;">
+                                <div>
+                                    <div style="font-weight: 800; color: #166534;">Datos móviles</div>
+                                    <div style="font-size: 0.65rem; color: #15803D;">Conectado a Internet</div>
+                                </div>
+                                <div class="sim-ui-toggle active"></div>
+                            </div>
+                            <div class="sim-ui-item active-target" style="padding: 10px 12px;">
+                                <div>
+                                    <div style="font-weight: 800; color: #991B1B;">Itinerancia de datos</div>
+                                    <div style="font-size: 0.65rem; color: #DC2626;">Obligatorio en MásK</div>
+                                </div>
+                                <div class="sim-ui-toggle active" id="mockupRoamingToggle"></div>
+                            </div>
+                            <div class="sim-ui-item" id="mockupAirplaneItem">
+                                <div>
+                                    <div style="font-weight: 700;">Modo Avión</div>
+                                    <div style="font-size: 0.65rem; color: #64748B;">Reinicio de red</div>
+                                </div>
+                                <div class="sim-ui-toggle" id="mockupAirplaneToggle"></div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px; text-align: center; background: #DCFCE7; padding: 8px; border-radius: 10px; border: 1px solid #BBF7D0;">
+                            <span style="font-size: 0.8rem; font-weight: 800; color: #166534;">
+                                <i class="fa-solid fa-circle-check"></i> ¡Conexión 5G Activa!
+                            </span>
+                        </div>
+                    `
+                }
+            ],
+            ios: [
+                {
+                    id: 1,
+                    num: '1',
+                    shortTitle: 'Ajustes iOS',
+                    sub: 'Datos Móviles',
+                    title: 'Entra en Ajustes de iPhone',
+                    desc: 'En tu iPhone, abre la app <strong>Ajustes</strong> y toca en el apartado <strong>Datos móviles</strong>.',
+                    tip: 'Si tienes Dual SIM (física + eSIM), asegúrate de seleccionar la línea MásKFundas.',
+                    phoneScreen: `
+                        <div class="sim-ui-title"><i class="fa-solid fa-gear"></i> Ajustes</div>
+                        <div class="sim-ui-list">
+                            <div class="sim-ui-item">
+                                <span><i class="fa-solid fa-plane" style="color:#EA580C; margin-right:8px;"></i> Modo Avión</span>
+                                <div class="sim-ui-toggle"></div>
+                            </div>
+                            <div class="sim-ui-item">
+                                <span><i class="fa-solid fa-wifi" style="color:#0284C7; margin-right:8px;"></i> Wi-Fi</span>
+                            </div>
+                            <div class="sim-ui-item active-target">
+                                <span><i class="fa-solid fa-tower-broadcast" style="color:#10B981; margin-right:8px;"></i> Datos móviles</span>
+                                <i class="fa-solid fa-chevron-right" style="font-size:0.7rem; color:#94A3B8;"></i>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    id: 2,
+                    num: '2',
+                    shortTitle: 'Red de Datos',
+                    sub: 'Configuración SIM',
+                    title: 'Abre Red de Datos Móviles',
+                    desc: 'Dentro de <em>Datos móviles</em>, pulsa en <strong>Red de datos móviles</strong> (o entra en tu SIM MásKFundas ➔ <em>Red de datos móviles</em>).',
+                    tip: 'Si no aparece esta opción, es posible que el operador se configure automáticamente.',
+                    phoneScreen: `
+                        <div class="sim-ui-title"><i class="fa-solid fa-chevron-left"></i> Datos Móviles</div>
+                        <div class="sim-ui-list">
+                            <div class="sim-ui-item">
+                                <span>Datos móviles</span>
+                                <div class="sim-ui-toggle active"></div>
+                            </div>
+                            <div class="sim-ui-item">
+                                <span>Opciones</span>
+                                <span style="font-size:0.7rem; color:#64748B;">Roaming sí <i class="fa-solid fa-chevron-right"></i></span>
+                            </div>
+                            <div class="sim-ui-item active-target">
+                                <span>Red de datos móviles</span>
+                                <i class="fa-solid fa-chevron-right" style="font-size:0.7rem; color:#94A3B8;"></i>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    id: 3,
+                    num: '3',
+                    shortTitle: 'Escribir APN',
+                    sub: 'Punto de Acceso',
+                    title: 'Rellena el Punto de Acceso',
+                    desc: 'En el bloque <strong>DATOS MÓVILES</strong>, rellena el campo <strong>Punto de acceso</strong> con el APN de tu línea MásKFundas. Deja <em>Usuario</em> y <em>Contraseña</em> totalmente vacíos.',
+                    tip: 'Para compartir internet con otros dispositivos, pon el mismo APN abajo en "Compartir internet".',
+                    hasApnTool: true,
+                    phoneScreen: `
+                        <div class="sim-ui-title"><i class="fa-solid fa-chevron-left"></i> Red de Datos</div>
+                        <div style="font-size:0.68rem; font-weight:800; color:#64748B; text-transform:uppercase; margin:8px 0 4px;">Datos Móviles</div>
+                        <div class="sim-ui-form-group highlighted" style="border-color: var(--brand-orange); background:#FFF7ED;">
+                            <span class="sim-ui-form-label">Punto de acceso</span>
+                            <span class="sim-ui-form-val" id="mockupApnValIos" style="color: #C2410C;">fi.omv.es</span>
+                        </div>
+                        <div class="sim-ui-form-group">
+                            <span class="sim-ui-form-label">Nombre de usuario</span>
+                            <span class="sim-ui-form-val" style="color: #94A3B8;">(en blanco)</span>
+                        </div>
+                        <div class="sim-ui-form-group">
+                            <span class="sim-ui-form-label">Contraseña</span>
+                            <span class="sim-ui-form-val" style="color: #94A3B8;">(en blanco)</span>
+                        </div>
+                    `
+                },
+                {
+                    id: 4,
+                    num: '4',
+                    shortTitle: 'Itinerancia & Conexión',
+                    sub: 'Reinicio Rápido',
+                    title: 'Activa Roaming y Modo Avión',
+                    desc: 'En <em>Opciones de datos móviles</em>, activa la <strong>Itinerancia de datos</strong>. Luego, abre el Centro de Control de tu iPhone, activa el <strong>Modo Avión 5 segundos</strong> y quítalo.',
+                    tip: 'En unos instantes verás aparecer el icono 5G / 4G al lado de la cobertura.',
+                    hasRoamingTester: true,
+                    phoneScreen: `
+                        <div class="sim-ui-title"><i class="fa-solid fa-chevron-left"></i> Opciones de Datos</div>
+                        <div class="sim-ui-list">
+                            <div class="sim-ui-item active-target" style="padding:10px 12px;">
+                                <div>
+                                    <div style="font-weight: 800; color: #991B1B;">Itinerancia de datos</div>
+                                    <div style="font-size: 0.65rem; color: #DC2626;">Obligatorio activar</div>
+                                </div>
+                                <div class="sim-ui-toggle active" id="mockupRoamingToggleIos"></div>
+                            </div>
+                            <div class="sim-ui-item" id="mockupAirplaneItemIos">
+                                <div>
+                                    <div style="font-weight: 700;">Modo Avión</div>
+                                    <div style="font-size: 0.65rem; color: #64748B;">Forzar conexión</div>
+                                </div>
+                                <div class="sim-ui-toggle" id="mockupAirplaneToggleIos"></div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px; text-align: center; background: #DCFCE7; padding: 8px; border-radius: 10px; border: 1px solid #BBF7D0;">
+                            <span style="font-size: 0.8rem; font-weight: 800; color: #166534;">
+                                <i class="fa-solid fa-circle-check"></i> ¡iPhone Conectado a 5G!
+                            </span>
+                        </div>
+                    `
+                }
+            ]
+        };
+
+        // RENDERIZADO DEL SIMULADOR
+        function renderSimulador() {
+            const steps = STEPS_CONFIG[SIM_DATA.os];
+            const currentStepIdx = SIM_DATA.currentStep - 1;
+            const step = steps[currentStepIdx] || steps[0];
+            const totalSteps = steps.length;
+
+            // Actualizar reloj del teléfono simulado
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const clockEl = document.getElementById('phoneClock');
+            if (clockEl) clockEl.textContent = `${hours}:${minutes}`;
+
+            // 1. Barra de progreso
+            const pct = Math.round((SIM_DATA.currentStep / totalSteps) * 100);
+            const fillEl = document.getElementById('simProgressFill');
+            if (fillEl) fillEl.style.width = `${pct}%`;
+
+            // 2. Barra de pestañas de pasos
+            const navBar = document.getElementById('stepperNavBar');
+            if (navBar) {
+                navBar.innerHTML = steps.map((s, idx) => {
+                    const isActive = s.id === SIM_DATA.currentStep ? 'active' : '';
+                    const isDone = SIM_DATA.completedSteps[SIM_DATA.os][idx] ? 'completed' : '';
+                    return `
+                        <button class="step-pill-btn ${isActive} ${isDone}" onclick="irAlPaso(${s.id})">
+                            <span class="step-pill-num">${isDone ? '<i class="fa-solid fa-circle-check" style="color:#10B981;"></i> ' : ''}Paso ${s.num}</span>
+                            <span class="step-pill-title">${s.shortTitle}</span>
+                            <span class="step-pill-sub">${s.sub}</span>
+                        </button>
+                    `;
+                }).join('');
+            }
+
+            // 3. Tarjeta de detalle del paso (Columna izquierda)
+            const detailCard = document.getElementById('simStepCard');
+            if (detailCard) {
+                let toolContent = '';
+
+                // Herramienta APN para Paso 3
+                if (step.hasApnTool) {
+                    toolContent = `
+                        <div class="sim-tool-box">
+                            <div style="display:flex; align-items:center; justify-content:space-between;">
+                                <span style="font-family:'Space Grotesk',sans-serif; font-size:0.82rem; font-weight:800; color:#0F172A;">
+                                    <i class="fa-solid fa-sliders" style="color:var(--brand-blue);"></i> Selector de Línea para Copiar
+                                </span>
+                                <span style="font-size:0.72rem; color:#64748B; font-weight:600;">Haz clic en tu APN:</span>
+                            </div>
+
+                            <div class="sim-apn-selector">
+                                <button class="sim-chip-btn ${SIM_DATA.selectedApn === 'fi.omv.es' ? 'active' : ''}" onclick="seleccionarApnEnSim('fi.omv.es', 'Línea Red Vodafone')">
+                                    fi.omv.es (Vodafone Roja)
+                                </button>
+                                <button class="sim-chip-btn ${SIM_DATA.selectedApn === 'inet.es' ? 'active' : ''}" onclick="seleccionarApnEnSim('inet.es', 'Línea Red Azul')">
+                                    inet.es (Red Azul)
+                                </button>
+                                <button class="sim-chip-btn ${SIM_DATA.selectedApn === 'orangeworld' ? 'active' : ''}" onclick="seleccionarApnEnSim('orangeworld', 'Línea Red Amarilla')">
+                                    orangeworld (Red Amarilla)
+                                </button>
+                                <button class="sim-chip-btn ${SIM_DATA.selectedApn === 'internet' ? 'active' : ''}" onclick="seleccionarApnEnSim('internet', 'Línea Red MasOrange')">
+                                    internet (Red MasOrange)
+                                </button>
+                            </div>
+
+                            <div class="sim-tool-row" style="margin-top:0.4rem;">
+                                <div style="display:flex; flex-direction:column; flex:1; gap:2px;">
+                                    <span class="sim-tool-label">Nombre a escribir</span>
+                                    <span class="sim-tool-val">Maskfundas</span>
+                                </div>
+                                <button class="btn-copy-action" onclick="copiarAPN('Maskfundas', this)" style="align-self:flex-end;">
+                                    <i class="fa-regular fa-copy"></i> <span>Copiar</span>
+                                </button>
+                            </div>
+
+                            <div class="sim-tool-row">
+                                <div style="display:flex; flex-direction:column; flex:1; gap:2px;">
+                                    <span class="sim-tool-label">Punto de acceso (APN)</span>
+                                    <span class="sim-tool-val" id="simCurrentApnVal" style="color:#0284C7;">${SIM_DATA.selectedApn}</span>
+                                </div>
+                                <button class="btn-copy-action" onclick="copiarAPN('${SIM_DATA.selectedApn}', this)" style="align-self:flex-end; background:#0284C7; color:#FFF; border-color:#0284C7;">
+                                    <i class="fa-regular fa-copy"></i> <span>Copiar APN</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Herramienta Roaming & Modo Avión para el último paso
+                if (step.hasRoamingTester) {
+                    toolContent = `
+                        <div class="sim-airplane-tester">
+                            <div>
+                                <div style="font-family:'Space Grotesk',sans-serif; font-size:0.92rem; font-weight:800; color:#9A3412;">
+                                    <i class="fa-solid fa-plane-departure"></i> Prueba de Reactivación 5G
+                                </div>
+                                <div style="font-size:0.78rem; color:#C2410C; margin-top:2px;" id="flightTimerStatus">
+                                    Pulsa para simular 5 segundos en Modo Avión:
+                                </div>
+                            </div>
+                            <button class="btn-test-flight" id="btnTestFlightAction" onclick="ejecutarTestModoAvion()">
+                                <i class="fa-solid fa-play"></i> <span>Probar (5s)</span>
+                            </button>
+                        </div>
+                    `;
+                }
+
+                const isFirst = SIM_DATA.currentStep === 1;
+                const isLast = SIM_DATA.currentStep === totalSteps;
+                const nextBtnText = isLast ? '<i class="fa-solid fa-check"></i> ¡Listo, a navegar!' : 'Siguiente Paso <i class="fa-solid fa-arrow-right"></i>';
+
+                detailCard.innerHTML = `
+                    <div class="sim-step-meta">
+                        <span class="sim-step-tag">Paso ${step.num} de ${totalSteps}</span>
+                        <span class="sim-step-time"><i class="fa-regular fa-clock"></i> ~15 seg</span>
+                    </div>
+
+                    <h3 class="sim-step-heading">${step.title}</h3>
+                    
+                    <p class="sim-step-desc">${step.desc}</p>
+
+                    ${toolContent}
+
+                    <div style="background:#F1F5F9; border-left:4px solid var(--brand-blue); padding:0.75rem 1rem; border-radius:8px; font-size:0.82rem; color:#334155; line-height:1.45;">
+                        <i class="fa-solid fa-lightbulb" style="color:var(--brand-blue); margin-right:4px;"></i> ${step.tip}
+                    </div>
+
+                    <div class="sim-nav-buttons">
+                        <button class="btn-sim-prev" onclick="anteriorPaso()" ${isFirst ? 'disabled' : ''}>
+                            <i class="fa-solid fa-arrow-left"></i> Anterior
+                        </button>
+
+                        <label style="display:flex; align-items:center; gap:0.45rem; font-size:0.8rem; font-weight:700; color:#475569; cursor:pointer;">
+                            <input type="checkbox" id="checkStepDone" onchange="marcarPasoCompletado(this.checked)" ${SIM_DATA.completedSteps[SIM_DATA.os][currentStepIdx] ? 'checked' : ''} style="width:16px; height:16px; cursor:pointer;">
+                            <span>Hecho en mi móvil</span>
+                        </label>
+
+                        <button class="btn-sim-next" onclick="${isLast ? 'finalizarGuia()' : 'siguientePaso()'}">
+                            ${nextBtnText}
+                        </button>
+                    </div>
+                `;
+            }
+
+            // 4. Pantalla del teléfono simulado (Columna derecha)
+            const phoneContent = document.getElementById('phoneScreenContent');
+            if (phoneContent) {
+                phoneContent.innerHTML = step.phoneScreen;
+
+                // Si estamos en el paso 3, refrescar el valor del APN mostrado dentro de la pantalla
+                const mockApn = document.getElementById('mockupApnVal');
+                if (mockApn) mockApn.textContent = SIM_DATA.selectedApn;
+                const mockApnIos = document.getElementById('mockupApnValIos');
+                if (mockApnIos) mockApnIos.textContent = SIM_DATA.selectedApn;
+                const mockSaved = document.getElementById('mockupSavedApn');
+                if (mockSaved) mockSaved.textContent = SIM_DATA.selectedApn;
+            }
+
+            // 5. Generar también la vista de lista completa (por si el usuario conmuta)
+            renderListaCompleta();
+        }
+
+        function renderListaCompleta() {
+            const listGrid = document.getElementById('simListGrid');
+            if (!listGrid) return;
+            const steps = STEPS_CONFIG[SIM_DATA.os];
+
+            listGrid.innerHTML = steps.map(s => `
+                <div class="apn-card">
+                    <div>
+                        <div class="card-top">
+                            <div class="card-identity">
+                                <div class="step-badge-num" style="width:36px; height:36px; border-radius:10px; font-size:1rem; margin-bottom:0;">
+                                    ${s.num}
+                                </div>
+                                <div class="card-name-title" style="font-size:1.05rem;">${s.title}</div>
+                            </div>
+                        </div>
+                        <p style="font-size:0.88rem; color:#475569; line-height:1.55; margin:0.8rem 0;">${s.desc}</p>
+                    </div>
+                    <div style="font-size:0.78rem; color:#0284C7; font-weight:700; background:#EFF6FF; padding:0.5rem 0.75rem; border-radius:8px;">
+                        💡 ${s.tip}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // CONTROLADORES DE EVENTOS
+        function irAlPaso(num) {
+            SIM_DATA.currentStep = num;
+            renderSimulador();
+        }
+
+        function siguientePaso() {
+            const steps = STEPS_CONFIG[SIM_DATA.os];
+            if (SIM_DATA.currentStep < steps.length) {
+                SIM_DATA.completedSteps[SIM_DATA.os][SIM_DATA.currentStep - 1] = true;
+                SIM_DATA.currentStep++;
+                renderSimulador();
+            }
+        }
+
+        function anteriorPaso() {
+            if (SIM_DATA.currentStep > 1) {
+                SIM_DATA.currentStep--;
+                renderSimulador();
+            }
+        }
+
+        function marcarPasoCompletado(val) {
+            SIM_DATA.completedSteps[SIM_DATA.os][SIM_DATA.currentStep - 1] = val;
+            renderSimulador();
+            if (val) {
+                mostrarToast(`Paso ${SIM_DATA.currentStep} marcado como completado ✓`);
+            }
+        }
+
+        function cambiarSimOS(os) {
+            SIM_DATA.os = os;
+            SIM_DATA.currentStep = 1;
+
+            const btnAnd = document.getElementById('btnOsAndroid');
+            const btnIos = document.getElementById('btnOsIos');
+            if (os === 'android') {
+                btnAnd.classList.add('active');
+                btnIos.classList.remove('active');
+            } else {
+                btnIos.classList.add('active');
+                btnAnd.classList.remove('active');
+            }
+
+            renderSimulador();
+        }
+
+        function seleccionarApnEnSim(apn, label) {
+            SIM_DATA.selectedApn = apn;
+            renderSimulador();
+            mostrarToast(`APN seleccionado: ${apn} (${label})`);
+        }
+
+        function toggleModoVisual() {
+            const studioView = document.getElementById('simStudioView');
+            const listView = document.getElementById('simListView');
+            const textBtn = document.getElementById('toggleViewModeText');
+
+            if (SIM_DATA.viewMode === 'studio') {
+                SIM_DATA.viewMode = 'list';
+                studioView.style.display = 'none';
+                listView.style.display = 'block';
+                textBtn.textContent = 'Ver Simulador Interactivo';
+            } else {
+                SIM_DATA.viewMode = 'studio';
+                studioView.style.display = 'grid';
+                listView.style.display = 'none';
+                textBtn.textContent = 'Ver Todos los Pasos';
+            }
+        }
+
+        function finalizarGuia() {
+            mostrarToast('🎉 ¡Enhorabuena! Has completado la configuración de Internet.');
+            const card = document.getElementById('simStepCard');
+            if (card) {
+                card.innerHTML = `
+                    <div style="text-align:center; padding: 2rem 1rem;">
+                        <div style="width:64px; height:64px; background:#DCFCE7; color:#16A34A; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2rem; margin:0 auto 1.2rem;">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.6rem; font-weight:800; color:#0F172A; margin-bottom:0.6rem;">
+                            ¡Configuración Finalizada con Éxito!
+                        </h3>
+                        <p style="font-size:0.95rem; color:#475569; max-width:440px; margin:0 auto 1.5rem; line-height:1.5;">
+                            Tu smartphone ya está configurado para navegar a máxima velocidad en la red 5G de MásKFundas.
+                        </p>
+                        <button class="btn-sim-next" onclick="irAlPaso(1)" style="background:var(--brand-blue); margin:0 auto;">
+                            <i class="fa-solid fa-rotate-left"></i> Volver a empezar
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function ejecutarTestModoAvion() {
+            const statusEl = document.getElementById('flightTimerStatus');
+            const btn = document.getElementById('btnTestFlightAction');
+            const airplaneToggle = document.getElementById('mockupAirplaneToggle') || document.getElementById('mockupAirplaneToggleIos');
+            const wifiIcon = document.getElementById('phoneWifiIcon');
+
+            if (!btn) return;
+            btn.disabled = true;
+            let seconds = 5;
+
+            if (airplaneToggle) airplaneToggle.classList.add('active');
+            if (wifiIcon) wifiIcon.style.opacity = '0.2';
+
+            const interval = setInterval(() => {
+                seconds--;
+                if (statusEl) {
+                    statusEl.innerHTML = `<strong style="color:#DC2626;">✈️ Modo Avión activo... re-registrando módem (${seconds}s)</strong>`;
+                }
+
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    if (airplaneToggle) airplaneToggle.classList.remove('active');
+                    if (wifiIcon) wifiIcon.style.opacity = '1';
+                    if (statusEl) {
+                        statusEl.innerHTML = `<strong style="color:#16A34A;">✅ ¡Modo Avión desactivado! Conexión 5G MásK restablecida con éxito.</strong>`;
+                    }
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-rotate"></i> <span>Repetir</span>';
+                    mostrarToast('📶 ¡Conexión a la red móvil restablecida!');
+                }
+            }, 1000);
+        }
+
+        // TABS SUPERIORES (MÁSKFUNDAS VS TRADICIONALES)
+        function cambiarPestana(tipo) {
+            const btnMask = document.getElementById('tabBtnMask');
+            const btnTrad = document.getElementById('tabBtnTradicionales');
+            const secMask = document.getElementById('sectionMaskfundas');
+            const secTrad = document.getElementById('sectionTradicionales');
+
+            if (tipo === 'maskfundas') {
+                btnMask.classList.add('active');
+                btnTrad.classList.remove('active');
+                secMask.style.display = 'block';
+                secTrad.style.display = 'none';
+            } else {
+                btnTrad.classList.add('active');
+                btnMask.classList.remove('active');
+                secTrad.style.display = 'block';
+                secMask.style.display = 'none';
+            }
+        }
+
+        // COPIAR APN CON FEEDBACK
+        function copiarAPN(texto, btnEl) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(texto).then(() => {
+                    marcarBotonCopiado(btnEl);
+                    mostrarToast('Copiado: ' + texto);
+                });
+            } else {
+                const el = document.createElement('textarea');
+                el.value = texto;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                marcarBotonCopiado(btnEl);
+                mostrarToast('Copiado: ' + texto);
+            }
+        }
+
+        function marcarBotonCopiado(btnEl) {
+            if (!btnEl) return;
+            const originalHTML = btnEl.innerHTML;
+            btnEl.classList.add('copied');
+            btnEl.innerHTML = '<i class="fa-solid fa-check"></i> <span>¡Listo!</span>';
+            setTimeout(() => {
+                btnEl.classList.remove('copied');
+                btnEl.innerHTML = originalHTML;
+            }, 2000);
+        }
+
+        function mostrarToast(msg) {
+            const toast = document.getElementById('apnToast');
+            const toastMsg = document.getElementById('toastMsg');
+            if (toast && toastMsg) {
+                toastMsg.textContent = msg;
+                toast.classList.add('active');
+                setTimeout(() => {
+                    toast.classList.remove('active');
+                }, 2500);
+            }
+        }
+
+        function filtrarOperadores(val) {
+            const q = val.toLowerCase().trim();
+            const items = document.querySelectorAll('.op-item');
+            items.forEach(item => {
+                const name = item.getAttribute('data-name') || '';
+                const text = item.textContent.toLowerCase();
+                if (name.includes(q) || text.includes(q)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // DETECTOR DE APN POR TELÉFONO
+        async function buscarAPNTelefono() {
+            const input = document.getElementById('inputSearchPhone');
+            const box = document.getElementById('lookupResultBox');
+            const phone = input.value.trim().replace(/\s+/g, '').replace('+34', '');
+
+            if (!phone || phone.length < 9) {
+                box.className = 'lookup-res-box error';
+                box.style.display = 'block';
+                box.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Por favor, introduce los 9 dígitos de tu número de teléfono.';
+                return;
+            }
+
+            box.className = 'lookup-res-box';
+            box.style.display = 'block';
+            box.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Consultando tu línea en el sistema OMV MásKFundas...';
+
+            try {
+                const res = await fetch(`/api/apn/lookup?phone=${encodeURIComponent(phone)}`);
+                const data = await res.json();
+
+                if (data.found) {
+                    box.className = 'lookup-res-box success';
+                    box.innerHTML = `
+                        <div style="font-weight: 800; font-size: 1rem; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.45rem;">
+                            <i class="fa-solid fa-circle-check" style="color: #2563EB; font-size: 1.15rem;"></i>
+                            <span>¡Línea localizada en MásKFundas! (${data.cobertura || 'Red 5G'})</span>
+                        </div>
+                        <div style="margin-bottom: 0.65rem; line-height: 1.5; font-size: 0.88rem;">
+                            Nombre del perfil: <strong>${data.nombre_apn || 'Maskfundas'}</strong> &nbsp;|&nbsp; Punto de acceso: <code style="background: #DBEAFE; color: #1E3A8A; padding: 0.2rem 0.5rem; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-weight: 800;">${data.apn}</code>
+                            ${data.roaming ? '<br><span style="color: #DC2626; font-weight: 800;">⚠️ Activa obligatoriamente la Itinerancia de Datos en los Ajustes de tu móvil.</span>' : ''}
+                        </div>
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.75rem;">
+                            <button onclick="copiarAPN('${data.apn}', this)" class="btn-copy-action" style="background: #2563EB; color: #FFF; border-color: #2563EB; font-weight: 800;">
+                                <i class="fa-regular fa-copy"></i> Copiar ${data.apn}
+                            </button>
+                            <button onclick="descargarPerfilIos('${data.apn}', '${data.nombre_apn || 'MasKFundas'}', '${data.usuario || ''}', '${data.password || ''}')" class="btn-copy-action" style="background: #000; color: #FFF; border-color: #000; font-weight: 800;">
+                                <i class="fa-brands fa-apple"></i> Instalar en iPhone
+                            </button>
+                            <button onclick="compartirInstruccionesWhatsApp('${data.apn}', '${data.cobertura || 'MásK'}', ${data.roaming ? 'true' : 'false'}, '${phone}')" class="btn-copy-action" style="background: #16A34A; color: #FFF; border-color: #16A34A; font-weight: 800;">
+                                <i class="fa-brands fa-whatsapp"></i> Compartir
+                            </button>
+                            <button onclick="seleccionarApnEnSim('${data.apn}', '${data.cobertura || 'MásK'}'); irAlPaso(3); document.getElementById('guiaPasoAPaso').scrollIntoView({behavior:'smooth'});" class="btn-copy-action" style="background: var(--brand-orange); color: #FFF; border-color: var(--brand-orange); font-weight: 800;">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Ver en Simulador
+                            </button>
+                        </div>
+                    `;
+
+                    // Seleccionar APN en el simulador
+                    SIM_DATA.selectedApn = data.apn;
+
+                    // Cambiar a pestaña MásKFundas y resaltar la tarjeta correspondiente
+                    cambiarPestana('maskfundas');
+                    document.querySelectorAll('.apn-card').forEach(c => c.classList.remove('highlighted'));
+
+                    let targetCardId = 'card-mask-voda';
+                    if (data.apn === 'inet.es') {
+                        targetCardId = 'card-mask-azul';
+                    } else if (data.apn === 'orangeworld') {
+                        targetCardId = 'card-mask-amarilla';
+                    } else if (data.apn === 'internet') {
+                        targetCardId = 'card-mask-tmovil';
+                    } else {
+                        targetCardId = 'card-mask-voda';
+                    }
+
+                    const targetEl = document.getElementById(targetCardId);
+                    if (targetEl) {
+                        targetEl.classList.add('highlighted');
+                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                } else {
+                    box.className = 'lookup-res-box error';
+                    box.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${data.error || 'Número no registrado en las líneas de MásKFundas. Puedes seleccionar tu APN manualmente en la lista.'}`;
+                }
+            } catch (err) {
+                box.className = 'lookup-res-box error';
+                box.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Error al conectar con el detector de líneas.';
+            }
+        }
+
+        function descargarPerfilIos(apn, nombre, usuario, password) {
+            apn = apn || SIM_DATA.selectedApn || 'fi.omv.es';
+            nombre = nombre || SIM_DATA.selectedApnName || 'MasKFundas';
+            usuario = usuario || '';
+            password = password || '';
+            const url = `/api/apn/download-profile?apn=${encodeURIComponent(apn)}&name=${encodeURIComponent(nombre)}&user=${encodeURIComponent(usuario)}&password=${encodeURIComponent(password)}`;
+            window.location.href = url;
+            mostrarToast('Descargando perfil oficial para iPhone. Pulsa "Permitir" en los Ajustes de iOS.');
+        }
+
+        function compartirInstruccionesWhatsApp(apn, cobertura, roaming, phone) {
+            const apnVal = apn || SIM_DATA.selectedApn || 'fi.omv.es';
+            const cobVal = cobertura || 'MásKFundas';
+            const roaVal = roaming ? '⚠️ OBLIGATORIO: Activa la "Itinerancia de datos" en Ajustes.' : 'Itinerancia: Desactivada.';
+            const phoneParam = phone ? `?tel=${encodeURIComponent(phone)}` : '';
+            const link = `https://clientes.maskfundas.es/apn${phoneParam}`;
+
+            const msg = `*Configuración de Internet MásKFundas 5G*\n\n` +
+                        `• Red / Cobertura: ${cobVal}\n` +
+                        `• Nombre APN: MásKFundas\n` +
+                        `• Punto de acceso (APN): *${apnVal}*\n` +
+                        `• ${roaVal}\n\n` +
+                        `Guía interactiva paso a paso o perfil para iPhone:\n${link}`;
+
+            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        // Inicializar Simulador al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            // Detección automática del dispositivo (iOS vs Android)
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            if (isIOS) {
+                cambiarSimOS('ios');
+            } else {
+                renderSimulador();
+            }
+
+            // Detección de parámetro en URL ?tel= o ?phone=
+            const urlParams = new URLSearchParams(window.location.search);
+            const telParam = urlParams.get('tel') || urlParams.get('phone');
+            if (telParam) {
+                const input = document.getElementById('inputSearchPhone');
+                if (input) {
+                    input.value = telParam.trim();
+                    buscarAPNTelefono();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

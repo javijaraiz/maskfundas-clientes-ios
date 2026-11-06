@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>if (window.top !== window.self) { window.top.location.href = window.location.href; }</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Líneas No Facturadas — MásKFundas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin_modern.css?v=3.8">
+    <script src="/js/command_palette.js?v=3.5" defer></script>
+    <script src="/js/admin_compact_tables.js?v=5" defer></script>
+    <style>
+        .filter-btn {
+            background: var(--card); border: 1px solid var(--border); color: var(--muted);
+            padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+        .filter-btn:hover:not(.active) { background: var(--bg); color: var(--text); }
+
+        /* ── MODALES FLOTANTES CENTRADOS ── */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15,23,42,0.6);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .modal.in, .modal[style*="flex"] {
+            opacity: 1;
+            display: flex !important;
+        }
+        .modal-content {
+            background: #ffffff;
+            border-radius: 14px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+            overflow: hidden;
+            animation: modalIn 0.18s ease;
+        }
+        @keyframes modalIn {
+            from { transform: scale(0.96) translateY(8px); opacity: 0; }
+            to   { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-close {
+            background: none; border: none; font-size: 20px;
+            color: #94a3b8; cursor: pointer; padding: 4px; line-height: 1;
+        }
+        .modal-close:hover { color: #0f172a; }
+        .modal-footer {
+            padding: 14px 20px;
+            border-top: 1px solid #e2e8f0;
+            background: #f8fafc;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        /* ── SLEEK CHIPS & BADGES ── */
+        .tel-pill {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0284c7;
+        }
+        .op-tag {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+        .op-finetwork { background: #fef3c7; color: #b45309; }
+        .op-aire { background: #e0f2fe; color: #0369a1; }
+        .op-lemonvil { background: #dcfce7; color: #15803d; }
+        .op-default { background: #f1f5f9; color: #475569; }
+
+        /* Columnas ordenables */
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s ease, color 0.15s ease;
+            white-space: nowrap;
+        }
+        th.sortable:hover {
+            background: #f1f5f9;
+            color: #0284c7;
+        }
+        th.sortable .sort-icon {
+            margin-left: 5px;
+            font-size: 11px;
+            color: #94a3b8;
+            opacity: 0.7;
+        }
+        th.sortable.active-sort {
+            color: #0284c7;
+            background: rgba(2, 132, 199, 0.05);
+        }
+        th.sortable.active-sort .sort-icon {
+            color: #0284c7;
+            opacity: 1;
+        }
+
+        .tag-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .tag-red { background: #fff1f2; color: #e11d48; border: 1px solid #ffe4e6; }
+        .tag-orange { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+        .tag-green { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+        .tag-blue { background: #f0f9ff; color: #0284c7; border: 1px solid #e0f2fe; }
+        .tag-gray { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+
+        .dni-tag {
+            font-family: ui-monospace, monospace;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #475569;
+            background: #f1f5f9;
+            padding: 3px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .btn-action-clean {
+            background: #ffffff;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+            padding: 6px 14px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            transition: all 0.15s ease;
+        }
+        .btn-action-clean:hover {
+            border-color: #0284c7;
+            color: #0284c7;
+            background: #f8fafc;
+            box-shadow: 0 2px 5px rgba(2,132,199,0.12);
+        }
+        .btn-action-clean i { color: #0284c7; }
+    </style>
+</head>
+<body>
+
+<nav class="global-nav" aria-label="Navegación principal">
+    <div class="global-nav-inner">
+        <div class="global-nav-brand"><i class="fa-solid fa-shield-halved"></i><span>MásKFundas Admin</span></div>
+        <div class="global-nav-links" id="globalNavLinks">
+            <a href="/admin" id="nav-dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="/admin/dowisp" id="nav-dowisp" class="nav-dowisp-highlight"><i class="fa-solid fa-satellite-dish"></i> DoWISP Live <span class="nav-live-pill">LIVE</span></a>
+            <a href="/admin/morosos" id="nav-morosos"><i class="fa-solid fa-file-invoice-dollar"></i> Morosos</a>
+            <a href="/admin/facturas-directas" id="nav-facturas-directas"><i class="fa-solid fa-paper-plane"></i> Facturas Directas</a>
+            <a href="/admin/auditoria" id="nav-auditoria" class="active" aria-current="page"><i class="fa-solid fa-tower-cell"></i> Líneas No Facturadas</a>
+            <a href="/admin/consumos" id="nav-consumos"><i class="fa-solid fa-fire-flame-curved"></i> Consumos</a>
+            <a href="/admin/devoluciones" id="nav-devoluciones"><i class="fa-solid fa-rotate-left"></i> Devoluciones SEPA</a>
+            <a href="/admin/visor" id="nav-visor"><i class="fa-solid fa-headset"></i> Visor Clientes</a>
+            <a href="https://clientes.maskfundas.es/apn" id="nav-apn" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-tower-broadcast"></i> Guía APN</a>
+<a href="/admin/propuesta" id="nav-propuesta" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-file-invoice-dollar"></i> Presupuestos</a>
+            <a href="https://sat.maskfundas.es" id="nav-sat" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-screwdriver-wrench"></i> SAT</a>
+            <a href="/admin/seguridad" id="nav-seguridad"><i class="fa-solid fa-lock"></i> Seguridad</a>
+        </div>
+        <div class="global-nav-right">
+            <a href="/admin/logout" class="global-nav-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</a>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container">
+
+<div class="header">
+    <div class="header-title">
+        <div class="icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+            <i class="fa-solid fa-tower-cell"></i>
+        </div>
+        <div>
+            <h1>Líneas No Facturadas</h1>
+            <div class="meta-info" id="lblUltimaSyncAuditoria">Cargando...</div>
+        </div>
+    </div>
+    <div class="header-actions-group" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn-secondary" onclick="exportarCSVAuditoria()">
+            <i class="fa-solid fa-file-csv"></i> CSV
+        </button>
+        <button class="btn-secondary" onclick="cargarAuditoria()" title="Recargar tabla">
+            <i class="fa-solid fa-arrows-rotate"></i> Actualizar
+        </button>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:3px;">
+            <button class="btn-refresh" id="btnSyncAuditoria" onclick="syncDoWISPAuditoria()">
+                <i class="fa-solid fa-bolt"></i> Sync DoWISP
+            </button>
+            <div id="lblBtnLastSync" style="font-size:10px; color:#475569; font-weight:600; text-align:center; white-space:nowrap; background:#f1f5f9; padding:2px 6px; border-radius:4px; border:1px solid #e2e8f0;">
+                <i class="fa-regular fa-clock" style="color:#0284c7;"></i> <span id="valBtnLastSync">Última: ...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4 MODERN KPI METRIC CARDS -->
+<div class="stats-row" id="statsRow">
+    <div class="stat-pill red">
+        <div class="num" id="kpiNoFacturadas">—</div>
+        <div class="lbl">Sin Facturar (Tráfico sin cobro)</div>
+    </div>
+
+    <div class="stat-pill orange">
+        <div class="num" id="kpiFantasmas">—</div>
+        <div class="lbl">Líneas Fantasma (Sin ficha)</div>
+    </div>
+
+    <div class="stat-pill blue">
+        <div class="num" id="kpiTraficoTotal">—</div>
+        <div class="lbl" id="kpiMinutosTotal">Tráfico Huérfano (0 min)</div>
+    </div>
+
+    <div class="stat-pill green">
+        <div class="num" id="kpiInternas">—</div>
+        <div class="lbl">Líneas Internas MásKFundas</div>
+    </div>
+</div>
+
+<div class="main-card">
+    <div style="padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid #e2e8f0;">
+        <div style="display:flex; gap: 8px; flex-wrap: wrap;">
+            <button class="filter-btn active" id="flt-TODAS" onclick="setFiltroAuditoria('TODAS')">Todas (<span id="cnt-TODAS">0</span>)</button>
+            <button class="filter-btn" id="flt-FINETWORK" onclick="setFiltroAuditoria('FINETWORK')">FiNetwork (<span id="cnt-FINETWORK">0</span>)</button>
+            <button class="filter-btn" id="flt-AIRENETWORKS" onclick="setFiltroAuditoria('AIRENETWORKS')">AireNetworks (<span id="cnt-AIRENETWORKS">0</span>)</button>
+            <button class="filter-btn" id="flt-LEMONVIL" onclick="setFiltroAuditoria('LEMONVIL')">Lemonvil (<span id="cnt-LEMONVIL">0</span>)</button>
+            <button class="filter-btn" id="flt-INTERNAS" onclick="setFiltroAuditoria('INTERNAS')">Internas (<span id="cnt-INTERNAS">0</span>)</button>
+        </div>
+        <div class="search-bar" style="max-width: 320px;">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="inputBuscarAuditoria" placeholder="Buscar teléfono, cliente, DNI..." oninput="renderTablaAuditoria()">
+        </div>
+    </div>
+
+    <div style="font-size: 12px; color: #64748b; padding: 10px 20px 4px 20px;" id="lblTotalRegistrosAuditoria"></div>
+
+    <div style="overflow-x: auto;">
+        <table data-compact-primary="0" data-compact-status="5" data-compact-always="7">
+            <thead id="theadAuditoria">
+                <tr>
+                    <th class="sortable" onclick="handleSortAuditoria('telefono')">Teléfono / Proveedor <i class="fa-solid fa-sort sort-icon" id="sort-icon-telefono"></i></th>
+                    <th class="sortable" onclick="handleSortAuditoria('titular_dowisp')">Titular Mayorista vs DoWISP <i class="fa-solid fa-sort sort-icon" id="sort-icon-titular_dowisp"></i></th>
+                    <th class="sortable" onclick="handleSortAuditoria('dni')">DNI / CIF <i class="fa-solid fa-sort sort-icon" id="sort-icon-dni"></i></th>
+                    <th class="sortable" onclick="handleSortAuditoria('estado_dowisp')">Estado DoWISP <i class="fa-solid fa-sort sort-icon" id="sort-icon-estado_dowisp"></i></th>
+                    <th class="sortable active-sort" onclick="handleSortAuditoria('consumo_gb')">Consumo Real <i class="fa-solid fa-sort-down sort-icon" id="sort-icon-consumo_gb"></i></th>
+                    <th class="sortable" onclick="handleSortAuditoria('tipo_incidencia')">Diagnóstico & Incidencia <i class="fa-solid fa-sort sort-icon" id="sort-icon-tipo_incidencia"></i></th>
+                    <th class="sortable" onclick="handleSortAuditoria('estado_gestion')">Seguimiento <i class="fa-solid fa-sort sort-icon" id="sort-icon-estado_gestion"></i></th>
+                    <th style="text-align:center;">Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyAuditoria">
+                <tr>
+                    <td colspan="8" style="text-align:center; padding: 40px; color: #94a3b8;">
+                        <i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Cargando auditoría...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL ACCIÓN AUDITORÍA -->
+<div class="modal" id="modalAuditoria" style="display:none;">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 id="modalTituloAuditoria" style="font-size: 15px; margin: 0;"><i class="fa-solid fa-pen-to-square"></i> Acción de Auditoría</h3>
+            <button class="modal-close" onclick="cerrarModalAuditoria()">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 18px 20px;">
+            <input type="hidden" id="modalTelAuditoria">
+            <div class="form-group" style="margin-bottom: 14px;">
+                <label style="font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">Estado / Acción de Seguimiento:</label>
+                <select id="modalEstadoAuditoria" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc;">
+                    <option value="PENDIENTE_REVISION"><i class="fa-solid fa-clock"></i> Pendiente de Revisión</option>
+                    <option value="PENDIENTE_CORTE_O_ALTA"><i class="fa-solid fa-triangle-exclamation"></i> Pendiente Regularizar o Cortar Línea</option>
+                    <option value="PENDIENTE_BAJA_MAYORISTA"><i class="fa-solid fa-scissors"></i> Solicitar Baja en Mayorista</option>
+                    <option value="CONFIRMADO_INTERNA"><i class="fa-solid fa-building"></i> Confirmada Línea Interna / Gerencia</option>
+                    <option value="REGULARIZADO_FACTURANDO"><i class="fa-solid fa-circle-check"></i> Regularizada y Facturando en DoWISP</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 14px;">
+                <label style="font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">Notas / Registro de la Acción:</label>
+                <textarea id="modalObsAuditoria" rows="3" placeholder="Ej: Hablado con gerencia, se mantiene como línea interna..." style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; box-sizing: border-box;"></textarea>
+            </div>
+            <div>
+                <label style="font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">Historial de Acciones:</label>
+                <div id="modalHistorialAuditoria" style="max-height: 120px; overflow-y: auto; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;"></div>
+            </div>
+        </div>
+        <div class="modal-footer" style="padding: 14px 20px; display: flex; justify-content: flex-end; gap: 8px;">
+            <button class="btn-secondary" onclick="cerrarModalAuditoria()">Cancelar</button>
+            <button class="btn-refresh" onclick="guardarNotaAuditoria()"><i class="fa-solid fa-save"></i> Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE PROGRESO DE SINCRONIZACIÓN -->
+<div class="modal" id="modalSyncProgress" style="display:none; z-index: 10000;">
+    <div class="modal-content" style="max-width: 480px; text-align: center; padding: 22px 24px; position: relative;">
+        <div id="syncIconWrap" style="width: 50px; height: 50px; border-radius: 50%; background: rgba(14,165,233,0.15); color: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 12px;">
+            <i class="fa-solid fa-arrows-rotate fa-spin" id="syncSpinnerIcon"></i>
+        </div>
+        <div style="position:absolute; top:12px; right:14px;">
+            <button onclick="cerrarModalSync()" style="background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;" title="Cerrar">&times;</button>
+        </div>
+        <h3 id="syncProgressTitle" style="margin: 0 0 4px; font-size: 16px; font-weight: 700;">Sincronizando con DoWISP...</h3>
+        <p id="syncProgressSubtitle" style="font-size: 12px; color: var(--muted); margin: 0 0 16px;">Conectando con el servidor central y mayoristas</p>
+        
+        <div style="background: #e2e8f0; height: 9px; border-radius: 10px; overflow: hidden; margin-bottom: 8px; position: relative;">
+            <div id="syncProgressBarFill" style="width: 15%; height: 100%; background: linear-gradient(90deg, #0ea5e9, #2563eb); border-radius: 10px; transition: width 0.4s ease;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 14px;">
+            <span id="syncStepText">Paso 1: Iniciando</span>
+            <span id="syncPercentText">15%</span>
+        </div>
+
+        <div id="syncLogBox" style="background: #0f172a; color: #38bdf8; font-family: monospace; font-size: 11px; text-align: left; padding: 10px 12px; border-radius: 8px; max-height: 85px; overflow-y: auto; line-height: 1.5; margin-bottom: 16px;">
+            &gt; Conectando con DoWISP...
+        </div>
+
+        <button id="btnCerrarSync" class="btn-refresh" style="display: none; width: 100%; justify-content: center; padding: 9px; font-size: 13px;" onclick="cerrarModalSync()">
+            <i class="fa-solid fa-check"></i> Cerrar y Ver Resultados
+        </button>
+    </div>
+</div>
+
+<script>
+    function formatoTiempoRelativo(fechaStr) {
+        if (!fechaStr) return '';
+        let d;
+        const matchDMY = String(fechaStr).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+        if (matchDMY) {
+            const day = parseInt(matchDMY[1], 10);
+            const month = parseInt(matchDMY[2], 10) - 1;
+            const year = parseInt(matchDMY[3], 10);
+            const hour = matchDMY[4] ? parseInt(matchDMY[4], 10) : 0;
+            const min = matchDMY[5] ? parseInt(matchDMY[5], 10) : 0;
+            const sec = matchDMY[6] ? parseInt(matchDMY[6], 10) : 0;
+            d = new Date(year, month, day, hour, min, sec);
+        } else {
+            d = new Date(fechaStr);
+        }
+        if (isNaN(d.getTime())) return fechaStr;
+
+        const ahora = new Date();
+        const diffMs = ahora.getTime() - d.getTime();
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHoras = Math.floor(diffMin / 60);
+        const diffDias = Math.floor(diffHoras / 24);
+
+        if (diffSec < 45) return 'hace unos segundos';
+        if (diffMin < 60) return diffMin === 1 ? 'hace 1 minuto' : `hace ${diffMin} minutos`;
+        if (diffHoras < 24) return diffHoras === 1 ? 'hace 1 hora' : `hace ${diffHoras} horas`;
+        if (diffDias === 1) return 'ayer';
+        if (diffDias < 7) return `hace ${diffDias} días`;
+        return fechaStr;
+    }
+
+    let datosAuditoria = [];
+    let filtroAuditoriaActivo = 'TODAS';
+    let _syncProgressPoll = null;
+
+    function abrirModalSync() {
+        document.getElementById('syncSpinnerIcon').className = 'fa-solid fa-arrows-rotate fa-spin';
+        document.getElementById('syncIconWrap').style.background = 'rgba(14,165,233,0.15)';
+        document.getElementById('syncIconWrap').style.color = '#0ea5e9';
+        document.getElementById('syncProgressTitle').textContent = 'Sincronizando con DoWISP...';
+        document.getElementById('syncProgressSubtitle').textContent = 'Consultando líneas y consumos de mayoristas en tiempo real';
+        document.getElementById('syncProgressBarFill').style.width = '15%';
+        document.getElementById('syncProgressBarFill').style.background = 'linear-gradient(90deg, #0ea5e9, #2563eb)';
+        document.getElementById('syncStepText').textContent = 'Iniciando sesión...';
+        document.getElementById('syncPercentText').textContent = '15%';
+        document.getElementById('syncLogBox').innerHTML = '&gt; Conectando con DoWISP...';
+        document.getElementById('btnCerrarSync').style.display = 'none';
+
+        document.getElementById('modalSyncProgress').style.display = 'flex';
+        document.getElementById('modalSyncProgress').classList.add('in');
+    }
+
+    function cerrarModalSync() {
+        document.getElementById('modalSyncProgress').style.display = 'none';
+        document.getElementById('modalSyncProgress').classList.remove('in');
+    }
+
+    async function syncDoWISPAuditoria() {
+        abrirModalSync();
+        try {
+            await fetch('/api/admin/morosos/sync', {method: 'POST'});
+            
+            let simPct = 15;
+            _syncProgressPoll = setInterval(async () => {
+                try {
+                    const r = await fetch('/api/admin/morosos/sync-status');
+                    const data = await r.json();
+                    const s = data.sync_status || {};
+
+                    if (data.sync_running) {
+                        simPct = Math.min(simPct + 10, 92);
+                        const pct = s.progress || simPct;
+                        document.getElementById('syncProgressBarFill').style.width = `${pct}%`;
+                        document.getElementById('syncPercentText').textContent = `${pct}%`;
+                        if (s.step) document.getElementById('syncStepText').textContent = s.step;
+                        if (s.logs && s.logs.length) {
+                            document.getElementById('syncLogBox').innerHTML = s.logs.map(l => `&gt; ${l}`).join('<br>');
+                            document.getElementById('syncLogBox').scrollTop = document.getElementById('syncLogBox').scrollHeight;
+                        }
+                    } else {
+                        clearInterval(_syncProgressPoll);
+                        document.getElementById('syncProgressBarFill').style.width = '100%';
+                        document.getElementById('syncProgressBarFill').style.background = '#16a34a';
+                        document.getElementById('syncPercentText').textContent = '100%';
+                        document.getElementById('syncStepText').textContent = '¡Completado!';
+                        document.getElementById('syncSpinnerIcon').className = 'fa-solid fa-circle-check';
+                        document.getElementById('syncIconWrap').style.background = 'rgba(22,163,74,0.15)';
+                        document.getElementById('syncIconWrap').style.color = '#16a34a';
+                        document.getElementById('syncProgressTitle').textContent = '¡Sincronización Completada!';
+                        document.getElementById('syncProgressSubtitle').textContent = s.last || 'Líneas y consumos actualizados con éxito.';
+                        if (s.logs && s.logs.length) {
+                            document.getElementById('syncLogBox').innerHTML = s.logs.map(l => `&gt; ${l}`).join('<br>');
+                        }
+                        document.getElementById('btnCerrarSync').style.display = 'flex';
+                        await cargarAuditoria();
+                    }
+                } catch(err) {
+                    console.error("Poll error:", err);
+                }
+            }, 1200);
+        } catch(e) {
+            clearInterval(_syncProgressPoll);
+            document.getElementById('syncStepText').textContent = 'Error';
+            document.getElementById('syncProgressTitle').textContent = 'Error al sincronizar';
+            document.getElementById('syncProgressSubtitle').textContent = e.message;
+            document.getElementById('btnCerrarSync').style.display = 'flex';
+        }
+    }
+
+    async function cargarAuditoria() {
+        document.getElementById('tbodyAuditoria').innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 35px; color: #94a3b8;">
+                    <i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Cargando datos...
+                </td>
+            </tr>`;
+
+        try {
+            const res = await fetch('/api/admin/auditoria');
+            const json = await res.json();
+            datosAuditoria = json.lineas || [];
+
+            // KPIs
+            const noFacturadas = datosAuditoria.filter(l => l.tipo_incidencia === 'SIN_FACTURACION' || l.tipo_incidencia === 'FACTURACION_CONGELADA').length;
+            const fantasmas = datosAuditoria.filter(l => l.tipo_incidencia === 'FANTASMA').length;
+            const internas = datosAuditoria.filter(l => l.tipo_incidencia === 'INTERNA_GERENCIA').length;
+            
+            const totalGB = datosAuditoria.filter(l => l.tipo_incidencia !== 'INTERNA_GERENCIA').reduce((a, b) => a + (b.consumo_gb || 0), 0);
+            const totalMin = datosAuditoria.filter(l => l.tipo_incidencia !== 'INTERNA_GERENCIA').reduce((a, b) => a + (b.consumo_minutos || 0), 0);
+
+            document.getElementById('kpiNoFacturadas').textContent = noFacturadas;
+            document.getElementById('kpiFantasmas').textContent = fantasmas;
+            document.getElementById('kpiTraficoTotal').textContent = totalGB.toFixed(2) + ' GB';
+            document.getElementById('kpiMinutosTotal').textContent = `${totalMin} min de llamadas acumulados`;
+            document.getElementById('kpiInternas').textContent = internas;
+
+            // Contadores filtros
+            document.getElementById('cnt-TODAS').textContent = datosAuditoria.length;
+            document.getElementById('cnt-FINETWORK').textContent = datosAuditoria.filter(l => l.operador === 'FiNetwork').length;
+            document.getElementById('cnt-AIRENETWORKS').textContent = datosAuditoria.filter(l => l.operador === 'AireNetworks').length;
+            document.getElementById('cnt-LEMONVIL').textContent = datosAuditoria.filter(l => l.operador === 'Lemonvil').length;
+            document.getElementById('cnt-INTERNAS').textContent = internas;
+
+            const uSync = json.ultima_sync || (datosAuditoria.length > 0 ? datosAuditoria[0].ultima_sync : null);
+            const valBtnSync = document.getElementById('valBtnLastSync');
+            if (valBtnSync) {
+                const relSync = formatoTiempoRelativo(uSync);
+                valBtnSync.textContent = uSync ? `Última: ${relSync}` : 'Sin sync previa';
+                valBtnSync.parentElement.title = `Sincronizado: ${uSync || ''}`;
+            }
+
+            const totalAnalizadas = json.total_analizadas || datosAuditoria.length;
+            const lblSync = document.getElementById('lblUltimaSyncAuditoria');
+            if (lblSync) {
+                if (uSync) {
+                    const relSync = formatoTiempoRelativo(uSync);
+                    lblSync.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#16a34a;"></i> Sincronizado: ${relSync} (${totalAnalizadas} líneas analizadas contra mayoristas | ${datosAuditoria.length} incidencias activas)`;
+                    lblSync.title = `Fecha exacta: ${uSync}`;
+                } else {
+                    lblSync.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#16a34a;"></i> ${totalAnalizadas} líneas analizadas contra mayoristas | ${datosAuditoria.length} incidencias activas`;
+                }
+            }
+
+            renderTablaAuditoria();
+        } catch(e) {
+            document.getElementById('tbodyAuditoria').innerHTML = `
+                <tr><td colspan="8" style="text-align: center; padding: 25px; color: #e11d48;"><i class="fa-solid fa-triangle-exclamation"></i> Error al cargar datos: ${e.message}</td></tr>`;
+        }
+    }
+
+    let sortColAuditoria = 'consumo_gb';
+    let sortDirAuditoria = 'desc';
+
+    function handleSortAuditoria(col) {
+        if (sortColAuditoria === col) {
+            sortDirAuditoria = sortDirAuditoria === 'desc' ? 'asc' : 'desc';
+        } else {
+            sortColAuditoria = col;
+            sortDirAuditoria = (col === 'telefono' || col === 'titular_dowisp' || col === 'dni' || col === 'estado_dowisp') ? 'asc' : 'desc';
+        }
+        
+        // Actualizar iconos
+        document.querySelectorAll('#theadAuditoria th').forEach(th => th.classList.remove('active-sort'));
+        document.querySelectorAll('#theadAuditoria .sort-icon').forEach(icon => {
+            icon.className = 'fa-solid fa-sort sort-icon';
+        });
+        
+        const targetIcon = document.getElementById('sort-icon-' + col);
+        if (targetIcon) {
+            targetIcon.parentElement.classList.add('active-sort');
+            targetIcon.className = sortDirAuditoria === 'asc' ? 'fa-solid fa-sort-up sort-icon' : 'fa-solid fa-sort-down sort-icon';
+        }
+        
+        renderTablaAuditoria();
+    }
+
+    function setFiltroAuditoria(f) {
+        filtroAuditoriaActivo = f;
+        ['TODAS', 'FINETWORK', 'AIRENETWORKS', 'LEMONVIL', 'INTERNAS'].forEach(id => {
+            const el = document.getElementById('flt-' + id);
+            if (el) el.classList.remove('active');
+        });
+        const activo = document.getElementById('flt-' + f);
+        if (activo) activo.classList.add('active');
+        renderTablaAuditoria();
+    }
+
+    function renderTablaAuditoria() {
+        const tbody = document.getElementById('tbodyAuditoria');
+        const q = (document.getElementById('inputBuscarAuditoria').value || '').toLowerCase();
+
+        let filtrados = datosAuditoria.filter(l => {
+            const matchQ = !q ||
+                (l.telefono || '').toLowerCase().includes(q) ||
+                (l.titular_mayorista || '').toLowerCase().includes(q) ||
+                (l.titular_dowisp || '').toLowerCase().includes(q) ||
+                (l.dni || '').toLowerCase().includes(q) ||
+                (l.operador || '').toLowerCase().includes(q);
+            if (!matchQ) return false;
+
+            if (filtroAuditoriaActivo === 'FINETWORK') return l.operador === 'FiNetwork';
+            if (filtroAuditoriaActivo === 'AIRENETWORKS') return l.operador === 'AireNetworks';
+            if (filtroAuditoriaActivo === 'LEMONVIL') return l.operador === 'Lemonvil';
+            if (filtroAuditoriaActivo === 'INTERNAS') return l.tipo_incidencia === 'INTERNA_GERENCIA';
+            return true;
+        });
+
+        // Aplicar ordenación dinámica
+        filtrados.sort((a, b) => {
+            // Si estamos en cualquier vista que no sea el filtro exclusivo de INTERNAS, mandar las líneas internas al final
+            if (filtroAuditoriaActivo !== 'INTERNAS') {
+                const isInternalA = a.tipo_incidencia === 'INTERNA_GERENCIA';
+                const isInternalB = b.tipo_incidencia === 'INTERNA_GERENCIA';
+                if (isInternalA !== isInternalB) {
+                    return isInternalA ? 1 : -1; // Internas siempre al final de la lista
+                }
+            }
+
+            let valA = a[sortColAuditoria];
+            let valB = b[sortColAuditoria];
+            if (typeof valA === 'string' || typeof valB === 'string') {
+                const strA = (valA || '').toString();
+                const strB = (valB || '').toString();
+                const cmp = strA.localeCompare(strB, 'es', { sensitivity: 'base', numeric: true });
+                return sortDirAuditoria === 'asc' ? cmp : -cmp;
+            } else {
+                valA = Number(valA) || 0;
+                valB = Number(valB) || 0;
+                return sortDirAuditoria === 'asc' ? valA - valB : valB - valA;
+            }
+        });
+
+        document.getElementById('lblTotalRegistrosAuditoria').textContent = `Mostrando ${filtrados.length} de ${datosAuditoria.length} líneas auditadas`;
+
+        if (filtrados.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 35px; color: #94a3b8;"><i class="fa-solid fa-circle-info"></i> No se encontraron líneas con los filtros actuales.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = filtrados.map(l => {
+            const tel = l.telefono || "";
+            const gb = l.consumo_gb || 0;
+            const mins = l.consumo_minutos || 0;
+
+            // Operador Tag
+            let opTagClass = 'op-default';
+            if (l.operador === 'FiNetwork') opTagClass = 'op-finetwork';
+            else if (l.operador === 'AireNetworks') opTagClass = 'op-aire';
+            else if (l.operador === 'Lemonvil') opTagClass = 'op-lemonvil';
+
+            // Consumo Tag con fecha de última actividad en CDR
+            let htmlConsumo = '';
+            let fechaUlt = l.fecha_ultimo_cdr && l.fecha_ultimo_cdr !== 'Sin fecha reciente' && l.fecha_ultimo_cdr !== 'Sin fecha registrada' ? l.fecha_ultimo_cdr : (l.fecha_primer_cdr || '');
+            let badgeFecha = '';
+            
+            if (fechaUlt) {
+                badgeFecha = `<div style="font-size:10.5px; font-weight:600; color:#475569; margin-top:4px; background:#f8fafc; padding:3px 6px; border-radius:4px; border:1px solid #e2e8f0; line-height:1.3;">
+                    <i class="fa-solid fa-clock-rotate-left" style="color:#0284c7;"></i> Última act: ${fechaUlt}
+                </div>`;
+            }
+            
+            if (gb > 0.5 || mins > 10) {
+                htmlConsumo = `<div style="font-weight:800; font-size:13px; color:#0f172a;"><i class="fa-solid fa-bolt text-yellow"></i> ${gb} GB</div>`;
+                if (mins > 0) htmlConsumo += `<div style="font-size:11px; font-weight:600; color:#e11d48; margin-top:2px;"><i class="fa-solid fa-phone"></i> ${mins} min</div>`;
+            } else if (gb > 0 || mins > 0) {
+                htmlConsumo = `<div style="font-size:12px; color:#475569; font-weight:600;">${gb} GB / ${mins} min</div>`;
+            } else {
+                htmlConsumo = '<span style="font-size:12px; color:#94a3b8;">0 GB / 0 min</span>';
+            }
+            htmlConsumo += badgeFecha;
+
+            // Estado DoWISP
+            let tagDoWISP = '';
+            if (l.estado_dowisp === 'ALTA') {
+                tagDoWISP = '<span class="tag-status tag-green"><i class="fa-solid fa-circle-check"></i> Activo en DoWISP</span>';
+            } else if (l.tipo_incidencia === 'FANTASMA') {
+                tagDoWISP = '<span class="tag-status tag-red"><i class="fa-solid fa-circle-xmark"></i> No existe en DoWISP</span>';
+            } else if ((l.estado_dowisp || '').includes('Baja') || l.tipo_incidencia === 'SIN_FACTURACION') {
+                tagDoWISP = `<span class="tag-status tag-orange"><i class="fa-solid fa-clock-rotate-left"></i> ${l.estado_dowisp || 'Baja / Sin Cuota'}</span>`;
+            } else {
+                tagDoWISP = `<span class="tag-status tag-gray">${l.estado_dowisp || 'Sin Ficha'}</span>`;
+            }
+
+            // Diagnóstico
+            let diagBadge = '';
+            if (l.tipo_incidencia === 'FANTASMA') {
+                diagBadge = '<span class="tag-status tag-red" style="font-weight:700;"><i class="fa-solid fa-ghost"></i> Línea Fantasma</span>';
+            } else if (l.tipo_incidencia === 'FACTURACION_CONGELADA') {
+                diagBadge = '<span class="tag-status tag-orange" style="font-weight:700;"><i class="fa-solid fa-snowflake"></i> Cuota Congelada</span>';
+            } else if (l.tipo_incidencia === 'IMPAGO_DEUDA') {
+                diagBadge = '<span class="tag-status tag-orange" style="font-weight:700;"><i class="fa-solid fa-file-invoice-dollar"></i> Recibo Pendiente</span>';
+            } else if (l.tipo_incidencia === 'SIN_FACTURACION') {
+                diagBadge = '<span class="tag-status tag-red" style="font-weight:700;"><i class="fa-solid fa-ban"></i> Sin Facturación</span>';
+            } else if (l.tipo_incidencia === 'BAJA_CON_TRAFICO') {
+                diagBadge = '<span class="tag-status" style="font-weight:700; background:#7c3aed; color:#fff;"><i class="fa-solid fa-plug-circle-xmark"></i> Baja con Tráfico</span>';
+            } else if (l.tipo_incidencia === 'INTERNA_GERENCIA') {
+                diagBadge = '<span class="tag-status tag-green" style="font-weight:700;"><i class="fa-solid fa-building"></i> Uso Interno</span>';
+            } else {
+                diagBadge = '<span class="tag-status tag-red" style="font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> Sin Cobro Activo</span>';
+            }
+
+            // Estado Seguimiento
+            let stBadge = '';
+            if (l.estado_gestion === 'REGULARIZADO_FACTURANDO') stBadge = '<span class="tag-status tag-green"><i class="fa-solid fa-circle-check"></i> Regularizado</span>';
+            else if (l.estado_gestion === 'PENDIENTE_CORTE_O_ALTA') stBadge = '<span class="tag-status tag-red"><i class="fa-solid fa-triangle-exclamation"></i> Corte / Alta</span>';
+            else if (l.estado_gestion === 'PENDIENTE_BAJA_MAYORISTA') stBadge = '<span class="tag-status tag-orange"><i class="fa-solid fa-scissors"></i> Baja Mayorista</span>';
+            else if (l.estado_gestion === 'CONFIRMADO_INTERNA') stBadge = '<span class="tag-status tag-blue"><i class="fa-solid fa-building"></i> Interna</span>';
+            else stBadge = '<span class="tag-status tag-gray"><i class="fa-solid fa-clock"></i> Pendiente</span>';
+
+            // Titular y Cliente (evitar duplicar si es el mismo nombre)
+            const titMay = (l.titular_mayorista || '').trim();
+            const titDow = (l.titular_dowisp || '').trim();
+            
+            const cleanMay = titMay.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const cleanDow = titDow.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const sonIguales = cleanMay && cleanDow && (cleanMay === cleanDow || cleanMay.includes(cleanDow) || cleanDow.includes(cleanMay));
+
+            let htmlTitular = '';
+            if (sonIguales) {
+                // Si es el mismo titular en ambos lados, solo se muestra una vez de forma limpia
+                htmlTitular = `<div style="font-weight: 700; color: #0f172a; font-size: 13px;">${titDow || titMay}</div>`;
+            } else if (!titDow || titDow.toLowerCase().includes('sin cliente') || titDow.toLowerCase().includes('no vinculado')) {
+                // No existe en DoWISP (Línea Fantasma)
+                htmlTitular = `
+                    <div style="font-weight: 700; color: #0f172a; font-size: 13px;">${titMay || '<span style="color:#94a3b8;">Sin titular en mayorista</span>'}</div>
+                    <div style="font-size: 11px; color: #e11d48; margin-top: 2px;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Sin ficha en DoWISP
+                    </div>`;
+            } else {
+                // Discrepancia real entre mayorista y DoWISP
+                htmlTitular = `
+                    <div style="font-weight: 700; color: #0f172a; font-size: 13px;">${titMay || '<span style="color:#94a3b8;">Sin titular</span>'}</div>
+                    <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                        DoWISP: <strong>${titDow}</strong>
+                    </div>`;
+            }
+
+            return `
+                <tr>
+                    <td>
+                        <div class="tel-pill">${tel}</div>
+                        <div style="margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                            <span class="op-tag ${opTagClass}">${l.operador || 'Mayorista'}</span>
+                            <span style="font-size: 11px; color: #64748b;">${l.tarifa || ''}</span>
+                        </div>
+                    </td>
+                    <td>${htmlTitular}</td>
+                    <td><span class="dni-tag">${l.dni || '—'}</span></td>
+                    <td>
+                        <div>${tagDoWISP}</div>
+                        <div style="font-size: 10.5px; color: #94a3b8; margin-top: 3px;">Última fac: ${l.ultima_factura || 'Nunca'}</div>
+                    </td>
+                    <td>${htmlConsumo}</td>
+                    <td>
+                        <div style="margin-bottom: 4px;">${diagBadge}</div>
+                        <div style="font-size: 11.5px; color: #475569; line-height: 1.35;">${l.diagnostico || ''}</div>
+                    </td>
+                    <td>${stBadge}</td>
+                    <td style="text-align: center;">
+                        <button type="button" class="btn-action-clean" onclick="abrirModalAuditoria('${tel}', '${l.estado_gestion || 'PENDIENTE_REVISION'}')" title="Registrar Acción">
+                            <i class="fa-solid fa-pen-to-square"></i> Acción
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function abrirModalAuditoria(tel, estadoActual) {
+        document.getElementById('modalTelAuditoria').value = tel;
+        document.getElementById('modalTituloAuditoria').innerHTML = `<i class="fa-solid fa-pen-to-square text-blue"></i> Acción para línea ${tel}`;
+        document.getElementById('modalEstadoAuditoria').value = estadoActual;
+        document.getElementById('modalObsAuditoria').value = '';
+
+        const linea = datosAuditoria.find(l => l.telefono === tel);
+        const hist = linea && linea.historial_acciones && linea.historial_acciones.length > 0
+            ? linea.historial_acciones.map(h => `
+                <div style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; font-size: 11px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; color: #64748b;">
+                        <span><strong>${h.timestamp}</strong> - ${h.usuario}</span>
+                        <span class="tag-status tag-blue" style="font-size:10px;">${h.nuevo_estado}</span>
+                    </div>
+                    <div style="margin-top: 3px; color: #0f172a;">${h.observaciones || 'Sin notas'}</div>
+                </div>`).join('')
+            : '<div style="color: #94a3b8; font-size: 11px; text-align: center; padding: 10px;">Sin acciones previas registradas.</div>';
+
+        document.getElementById('modalHistorialAuditoria').innerHTML = hist;
+        document.getElementById('modalAuditoria').style.display = 'flex';
+        document.getElementById('modalAuditoria').classList.add('in');
+    }
+
+    function cerrarModalAuditoria() {
+        document.getElementById('modalAuditoria').style.display = 'none';
+        document.getElementById('modalAuditoria').classList.remove('in');
+    }
+
+    async function guardarNotaAuditoria() {
+        const tel = document.getElementById('modalTelAuditoria').value;
+        const est = document.getElementById('modalEstadoAuditoria').value;
+        const obs = document.getElementById('modalObsAuditoria').value;
+
+        try {
+            const r = await fetch('/api/admin/auditoria/log-nota', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({telefono: tel, nuevo_estado: est, observaciones: obs, usuario: 'Administración'})
+            });
+            if (r.ok) {
+                cerrarModalAuditoria();
+                await cargarAuditoria();
+            } else {
+                alert('Error al guardar acción');
+            }
+        } catch(e) {
+            alert('Error de conexión: ' + e.message);
+        }
+    }
+
+    function exportarCSVAuditoria() {
+        if (!datosAuditoria || datosAuditoria.length === 0) {
+            alert("No hay registros para exportar.");
+            return;
+        }
+
+        const q = (document.getElementById('inputBuscarAuditoria').value || '').toLowerCase();
+        let filtrados = datosAuditoria.filter(l => {
+            const matchQ = !q ||
+                (l.telefono || '').toLowerCase().includes(q) ||
+                (l.titular_mayorista || '').toLowerCase().includes(q) ||
+                (l.titular_dowisp || '').toLowerCase().includes(q) ||
+                (l.dni || '').toLowerCase().includes(q);
+            return matchQ;
+        });
+
+        const cabeceras = ["Telefono", "Operador", "Titular Mayorista", "Titular DoWISP", "DNI", "Estado DoWISP", "Ultima Factura", "Consumo GB", "Consumo Min", "Tipo Incidencia", "Diagnostico", "Estado Seguimiento"];
+        const filas = [cabeceras];
+
+        filtrados.forEach(l => {
+            filas.push([
+                `"${l.telefono || ''}"`,
+                `"${l.operador || ''}"`,
+                `"${(l.titular_mayorista || '').replace(/"/g, '""')}"`,
+                `"${(l.titular_dowisp || '').replace(/"/g, '""')}"`,
+                `"${l.dni || ''}"`,
+                `"${(l.estado_dowisp || '').replace(/"/g, '""')}"`,
+                `"${(l.ultima_factura || '').replace(/"/g, '""')}"`,
+                `"${l.consumo_gb || 0}"`,
+                `"${l.consumo_minutos || 0}"`,
+                `"${l.tipo_incidencia || ''}"`,
+                `"${(l.diagnostico || '').replace(/"/g, '""')}"`,
+                `"${l.estado_gestion || ''}"`
+            ]);
+        });
+
+        const csvContent = "\\uFEFF" + filas.map(e => e.join(";")).join("\\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `auditoria_lineas_cdrs_dowisp.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Carga inicial
+    cargarAuditoria();
+</script>
+</div>
+</body>
+</html>

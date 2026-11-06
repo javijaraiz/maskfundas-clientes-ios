@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "UNAJ7R44N2.es.maskfundas.clientes",
+        "paths": [
+          "/app*",
+          "/login*"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "UNAJ7R44N2.es.maskfundas.clientes"
+    ]
+  }
+}

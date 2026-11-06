@@ -1,0 +1,2581 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Presupuestos y Alternativas | MásKFundas Telecom</title>
+    <link rel="icon" type="image/png" href="/img/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0B2265;
+            --navy-dark: #07153D;
+            --navy-light: #EEF2FF;
+            --orange: #FF6B00;
+            --orange-hover: #E55F00;
+            --orange-light: #FFF7ED;
+            --green: #16A34A;
+            --green-dark: #15803D;
+            --green-light: #DCFCE7;
+            --red: #DC2626;
+            --red-light: #FEE2E2;
+            --gold: #F59E0B;
+            --gold-light: #FEF3C7;
+            --slate-900: #0F172A;
+            --slate-800: #1E293B;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-500: #64748B;
+            --slate-200: #E2E8F0;
+            --slate-100: #F1F5F9;
+            --slate-50: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --shadow-sm: 0 1px 3px rgba(15,23,42,0.06);
+            --shadow-md: 0 4px 16px -2px rgba(15,23,42,0.08);
+            --shadow-lg: 0 12px 32px -4px rgba(15,23,42,0.12);
+            --radius-md: 10px;
+            --radius-lg: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--slate-50);
+            color: var(--slate-900);
+            line-height: 1.5;
+            padding-bottom: 80px;
+        }
+
+        /* ── BARRA SUPERIOR DE ACCIONES ── */
+        .top-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(11, 34, 101, 0.96);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .brand-logo {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--orange), #FFA500);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            box-shadow: 0 3px 8px rgba(255,107,0,0.4);
+        }
+
+        .brand-text h1 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .brand-text span.badge-beta {
+            font-size: 0.65rem;
+            font-weight: 700;
+            background: rgba(255,107,0,0.25);
+            color: #FFD8A8;
+            border: 1px solid rgba(255,107,0,0.4);
+            padding: 2px 6px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        .brand-text p {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        /* ── BOTONES GLOBALES ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            padding: 0.55rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-orange {
+            background: var(--orange);
+            color: white;
+            box-shadow: 0 2px 8px rgba(255,107,0,0.3);
+        }
+        .btn-orange:hover {
+            background: var(--orange-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-green {
+            background: var(--green);
+            color: white;
+        }
+        .btn-green:hover {
+            background: var(--green-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-navy-light {
+            background: rgba(255,255,255,0.12);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-navy-light:hover {
+            background: rgba(255,255,255,0.22);
+        }
+
+        .btn-outline-slate {
+            background: white;
+            color: var(--slate-700);
+            border: 1px solid var(--slate-200);
+        }
+        .btn-outline-slate:hover {
+            background: var(--slate-100);
+            color: var(--slate-900);
+        }
+
+        .btn-danger-subtle {
+            background: var(--red-light);
+            color: var(--red);
+            border: 1px solid #FECACA;
+            padding: 0.35rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+        .btn-danger-subtle:hover {
+            background: #F87171;
+            color: white;
+        }
+
+        /* ── MODO SELECTOR SWITCH ── */
+        .view-switch-box {
+            display: inline-flex;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 3px;
+            border-radius: 10px;
+            gap: 2px;
+        }
+
+        .switch-btn {
+            background: transparent;
+            color: rgba(255,255,255,0.7);
+            border: none;
+            padding: 0.4rem 0.85rem;
+            border-radius: 7px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+        }
+
+        .switch-btn.active {
+            background: white;
+            color: var(--navy);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        /* ── LAYOUT PRINCIPAL ── */
+        .main-container {
+            max-width: 1220px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+        }
+
+        /* ── SECCIONES EDITOR vs VISTA PREVIA ── */
+        .section-view {
+            display: none;
+        }
+        .section-view.active {
+            display: block;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── CARDS DEL EDITOR ── */
+        .editor-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 980px) {
+            .editor-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--slate-200);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header-clean {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--slate-100);
+            padding-bottom: 1rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--slate-900);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-title i {
+            color: var(--orange);
+        }
+
+        /* ── PESTAÑAS DE ALTERNATIVAS / OPCIONES COMERCIALES ── */
+        .options-tabs-container {
+            background: var(--slate-100);
+            border: 1px solid var(--slate-200);
+            border-radius: 12px;
+            padding: 0.5rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .options-tabs-list {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .option-tab-btn {
+            background: white;
+            border: 1px solid var(--slate-200);
+            padding: 0.55rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--slate-700);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.15s ease;
+        }
+        .option-tab-btn:hover {
+            border-color: var(--navy);
+            color: var(--navy);
+        }
+        .option-tab-btn.active {
+            background: var(--navy);
+            color: white;
+            border-color: var(--navy);
+            box-shadow: 0 3px 10px rgba(11,34,101,0.25);
+        }
+        .option-tab-btn .badge-rec {
+            background: var(--orange);
+            color: white;
+            font-size: 0.65rem;
+            padding: 1px 5px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .option-tab-btn.active .badge-rec {
+            background: #FDE047;
+            color: var(--slate-900);
+        }
+
+        .options-actions-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* ── CONFIGURADOR DE LA ALTERNATIVA ACTIVA ── */
+        .active-option-meta-bar {
+            background: var(--slate-50);
+            border: 1px dashed var(--slate-300);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .active-option-inputs {
+            display: flex;
+            gap: 0.75rem;
+            flex: 1;
+            flex-wrap: wrap;
+        }
+        .active-option-inputs input {
+            padding: 0.45rem 0.75rem;
+            font-size: 0.88rem;
+            border: 1px solid var(--slate-200);
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .recommended-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--slate-800);
+            cursor: pointer;
+            user-select: none;
+        }
+        .recommended-toggle input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            accent-color: var(--orange);
+            cursor: pointer;
+        }
+
+        /* ── FORMULARIOS Y CONTROLES ── */
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .form-row > * {
+            flex: 1;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--slate-700);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.35rem;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.6rem 0.85rem;
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: var(--slate-900);
+            background: white;
+            border: 1px solid var(--slate-200);
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: var(--navy);
+            box-shadow: 0 0 0 3px rgba(11, 34, 101, 0.12);
+        }
+
+        /* ── AUTOCOMPLETE CLIENTES ── */
+        .autocomplete-wrapper {
+            position: relative;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--slate-200);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            max-height: 240px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            margin-top: 4px;
+        }
+
+        .autocomplete-item {
+            padding: 0.6rem 0.85rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--slate-100);
+            transition: background 0.15s ease;
+        }
+        .autocomplete-item:hover {
+            background: var(--slate-50);
+        }
+        .autocomplete-item-title {
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: var(--slate-900);
+        }
+        .autocomplete-item-meta {
+            font-size: 0.75rem;
+            color: var(--slate-500);
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        /* ── PRESETS RÁPIDOS ── */
+        .preset-bar {
+            background: var(--slate-100);
+            border: 1px solid var(--slate-200);
+            border-radius: var(--radius-md);
+            padding: 0.85rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .preset-bar-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--slate-600);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+        }
+
+        .btn-preset {
+            background: white;
+            border: 1px solid var(--slate-200);
+            color: var(--slate-800);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.4rem 0.7rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: all 0.15s ease;
+        }
+        .btn-preset:hover {
+            border-color: var(--orange);
+            color: var(--orange);
+            background: var(--orange-light);
+            transform: translateY(-1px);
+        }
+        .btn-preset .price-tag {
+            color: var(--green-dark);
+            font-weight: 700;
+        }
+
+        /* ── TABLA DINÁMICA DE LÍNEAS ── */
+        .services-table-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--slate-200);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .services-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        .services-table th {
+            background: var(--slate-100);
+            color: var(--slate-700);
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 0.75rem 0.85rem;
+            text-align: left;
+            border-bottom: 1px solid var(--slate-200);
+        }
+
+        .services-table td {
+            padding: 0.6rem 0.85rem;
+            border-bottom: 1px solid var(--slate-200);
+            vertical-align: middle;
+            background: white;
+        }
+
+        .services-table tr:hover td {
+            background: #FAFAFC;
+        }
+
+        .services-table input, .services-table select {
+            padding: 0.45rem 0.6rem;
+            font-size: 0.85rem;
+            border: 1px solid var(--slate-200);
+            border-radius: 6px;
+            outline: none;
+            width: 100%;
+        }
+        .services-table input:focus, .services-table select:focus {
+            border-color: var(--navy);
+        }
+
+        .badge-type {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            text-transform: uppercase;
+        }
+        .badge-mensual {
+            background: #EFF6FF;
+            color: #1D4ED8;
+            border: 1px solid #BFDBFE;
+        }
+        .badge-unico {
+            background: #FEF3C7;
+            color: #B45309;
+            border: 1px solid #FDE68A;
+        }
+
+        /* ── RESUMEN ECONÓMICO LATERAL (STICKY) ── */
+        .summary-card {
+            position: sticky;
+            top: 5rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.6rem 0;
+            font-size: 0.9rem;
+            border-bottom: 1px dashed var(--slate-200);
+        }
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-total {
+            background: linear-gradient(135deg, var(--navy), var(--navy-dark));
+            color: white;
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin: 1.25rem 0 1rem;
+            box-shadow: 0 4px 14px rgba(11,34,101,0.25);
+        }
+
+        .summary-total-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 0.3rem;
+        }
+
+        .summary-total-price {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1;
+            display: flex;
+            align-items: baseline;
+            gap: 0.3rem;
+        }
+        .summary-total-price span.period {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #FED7AA;
+        }
+
+        /* ── COMPARADOR DE TODAS LAS ALTERNATIVAS EN EL SIDEBAR ── */
+        .alternatives-mini-card {
+            background: var(--slate-100);
+            border: 1px solid var(--slate-200);
+            border-radius: 10px;
+            padding: 0.9rem;
+            margin: 1.2rem 0;
+        }
+        .alt-mini-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.45rem 0;
+            border-bottom: 1px solid var(--slate-200);
+            font-size: 0.84rem;
+        }
+        .alt-mini-item:last-child { border-bottom: none; }
+        .alt-mini-item.active {
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        /* ── CAJA DE AHORRO ── */
+        .savings-box {
+            background: var(--green-light);
+            border: 1px solid #86EFAC;
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .savings-title {
+            color: var(--green-dark);
+            font-weight: 800;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .savings-amounts {
+            display: flex;
+            align-items: baseline;
+            gap: 0.6rem;
+        }
+
+        .savings-main {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--green-dark);
+        }
+        .savings-badge {
+            background: var(--green);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 6px;
+        }
+
+        .editor-grid > *, .form-row > *, .active-option-inputs { min-width: 0; }
+        .active-option-inputs input { max-width: 100%; }
+        @media screen and (max-width: 760px) {
+            .top-navbar { position: relative; flex-direction: column; align-items: stretch; padding: 1rem; }
+            .brand-text h1, .options-actions-bar { flex-wrap: wrap; }
+            .brand-container, .brand-text { min-width: 0; }
+            .navbar-actions { width: 100%; }
+            .card { padding: 1rem; }
+            .card-title { min-width: 0; }
+            .card-title span { overflow-wrap: anywhere; }
+            .proposal-paper { padding: 1rem; overflow-x: auto; }
+        }
+
+        /* ==========================================================
+           DOCUMENTO COMERCIAL (MODO VISTA PREVIA & IMPRESIÓN A4)
+           ========================================================== */
+        .proposal-paper {
+            background: white;
+            border: 1px solid var(--slate-200);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 3rem;
+            position: relative;
+        }
+
+        .paper-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--navy);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .paper-brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+        }
+
+        .paper-brand-logo .logo-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--navy), var(--orange));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+        }
+
+        .paper-brand-logo h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--navy);
+            line-height: 1.1;
+        }
+
+        .paper-brand-logo p {
+            font-size: 0.85rem;
+            color: var(--slate-500);
+            font-weight: 500;
+        }
+
+        .paper-meta-box {
+            text-align: right;
+        }
+
+        .paper-meta-badge {
+            display: inline-block;
+            background: var(--navy);
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 800;
+            padding: 0.35rem 0.8rem;
+            border-radius: 6px;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.4rem;
+        }
+
+        .paper-meta-item {
+            font-size: 0.85rem;
+            color: var(--slate-600);
+        }
+        .paper-meta-item strong {
+            color: var(--slate-900);
+        }
+
+        /* ── GRID CLIENTE vs EMISOR ── */
+        .paper-parties-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .party-card {
+            background: var(--slate-50);
+            border: 1px solid var(--slate-200);
+            border-radius: 10px;
+            padding: 1.25rem;
+        }
+
+        .party-card-title {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--navy);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .party-name {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--slate-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .party-detail {
+            font-size: 0.85rem;
+            color: var(--slate-600);
+            line-height: 1.4;
+        }
+
+        /* ── CUADRO COMPARATIVO MULTI-OPCIÓN EN EL DOCUMENTO ── */
+        .doc-options-comparison {
+            margin-bottom: 2.5rem;
+        }
+
+        .doc-comparison-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--navy);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .comparison-cards-grid {
+            display: grid;
+            gap: 1.2rem;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        }
+
+        .comparison-card {
+            background: white;
+            border: 2px solid var(--slate-200);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .comparison-card.recommended {
+            border-color: var(--orange);
+            background: #FFFDF9;
+            box-shadow: 0 6px 20px rgba(255,107,0,0.15);
+        }
+
+        .comparison-card-badge {
+            position: absolute;
+            top: -12px;
+            right: 15px;
+            background: var(--orange);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 3px 9px;
+            border-radius: 12px;
+            letter-spacing: 0.03em;
+        }
+
+        .comparison-card-name {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--slate-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .comparison-card-price {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: var(--navy);
+            margin: 0.75rem 0 0.5rem;
+            line-height: 1;
+        }
+        .comparison-card.recommended .comparison-card-price {
+            color: var(--orange);
+        }
+        .comparison-card-price span.period {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--slate-500);
+        }
+
+        .comparison-card-savings {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--green-dark);
+            background: var(--green-light);
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-bottom: 0.8rem;
+        }
+
+        .comparison-card-bullets {
+            list-style: none;
+            padding: 0;
+            margin: 0.5rem 0 1rem;
+            font-size: 0.82rem;
+            color: var(--slate-700);
+        }
+        .comparison-card-bullets li {
+            padding: 0.25rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.4rem;
+        }
+        .comparison-card-bullets li i {
+            color: var(--green);
+            margin-top: 3px;
+        }
+
+        /* ── TABLA DOCUMENTO COMERCIAL ── */
+        .doc-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.75rem;
+        }
+
+        .doc-table th {
+            background: var(--navy);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 0.85rem 1rem;
+            text-align: left;
+        }
+        .doc-table th.text-right { text-align: right; }
+        .doc-table th.text-center { text-align: center; }
+
+        .doc-table td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--slate-200);
+            font-size: 0.92rem;
+            vertical-align: middle;
+        }
+        .doc-table td.text-right { text-align: right; }
+        .doc-table td.text-center { text-align: center; }
+
+        .doc-item-title {
+            font-weight: 700;
+            color: var(--slate-900);
+        }
+        .doc-item-desc {
+            font-size: 0.82rem;
+            color: var(--slate-500);
+            margin-top: 0.15rem;
+        }
+
+        /* ── TOTALES DEL DOCUMENTO ── */
+        .doc-totals-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 2rem;
+        }
+
+        .doc-totals-box {
+            width: 360px;
+            background: var(--slate-50);
+            border: 1px solid var(--slate-200);
+            border-radius: 10px;
+            padding: 1.25rem;
+        }
+
+        .doc-total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            font-size: 0.88rem;
+            color: var(--slate-600);
+        }
+
+        .doc-total-final {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-top: 2px solid var(--navy);
+            padding-top: 0.75rem;
+            margin-top: 0.5rem;
+            color: var(--navy);
+        }
+        .doc-total-final span.label {
+            font-size: 1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .doc-total-final span.amount {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--orange);
+        }
+
+        /* ── CONDICIONES Y FIRMA ── */
+        .doc-clauses {
+            border: 1px solid var(--slate-200);
+            border-radius: 8px;
+            padding: 1rem;
+            background: var(--slate-50);
+            font-size: 0.8rem;
+            color: var(--slate-600);
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+        .doc-clauses h5 {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--slate-800);
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+
+        .doc-signatures-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 3rem;
+            padding-top: 1rem;
+        }
+
+        .signature-box {
+            border-top: 1px solid var(--slate-300);
+            padding-top: 0.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--slate-600);
+        }
+        .signature-box strong {
+            display: block;
+            color: var(--slate-900);
+            font-size: 0.85rem;
+            margin-bottom: 2rem;
+        }
+
+        /* ── MODAL HISTORIAL ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 600px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+            background: var(--navy);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.8;
+        }
+        .modal-close:hover { opacity: 1; }
+
+        .modal-body {
+            padding: 1.25rem 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .history-item {
+            padding: 0.85rem;
+            border: 1px solid var(--slate-200);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.15s ease;
+        }
+        .history-item:hover {
+            border-color: var(--navy);
+            background: var(--slate-50);
+        }
+
+        /* ── TOAST NOTIFY ── */
+        .toast-notify {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--slate-900);
+            color: white;
+            padding: 0.85rem 1.4rem;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            box-shadow: var(--shadow-lg);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            gap: 0.6rem;
+            animation: slideUp 0.25s ease;
+        }
+        .toast-notify.show {
+            display: flex;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* ==========================================================
+           ESTILOS DE IMPRESIÓN (PDF / PAPEL A4)
+           ========================================================== */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 10mm 12mm 10mm 12mm;
+            }
+
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+            }
+
+            .top-navbar,
+            .editor-section,
+            .toast-notify,
+            .modal-overlay,
+            .no-print {
+                display: none !important;
+            }
+
+            .section-view.preview-section {
+                display: block !important;
+            }
+
+            .proposal-paper {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+
+            .paper-header {
+                border-bottom: 2px solid black !important;
+            }
+
+            .doc-table th {
+                background: #0B2265 !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .comparison-card.recommended {
+                border-color: #FF6B00 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .comparison-card-badge {
+                background: #FF6B00 !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .paper-brand-logo .logo-icon {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA SUPERIOR DE HERRAMIENTAS -->
+    <header class="top-navbar no-print">
+        <div class="brand-container">
+            <div class="brand-logo">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <div class="brand-text">
+                <h1>MásKFundas Telecom <span class="badge-beta">Multi-Presupuesto</span></h1>
+                <p>Generador de Propuestas Comerciales con Múltiples Alternativas</p>
+            </div>
+        </div>
+
+        <div class="navbar-actions">
+            <!-- Selector de Modo: Editor vs Documento -->
+            <div class="view-switch-box">
+                <button class="switch-btn active" id="btnModeEditor" onclick="setMode('editor')">
+                    <i class="fa-solid fa-pen-to-square"></i> Modo Edición
+                </button>
+                <button class="switch-btn" id="btnModePreview" onclick="setMode('preview')">
+                    <i class="fa-solid fa-eye"></i> Vista Previa / Doc
+                </button>
+            </div>
+
+            <!-- Botones de Acción Rápida -->
+            <button class="btn btn-navy-light" onclick="openHistoryModal()" title="Ver historial">
+                <i class="fa-solid fa-clock-rotate-left"></i> Historial
+            </button>
+            <button class="btn btn-navy-light" onclick="resetProposal()" title="Nuevo Presupuesto">
+                <i class="fa-solid fa-file-circle-plus"></i> Nuevo
+            </button>
+            <button class="btn btn-green" onclick="copyWhatsAppSummary()" title="Copiar todas las opciones para WhatsApp">
+                <i class="fa-brands fa-whatsapp"></i> Copiar WhatsApp
+            </button>
+            <button class="btn btn-orange" onclick="printProposal()" title="Imprimir o guardar en PDF">
+                <i class="fa-solid fa-print"></i> Imprimir / PDF
+            </button>
+        </div>
+    </header>
+
+    <div class="main-container">
+
+        <!-- ==========================================================
+             SECCIÓN 1: MODO EDITOR
+             ========================================================== -->
+        <div class="section-view editor-section active" id="viewEditor">
+            
+            <div class="editor-grid">
+                
+                <!-- COLUMNA PRINCIPAL IZQUIERDA -->
+                <div class="editor-left">
+
+                    <!-- CARD 1: CLIENTE -->
+                    <div class="card">
+                        <div class="card-header-clean">
+                            <div class="card-title">
+                                <i class="fa-solid fa-user-check"></i>
+                                <span>Datos del Cliente / Titular</span>
+                            </div>
+                            <span style="font-size: 0.78rem; color: var(--slate-500);">
+                                <i class="fa-solid fa-magnifying-glass"></i> Busca en DoWISP o escribe a mano
+                            </span>
+                        </div>
+
+                        <!-- Buscador dinámico reactivo -->
+                        <div class="form-group autocomplete-wrapper">
+                            <label class="form-label">Buscar cliente existente (DNI, Teléfono o Nombre)</label>
+                            <input type="text" class="form-input" id="searchClientInput" 
+                                   placeholder="Escribe para autocompletar clientes de DoWISP / base de datos..." 
+                                   autocomplete="off" oninput="handleClientSearch(this.value)">
+                            <div class="autocomplete-dropdown" id="clientDropdown"></div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Nombre / Razón Social *</label>
+                                <input type="text" class="form-input" id="clientName" value="Juan Pedro Rivero" oninput="updateCalculations()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">DNI / CIF / NIE</label>
+                                <input type="text" class="form-input" id="clientDni" placeholder="Ej: 12345678Z" oninput="updateCalculations()">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Teléfono de Contacto</label>
+                                <input type="text" class="form-input" id="clientPhone" placeholder="Ej: 600123456" oninput="updateCalculations()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-input" id="clientEmail" placeholder="cliente@correo.com" oninput="updateCalculations()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Población / Dirección</label>
+                                <input type="text" class="form-input" id="clientCity" placeholder="Ej: Plasencia (Cáceres)" oninput="updateCalculations()">
+                            </div>
+                        </div>
+
+                        <hr style="border: 0; border-top: 1px solid var(--slate-100); margin: 0.75rem 0 1rem;">
+
+                        <!-- Comparativa con Operador Actual -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Operador Actual del Cliente</label>
+                                <input type="text" class="form-input" id="currentOperator" placeholder="Ej: Movistar, Orange, Vodafone, Digi..." oninput="updateCalculations()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Gasto Mensual Actual (€ IVA incl.)</label>
+                                <input type="number" step="0.01" class="form-input" id="currentCost" placeholder="0.00" oninput="updateCalculations()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CARD 2: CONFIGURADOR DE ALTERNATIVAS COMERCIALES (TABS) -->
+                    <div class="card">
+                        <div class="card-header-clean">
+                            <div class="card-title">
+                                <i class="fa-solid fa-layer-group"></i>
+                                <span>Alternativas / Opciones de Propuesta</span>
+                            </div>
+                            <span style="font-size: 0.8rem; color: var(--slate-500);">
+                                Presenta 1, 2 o 3 opciones para que el cliente elija
+                            </span>
+                        </div>
+
+                        <!-- BARRA DE PESTAÑAS DE ALTERNATIVAS -->
+                        <div class="options-tabs-container">
+                            <div class="options-tabs-list" id="optionsTabsList">
+                                <!-- Generado dinámicamente -->
+                            </div>
+                            <div class="options-actions-bar">
+                                <button class="btn btn-outline-slate" style="padding: 0.4rem 0.7rem; font-size: 0.8rem;" onclick="duplicateCurrentOption()" title="Clonar esta alternativa">
+                                    <i class="fa-solid fa-copy"></i> Duplicar Opción
+                                </button>
+                                <button class="btn btn-navy-light" style="color: var(--navy); background: white; padding: 0.4rem 0.7rem; font-size: 0.8rem;" onclick="addNewOption()">
+                                    <i class="fa-solid fa-plus"></i> Añadir Alternativa
+                                </button>
+                                <button class="btn btn-danger-subtle" id="btnDeleteOption" onclick="deleteCurrentOption()" title="Eliminar alternativa">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- CONFIGURADOR DE LA OPCIÓN SELECCIONADA -->
+                        <div class="active-option-meta-bar">
+                            <div class="active-option-inputs">
+                                <div style="flex: 1.5; min-width: 180px;">
+                                    <label class="form-label" style="margin-bottom: 2px;">Nombre de la Opción</label>
+                                    <input type="text" id="optNameInput" style="width: 100%; font-weight: 700;" oninput="updateActiveOptionMeta()">
+                                </div>
+                                <div style="flex: 1; min-width: 140px;">
+                                    <label class="form-label" style="margin-bottom: 2px;">Etiqueta / Badge</label>
+                                    <input type="text" id="optBadgeInput" placeholder="Ej: Recomendada, Ahorro..." oninput="updateActiveOptionMeta()">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="recommended-toggle">
+                                    <input type="checkbox" id="optIsRecommendedCheckbox" onchange="toggleRecommendedOption(this.checked)">
+                                    <span>⭐ Opción Recomendada</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- PRESETS RÁPIDOS (1-CLIC) -->
+                        <div class="preset-bar">
+                            <div class="preset-bar-title">
+                                <i class="fa-solid fa-bolt"></i> Añadir Tarifas MásKFundas a esta opción:
+                            </div>
+                            <div class="preset-buttons">
+                                <button class="btn-preset" onclick="addPreset('fibra_300')">
+                                    <i class="fa-solid fa-wifi"></i> Fibra 300M <span class="price-tag">25,90€</span>
+                                </button>
+                                <button class="btn-preset" onclick="addPreset('fibra_600')">
+                                    <i class="fa-solid fa-wifi"></i> Fibra 600M <span class="price-tag">28,90€</span>
+                                </button>
+                                <button class="btn-preset" onclick="addPreset('fibra_1000')">
+                                    <i class="fa-solid fa-wifi"></i> Fibra 1Gb <span class="price-tag">34,90€</span>
+                                </button>
+                                <button class="btn-preset" onclick="addPreset('movil_50')">
+                                    <i class="fa-solid fa-mobile-screen"></i> Móvil 50GB <span class="price-tag">8,00€</span>
+                                </button>
+                                <button class="btn-preset" onclick="addPreset('movil_100')">
+                                    <i class="fa-solid fa-mobile-screen"></i> Móvil 100GB <span class="price-tag">10,00€</span>
+                                </button>
+                                <button class="btn-preset" onclick="addPreset('movil_200')">
+                                    <i class="fa-solid fa-mobile-screen"></i> Móvil 200GB <span class="price-tag">11,00€</span>
+                                </button>
+                                <button class="btn-preset" onclick="addPreset('fijo')">
+                                    <i class="fa-solid fa-phone"></i> Fijo Ilimitado <span class="price-tag">3,00€</span>
+                                </button>
+                                <button class="btn-preset" onclick="addPreset('router_wifi6')">
+                                    <i class="fa-solid fa-network-wired"></i> Router Wi-Fi 6 <span class="price-tag">0,00€</span>
+                                </button>
+                                <button class="btn-preset" onclick="addPreset('instalacion')">
+                                    <i class="fa-solid fa-screwdriver-wrench"></i> Instalación Bonificada <span class="price-tag">0,00€</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- TABLA DE LÍNEAS DE LA OPCIÓN ACTIVA -->
+                        <div class="services-table-wrapper">
+                            <table class="services-table" id="tableLineItems">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 140px;">Tipo de Cargo</th>
+                                        <th style="width: 130px;">Categoría</th>
+                                        <th>Concepto / Detalle del Servicio</th>
+                                        <th style="width: 70px;">Cant.</th>
+                                        <th style="width: 110px;">Precio Ud. (€)</th>
+                                        <th style="width: 90px;">Dto. (€)</th>
+                                        <th style="width: 100px; text-align: right;">Subtotal</th>
+                                        <th style="width: 50px; text-align: center;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lineItemsBody">
+                                    <!-- Rellenado dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                            <button class="btn btn-outline-slate" onclick="addNewLineItem()">
+                                <i class="fa-solid fa-plus"></i> Añadir Servicio / Precio Manual
+                            </button>
+                            <span style="font-size: 0.8rem; color: var(--slate-500);">
+                                <i class="fa-solid fa-pen"></i> Los precios y nombres son 100% libres y editables.
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- CARD 3: CONDICIONES -->
+                    <div class="card">
+                        <div class="card-header-clean">
+                            <div class="card-title">
+                                <i class="fa-solid fa-handshake"></i>
+                                <span>Condiciones Comerciales y Observaciones</span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Compromiso de Permanencia</label>
+                                <select class="form-select" id="permanenciaSelect" onchange="updateCalculations()">
+                                    <option value="Sin permanencia">Sin permanencia (Libertad total)</option>
+                                    <option value="3 meses por bonificación de instalación" selected>3 meses (por bonificación de instalación y router)</option>
+                                    <option value="12 meses con tarifa promocionada">12 meses (con tarifa promocionada)</option>
+                                    <option value="Personalizada">Personalizada</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Validez de la Oferta</label>
+                                <input type="text" class="form-input" id="proposalValidity" value="15 días naturales" oninput="updateCalculations()">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Observaciones / Promociones</label>
+                            <textarea class="form-textarea" id="proposalNotes" rows="2" oninput="updateCalculations()">Router Wi-Fi 6 de alta cobertura en cesión gratuita. Instalación bonificada. Portabilidad transparente sin interrupción del servicio.</textarea>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- COLUMNA DERECHA: RESUMEN LATERAL -->
+                <div class="editor-right">
+                    
+                    <div class="card summary-card">
+                        <div class="card-header-clean">
+                            <div class="card-title">
+                                <i class="fa-solid fa-calculator"></i>
+                                <span>Resumen Económico</span>
+                            </div>
+                            <span style="font-size: 0.78rem; font-weight: 700; color: var(--orange);" id="summaryActiveOptionTitle">
+                                Opción 1
+                            </span>
+                        </div>
+
+                        <!-- TOTAL MENSUAL DESTACADO -->
+                        <div class="summary-total">
+                            <div class="summary-total-label" id="summaryActiveOptionLabel">Cuota Mensual</div>
+                            <div class="summary-total-price">
+                                <span id="summaryTotalMonthly">0,00</span> € <span class="period">/ mes</span>
+                            </div>
+                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.7); margin-top: 0.25rem;">
+                                IVA (21%) incluido en todos los servicios
+                            </div>
+                        </div>
+
+                        <!-- MINI COMPARATIVA DE TODAS LAS ALTERNATIVAS -->
+                        <div class="alternatives-mini-card">
+                            <div style="font-size: 0.75rem; font-weight: 800; color: var(--slate-600); text-transform: uppercase; margin-bottom: 0.4rem;">
+                                Comparativa de Alternativas Creadas:
+                            </div>
+                            <div id="alternativesMiniList">
+                                <!-- Generado dinámicamente -->
+                            </div>
+                        </div>
+
+                        <!-- DESGLOSE DE TOTALES -->
+                        <div class="summary-row">
+                            <span style="color: var(--slate-600);">Base Imponible Mensual:</span>
+                            <span style="font-weight: 600;" id="summaryBaseMonthly">0,00 €</span>
+                        </div>
+                        <div class="summary-row">
+                            <span style="color: var(--slate-600);">IVA Estimado (21%):</span>
+                            <span style="font-weight: 600;" id="summaryIvaMonthly">0,00 €</span>
+                        </div>
+                        <div class="summary-row" id="rowInitialPayment" style="display: none;">
+                            <span style="color: var(--slate-600); font-weight: 600;">Pago Inicial / Terminales:</span>
+                            <span style="font-weight: 700; color: #B45309;" id="summaryInitialPayment">0,00 €</span>
+                        </div>
+
+                        <!-- BLOQUE DE AHORRO GARANTIZADO -->
+                        <div class="savings-box" id="summarySavingsBox" style="display: none;">
+                            <div class="savings-title">
+                                <i class="fa-solid fa-piggy-bank"></i> Ahorro con esta opción:
+                            </div>
+                            <div class="savings-amounts">
+                                <div class="savings-main" id="summarySavingsYearly">0,00 €</div>
+                                <div class="savings-badge" id="summarySavingsPercent">-0%</div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #166534; margin-top: 0.2rem;">
+                                Ahorro mensual de <strong id="summarySavingsMonthly">0,00 €/mes</strong>
+                            </div>
+                        </div>
+
+                        <!-- METADATOS -->
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--slate-100); font-size: 0.8rem; color: var(--slate-500);">
+                            <div style="margin-bottom: 0.35rem;">
+                                <strong>Nº Oferta:</strong> <span id="summaryPropId">MF-2026-0001</span>
+                            </div>
+                            <div>
+                                <strong>Fecha:</strong> <span id="summaryPropDate">21/09/2026</span>
+                            </div>
+                        </div>
+
+                        <!-- BOTONES DE ACCIÓN DIRECTA -->
+                        <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.6rem;">
+                            <button class="btn btn-orange" style="width: 100%; padding: 0.75rem;" onclick="setMode('preview')">
+                                <i class="fa-solid fa-eye"></i> Ver Documento / Comparativa A4
+                            </button>
+                            <button class="btn btn-green" style="width: 100%;" onclick="copyWhatsAppSummary()">
+                                <i class="fa-brands fa-whatsapp"></i> Copiar Alternativas para WhatsApp
+                            </button>
+                            <button class="btn btn-outline-slate" style="width: 100%;" onclick="saveCurrentProposal()">
+                                <i class="fa-solid fa-floppy-disk"></i> Guardar Presupuesto
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==========================================================
+             SECCIÓN 2: MODO DOCUMENTO COMERCIAL (VISTA PREVIA & A4)
+             ========================================================== -->
+        <div class="section-view preview-section" id="viewPreview">
+            
+            <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;" class="no-print">
+                <button class="btn btn-outline-slate" onclick="setMode('editor')">
+                    <i class="fa-solid fa-arrow-left"></i> Volver al Editor
+                </button>
+                <div style="display: flex; gap: 0.6rem;">
+                    <button class="btn btn-green" onclick="copyWhatsAppSummary()">
+                        <i class="fa-brands fa-whatsapp"></i> Copiar WhatsApp
+                    </button>
+                    <button class="btn btn-orange" onclick="printProposal()">
+                        <i class="fa-solid fa-print"></i> Imprimir o Guardar en PDF
+                    </button>
+                </div>
+            </div>
+
+            <div class="proposal-paper" id="proposalPaper">
+                
+                <!-- CABECERA DE LA PROPUESTA -->
+                <div class="paper-header">
+                    <div class="paper-brand-logo">
+                        <div class="logo-icon">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <div>
+                            <h2>MásKFundas</h2>
+                            <p>Telecomunicaciones · Fibra Óptica · Móvil 5G</p>
+                            <span style="font-size: 0.75rem; color: var(--slate-400);">Cáceres · Plasencia · Montehermoso</span>
+                        </div>
+                    </div>
+
+                    <div class="paper-meta-box">
+                        <div class="paper-meta-badge">PROPUESTA COMERCIAL</div>
+                        <div class="paper-meta-item">Nº Oferta: <strong id="docPropId">MF-2026-0042</strong></div>
+                        <div class="paper-meta-item">Fecha: <strong id="docPropDate">21/09/2026</strong></div>
+                        <div class="paper-meta-item">Validez: <strong id="docPropVal">15 días</strong></div>
+                    </div>
+                </div>
+
+                <!-- PARTES: EMISOR Y CLIENTE -->
+                <div class="paper-parties-grid">
+                    <div class="party-card">
+                        <div class="party-card-title">
+                            <i class="fa-solid fa-user"></i> Preparado para el Cliente:
+                        </div>
+                        <div class="party-name" id="docClientName">Juan Pedro Rivero</div>
+                        <div class="party-detail">
+                            <div><strong>NIF/CIF:</strong> <span id="docClientDni">52410788K</span></div>
+                            <div><strong>Teléfono:</strong> <span id="docClientPhone">600 000 000</span></div>
+                            <div><strong>Email:</strong> <span id="docClientEmail">cliente@correo.com</span></div>
+                            <div><strong>Población:</strong> <span id="docClientCity">Montehermoso (Cáceres)</span></div>
+                        </div>
+                    </div>
+
+                    <div class="party-card">
+                        <div class="party-card-title">
+                            <i class="fa-solid fa-building"></i> Emitido por:
+                        </div>
+                        <div class="party-name">MásKFundas ISP</div>
+                        <div class="party-detail">
+                            <div><strong>Operador:</strong> MásKFundas Telecomunicaciones</div>
+                            <div><strong>Atención al Cliente:</strong> 650 50 86 55</div>
+                            <div><strong>Email:</strong> info@maskfundas.es</div>
+                            <div><strong>Portal de Clientes:</strong> clientes.maskfundas.es</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN COMPARATIVA DE ALTERNATIVAS COMERCIALES (SI HAY MÁS DE 1) -->
+                <div class="doc-options-comparison" id="docComparisonSection">
+                    <div class="doc-comparison-title">
+                        <i class="fa-solid fa-layer-group"></i> Alternativas Comerciales Diseñadas a tu Medida:
+                    </div>
+                    <div class="comparison-cards-grid" id="docComparisonCardsGrid">
+                        <!-- Generado dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- TABLA FORMAL DE SERVICIOS (DESGLOSE DE LA OPCIÓN SELECCIONADA / RECOMENDADA) -->
+                <div style="margin-bottom: 0.8rem; display: flex; justify-content: space-between; align-items: baseline;">
+                    <h3 style="font-size: 1rem; font-weight: 800; color: var(--navy);" id="docTableDetailTitle">
+                        Desglose Detallado de la Opción Recomendada:
+                    </h3>
+                    <span style="font-size: 0.8rem; color: var(--slate-500);" id="docTableDetailSub">Precios con IVA incluido</span>
+                </div>
+
+                <table class="doc-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50%;">Servicio / Concepto Contratado</th>
+                            <th class="text-center" style="width: 15%;">Tipo</th>
+                            <th class="text-center" style="width: 10%;">Cant.</th>
+                            <th class="text-right" style="width: 12%;">Precio Ud.</th>
+                            <th class="text-right" style="width: 13%;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="docItemsBody">
+                        <!-- Rellenado dinámicamente -->
+                    </tbody>
+                </table>
+
+                <!-- TOTALES FORMALES -->
+                <div class="doc-totals-section">
+                    <div class="doc-totals-box">
+                        <div class="doc-total-row">
+                            <span>Base Imponible Mensual:</span>
+                            <span id="docBaseMonthly">0,00 €</span>
+                        </div>
+                        <div class="doc-total-row">
+                            <span>IVA General (21%):</span>
+                            <span id="docIvaMonthly">0,00 €</span>
+                        </div>
+                        <div class="doc-total-row" id="docRowOneTime" style="display: none;">
+                            <span>Cuotas Iniciales / Altas:</span>
+                            <span id="docTotalOneTime" style="font-weight: 700; color: #B45309;">0,00 €</span>
+                        </div>
+                        <div class="doc-total-final">
+                            <span class="label">Cuota Mensual:</span>
+                            <span class="amount"><span id="docTotalFinalMonthly">0,00</span> €/mes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONDICIONES Y GARANTÍAS -->
+                <div class="doc-clauses">
+                    <h5>Garantías y Condiciones Comerciales:</h5>
+                    <ul style="padding-left: 1.2rem; margin-top: 0.35rem;">
+                        <li><strong>Permanencia:</strong> <span id="docPermanencia">3 meses por bonificación de instalación.</span></li>
+                        <li><strong>Observaciones:</strong> <span id="docNotes">Instalación y router Wi-Fi 6 bonificados.</span></li>
+                        <li><strong>Portabilidad:</strong> Traspaso de numeración sin pérdida de servicio ni cortes de línea.</li>
+                        <li><strong>Soporte Técnico:</strong> Asistencia directa y personalizada en tienda física y por WhatsApp oficial.</li>
+                    </ul>
+                </div>
+
+                <!-- FIRMAS -->
+                <div class="doc-signatures-grid">
+                    <div class="signature-box">
+                        <strong>Por MásKFundas Telecom</strong>
+                        <div style="font-size: 0.75rem; color: var(--slate-400);">Firma y Sello Autorizado</div>
+                    </div>
+                    <div class="signature-box">
+                        <strong>Conforme el Cliente</strong>
+                        <div style="font-size: 0.75rem; color: var(--slate-400);">Firma de Aceptación del Presupuesto</div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- MODAL DE HISTORIAL -->
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clock-rotate-left"></i> Presupuestos Guardados en esta máquina</h3>
+                <button class="modal-close" onclick="closeHistoryModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="historyListBody">
+                <p style="color: var(--slate-500); font-size: 0.9rem;">No hay presupuestos guardados aún.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST FLOTANTE -->
+    <div class="toast-notify" id="toastBox">
+        <i class="fa-solid fa-circle-check" style="color: #4ADE80;"></i>
+        <span id="toastMessage">Operación realizada con éxito</span>
+    </div>
+
+    <!-- LÓGICA JAVASCRIPT MULTI-ALTERNATIVA -->
+    <script>
+        // ── ESTADO GLOBAL MULTI-ALTERNATIVA ──
+        let proposalState = {
+            id: generateProposalId(),
+            date: new Date().toLocaleDateString('es-ES'),
+            client: {
+                name: 'Juan Pedro Rivero',
+                dni: '52410788K',
+                phone: '650 50 86 55',
+                email: 'info@maskfundas.es',
+                city: 'Montehermoso (Cáceres)',
+                currentOperator: 'Orange',
+                currentCost: 110.00
+            },
+            permanencia: '3 meses por bonificación de instalación y router',
+            validity: '15 días naturales',
+            notes: 'Router Wi-Fi 6 de alta cobertura en cesión gratuita. Instalación bonificada. Portabilidad transparente sin interrupción del servicio.',
+            activeOptionIndex: 1, // Por defecto seleccionada la recomendada
+            options: [
+                {
+                    id: 1,
+                    name: 'Opción 1: Esencial Ahorro',
+                    badge: 'Económica',
+                    isRecommended: false,
+                    items: [
+                        { id: 101, type: 'mensual', category: 'fibra', concept: 'Fibra Óptica Simétrica 300 Mbps', quantity: 1, unitPrice: 25.90, discount: 0.00 },
+                        { id: 102, type: 'mensual', category: 'movil', concept: 'Línea Móvil 50 GB Acumulables + Ilimitadas 5G', quantity: 1, unitPrice: 8.00, discount: 0.00 },
+                        { id: 103, type: 'unico', category: 'servicio', concept: 'Instalación y Router Wi-Fi Bonificados', quantity: 1, unitPrice: 0.00, discount: 0.00 }
+                    ]
+                },
+                {
+                    id: 2,
+                    name: 'Opción 2: Familiar MásKFundas',
+                    badge: '⭐ Más Popular',
+                    isRecommended: true,
+                    items: [
+                        { id: 201, type: 'mensual', category: 'fibra', concept: 'Fibra Óptica Simétrica 600 Mbps Pro', quantity: 1, unitPrice: 28.90, discount: 0.00 },
+                        { id: 202, type: 'mensual', category: 'movil', concept: 'Línea Móvil Principal 100 GB Acumulables + Ilimitadas', quantity: 1, unitPrice: 10.00, discount: 0.00 },
+                        { id: 203, type: 'mensual', category: 'movil', concept: 'Segunda Línea Móvil 50 GB + Ilimitadas', quantity: 1, unitPrice: 8.00, discount: 0.00 },
+                        { id: 204, type: 'mensual', category: 'fijo', concept: 'Línea Fija con Llamadas Ilimitadas', quantity: 1, unitPrice: 3.00, discount: 0.00 },
+                        { id: 205, type: 'unico', category: 'servicio', concept: 'Instalación y Router Wi-Fi 6 en Cesión Gratuita', quantity: 1, unitPrice: 0.00, discount: 0.00 }
+                    ]
+                },
+                {
+                    id: 3,
+                    name: 'Opción 3: Total 1 Gbps Ultra',
+                    badge: 'Máxima Potencia',
+                    isRecommended: false,
+                    items: [
+                        { id: 301, type: 'mensual', category: 'fibra', concept: 'Fibra Óptica Simétrica 1 Gbps (1.000 Mbps)', quantity: 1, unitPrice: 34.90, discount: 0.00 },
+                        { id: 302, type: 'mensual', category: 'movil', concept: 'Línea Móvil 200 GB Acumulables + Ilimitadas 5G', quantity: 1, unitPrice: 11.00, discount: 0.00 },
+                        { id: 303, type: 'mensual', category: 'movil', concept: 'Línea Móvil Adicional 100 GB + Ilimitadas', quantity: 1, unitPrice: 10.00, discount: 0.00 },
+                        { id: 304, type: 'mensual', category: 'fijo', concept: 'Línea Fija con Llamadas Ilimitadas', quantity: 1, unitPrice: 3.00, discount: 0.00 },
+                        { id: 305, type: 'unico', category: 'servicio', concept: 'Instalación Exprés + Router Wi-Fi 6 Pro', quantity: 1, unitPrice: 0.00, discount: 0.00 }
+                    ]
+                }
+            ]
+        };
+
+        // ── INICIALIZACIÓN ──
+        document.addEventListener('DOMContentLoaded', () => {
+            renderEditorInputs();
+            renderOptionsTabs();
+            renderActiveOptionTable();
+            updateCalculations();
+        });
+
+        function generateProposalId() {
+            const year = new Date().getFullYear();
+            const rnd = Math.floor(1000 + Math.random() * 9000);
+            return `MF-${year}-${rnd}`;
+        }
+
+        // Obtener opción activa
+        function getActiveOption() {
+            if (proposalState.activeOptionIndex >= proposalState.options.length) {
+                proposalState.activeOptionIndex = 0;
+            }
+            return proposalState.options[proposalState.activeOptionIndex];
+        }
+
+        // ── SINCRONIZACIÓN DE INPUTS GENERALES ──
+        function renderEditorInputs() {
+            document.getElementById('clientName').value = proposalState.client.name || '';
+            document.getElementById('clientDni').value = proposalState.client.dni || '';
+            document.getElementById('clientPhone').value = proposalState.client.phone || '';
+            document.getElementById('clientEmail').value = proposalState.client.email || '';
+            document.getElementById('clientCity').value = proposalState.client.city || '';
+            document.getElementById('currentOperator').value = proposalState.client.currentOperator || '';
+            document.getElementById('currentCost').value = proposalState.client.currentCost || '';
+
+            document.getElementById('permanenciaSelect').value = proposalState.permanencia;
+            document.getElementById('proposalValidity').value = proposalState.validity;
+            document.getElementById('proposalNotes').value = proposalState.notes;
+            
+            document.getElementById('summaryPropId').innerText = proposalState.id;
+            document.getElementById('summaryPropDate').innerText = proposalState.date;
+        }
+
+        // ── PESTAÑAS DE ALTERNATIVAS ──
+        function renderOptionsTabs() {
+            const list = document.getElementById('optionsTabsList');
+            list.innerHTML = '';
+
+            proposalState.options.forEach((opt, idx) => {
+                const totalM = calcOptionMonthlyTotal(opt);
+                const btn = document.createElement('button');
+                btn.className = `option-tab-btn ${idx === proposalState.activeOptionIndex ? 'active' : ''}`;
+                btn.onclick = () => selectOption(idx);
+                btn.innerHTML = `
+                    <span>${escapeHtml(opt.name)}</span>
+                    ${opt.isRecommended ? `<span class="badge-rec">⭐ Rec</span>` : ''}
+                    <span style="opacity: 0.85; font-size: 0.78rem;">(${formatEuro(totalM)}€)</span>
+                `;
+                list.appendChild(btn);
+            });
+
+            // Actualizar inputs de metadatos de la opción activa
+            const activeOpt = getActiveOption();
+            document.getElementById('optNameInput').value = activeOpt.name;
+            document.getElementById('optBadgeInput').value = activeOpt.badge || '';
+            document.getElementById('optIsRecommendedCheckbox').checked = !!activeOpt.isRecommended;
+
+            // Deshabilitar botón borrar si solo queda 1 opción
+            document.getElementById('btnDeleteOption').style.display = proposalState.options.length > 1 ? 'inline-flex' : 'none';
+        }
+
+        function selectOption(index) {
+            proposalState.activeOptionIndex = index;
+            renderOptionsTabs();
+            renderActiveOptionTable();
+            updateCalculations();
+        }
+
+        function updateActiveOptionMeta() {
+            const opt = getActiveOption();
+            opt.name = document.getElementById('optNameInput').value || 'Alternativa';
+            opt.badge = document.getElementById('optBadgeInput').value || '';
+            renderOptionsTabs();
+            updateCalculations();
+        }
+
+        function toggleRecommendedOption(isRec) {
+            if (isRec) {
+                // Quitar recomendado a las demás
+                proposalState.options.forEach(o => o.isRecommended = false);
+            }
+            getActiveOption().isRecommended = isRec;
+            renderOptionsTabs();
+            updateCalculations();
+        }
+
+        function addNewOption() {
+            const num = proposalState.options.length + 1;
+            proposalState.options.push({
+                id: Date.now(),
+                name: `Opción ${num}: Personalizada`,
+                badge: 'Nueva',
+                isRecommended: false,
+                items: [
+                    { id: Date.now() + 1, type: 'mensual', category: 'fibra', concept: 'Fibra Óptica Simétrica 600 Mbps', quantity: 1, unitPrice: 28.90, discount: 0.00 },
+                    { id: Date.now() + 2, type: 'mensual', category: 'movil', concept: 'Línea Móvil 100 GB + Ilimitadas', quantity: 1, unitPrice: 10.00, discount: 0.00 }
+                ]
+            });
+            proposalState.activeOptionIndex = proposalState.options.length - 1;
+            renderOptionsTabs();
+            renderActiveOptionTable();
+            updateCalculations();
+            showToast('Nueva alternativa añadida');
+        }
+
+        function duplicateCurrentOption() {
+            const current = getActiveOption();
+            const clonedItems = JSON.parse(JSON.stringify(current.items));
+            clonedItems.forEach(it => it.id = Date.now() + Math.floor(Math.random() * 1000));
+
+            proposalState.options.push({
+                id: Date.now(),
+                name: `${current.name} (Copia)`,
+                badge: current.badge || '',
+                isRecommended: false,
+                items: clonedItems
+            });
+
+            proposalState.activeOptionIndex = proposalState.options.length - 1;
+            renderOptionsTabs();
+            renderActiveOptionTable();
+            updateCalculations();
+            showToast('Alternativa clonada con éxito');
+        }
+
+        function deleteCurrentOption() {
+            if (proposalState.options.length <= 1) {
+                showToast('Debe existir al menos una opción en el presupuesto');
+                return;
+            }
+            if (!confirm(`¿Eliminar "${getActiveOption().name}"?`)) return;
+
+            proposalState.options.splice(proposalState.activeOptionIndex, 1);
+            proposalState.activeOptionIndex = Math.max(0, proposalState.activeOptionIndex - 1);
+            renderOptionsTabs();
+            renderActiveOptionTable();
+            updateCalculations();
+            showToast('Alternativa eliminada');
+        }
+
+        // ── TABLA DE ELEMENTOS DE LA OPCIÓN ACTIVA ──
+        function renderActiveOptionTable() {
+            const tbody = document.getElementById('lineItemsBody');
+            tbody.innerHTML = '';
+            const activeOpt = getActiveOption();
+
+            activeOpt.items.forEach((item) => {
+                const subtotal = Math.max(0, (item.quantity * item.unitPrice) - item.discount);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <select onchange="updateItemField(${item.id}, 'type', this.value)">
+                            <option value="mensual" ${item.type === 'mensual' ? 'selected' : ''}>Cuota Mensual</option>
+                            <option value="unico" ${item.type === 'unico' ? 'selected' : ''}>Pago Único / Alta</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select onchange="updateItemField(${item.id}, 'category', this.value)">
+                            <option value="fibra" ${item.category === 'fibra' ? 'selected' : ''}>🌐 Fibra</option>
+                            <option value="movil" ${item.category === 'movil' ? 'selected' : ''}>📱 Móvil</option>
+                            <option value="fijo" ${item.category === 'fijo' ? 'selected' : ''}>☎️ Fijo</option>
+                            <option value="dispositivo" ${item.category === 'dispositivo' ? 'selected' : ''}>📦 Terminal/Disp.</option>
+                            <option value="servicio" ${item.category === 'servicio' ? 'selected' : ''}>🛠️ Instalación</option>
+                            <option value="otro" ${item.category === 'otro' ? 'selected' : ''}>⚡ Otro</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" value="${escapeHtml(item.concept)}" 
+                               placeholder="Descripción del producto o servicio..." 
+                               oninput="updateItemField(${item.id}, 'concept', this.value)">
+                    </td>
+                    <td>
+                        <input type="number" min="1" step="1" value="${item.quantity}" 
+                               style="text-align: center;" 
+                               oninput="updateItemField(${item.id}, 'quantity', parseFloat(this.value) || 1)">
+                    </td>
+                    <td>
+                        <input type="number" min="0" step="0.01" value="${item.unitPrice.toFixed(2)}" 
+                               style="text-align: right; font-weight: 700; color: var(--slate-900);" 
+                               oninput="updateItemField(${item.id}, 'unitPrice', parseFloat(this.value) || 0)">
+                    </td>
+                    <td>
+                        <input type="number" min="0" step="0.01" value="${item.discount.toFixed(2)}" 
+                               style="text-align: right; color: var(--green-dark);" 
+                               oninput="updateItemField(${item.id}, 'discount', parseFloat(this.value) || 0)">
+                    </td>
+                    <td style="text-align: right; font-weight: 800; font-size: 0.95rem; color: ${item.type === 'mensual' ? 'var(--navy)' : '#B45309'};">
+                        ${subtotal.toFixed(2)} €
+                    </td>
+                    <td style="text-align: center;">
+                        <button class="btn-danger-subtle" onclick="removeLineItem(${item.id})" title="Eliminar línea">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addNewLineItem() {
+            const activeOpt = getActiveOption();
+            const newId = Date.now() + Math.floor(Math.random() * 100);
+            activeOpt.items.push({
+                id: newId,
+                type: 'mensual',
+                category: 'otro',
+                concept: 'Nuevo Servicio Personalizado',
+                quantity: 1,
+                unitPrice: 10.00,
+                discount: 0.00
+            });
+            renderActiveOptionTable();
+            renderOptionsTabs();
+            updateCalculations();
+            showToast('Línea añadida a esta opción');
+        }
+
+        function removeLineItem(id) {
+            const activeOpt = getActiveOption();
+            if (activeOpt.items.length <= 1) {
+                showToast('Debe haber al menos un servicio en la opción');
+                return;
+            }
+            activeOpt.items = activeOpt.items.filter(it => it.id !== id);
+            renderActiveOptionTable();
+            renderOptionsTabs();
+            updateCalculations();
+        }
+
+        function updateItemField(id, field, value) {
+            const activeOpt = getActiveOption();
+            const it = activeOpt.items.find(i => i.id === id);
+            if (it) {
+                it[field] = value;
+                renderOptionsTabs();
+                updateCalculations();
+            }
+        }
+
+        // ── PRESETS RÁPIDOS ──
+        const PRESETS = {
+            'fibra_300': { type: 'mensual', category: 'fibra', concept: 'Fibra Óptica Simétrica 300 Mbps', unitPrice: 25.90 },
+            'fibra_600': { type: 'mensual', category: 'fibra', concept: 'Fibra Óptica Simétrica 600 Mbps Pro', unitPrice: 28.90 },
+            'fibra_1000': { type: 'mensual', category: 'fibra', concept: 'Fibra Óptica Simétrica 1 Gbps Ultra', unitPrice: 34.90 },
+            'movil_50': { type: 'mensual', category: 'movil', concept: 'Línea Móvil 50 GB Acumulables + Ilimitadas 5G', unitPrice: 8.00 },
+            'movil_100': { type: 'mensual', category: 'movil', concept: 'Línea Móvil 100 GB Acumulables + Ilimitadas 5G', unitPrice: 10.00 },
+            'movil_200': { type: 'mensual', category: 'movil', concept: 'Línea Móvil 200 GB Acumulables + Ilimitadas 5G', unitPrice: 11.00 },
+            'fijo': { type: 'mensual', category: 'fijo', concept: 'Línea Fija con Llamadas Ilimitadas a Fijos y Móviles', unitPrice: 3.00 },
+            'router_wifi6': { type: 'unico', category: 'dispositivo', concept: 'Router Wi-Fi 6 Mesh Doble Banda (En Cesión)', unitPrice: 0.00 },
+            'instalacion': { type: 'unico', category: 'servicio', concept: 'Instalación y Configuración Bonificada 100%', unitPrice: 0.00 }
+        };
+
+        function addPreset(key) {
+            const p = PRESETS[key];
+            if (!p) return;
+            const activeOpt = getActiveOption();
+            const newId = Date.now() + Math.floor(Math.random() * 100);
+            activeOpt.items.push({
+                id: newId,
+                type: p.type,
+                category: p.category,
+                concept: p.concept,
+                quantity: 1,
+                unitPrice: p.unitPrice,
+                discount: 0.00
+            });
+            renderActiveOptionTable();
+            renderOptionsTabs();
+            updateCalculations();
+            showToast(`Añadido: ${p.concept}`);
+        }
+
+        function calcOptionMonthlyTotal(opt) {
+            let total = 0;
+            (opt.items || []).forEach(it => {
+                if (it.type === 'mensual') {
+                    total += Math.max(0, (it.quantity * it.unitPrice) - it.discount);
+                }
+            });
+            return total;
+        }
+
+        function calcOptionOneTimeTotal(opt) {
+            let total = 0;
+            (opt.items || []).forEach(it => {
+                if (it.type === 'unico') {
+                    total += Math.max(0, (it.quantity * it.unitPrice) - it.discount);
+                }
+            });
+            return total;
+        }
+
+        // ── ACTUALIZACIÓN Y CÁLCULOS MULTI-OPCIÓN ──
+        function updateCalculations() {
+            // 1. Datos cliente
+            proposalState.client.name = document.getElementById('clientName').value || 'Cliente';
+            proposalState.client.dni = document.getElementById('clientDni').value || '';
+            proposalState.client.phone = document.getElementById('clientPhone').value || '';
+            proposalState.client.email = document.getElementById('clientEmail').value || '';
+            proposalState.client.city = document.getElementById('clientCity').value || '';
+            proposalState.client.currentOperator = document.getElementById('currentOperator').value || '';
+            proposalState.client.currentCost = parseFloat(document.getElementById('currentCost').value) || 0;
+
+            proposalState.permanencia = document.getElementById('permanenciaSelect').value;
+            proposalState.validity = document.getElementById('proposalValidity').value;
+            proposalState.notes = document.getElementById('proposalNotes').value;
+
+            const activeOpt = getActiveOption();
+            const totalMonthly = calcOptionMonthlyTotal(activeOpt);
+            const totalOneTime = calcOptionOneTimeTotal(activeOpt);
+            const baseMonthly = totalMonthly / 1.21;
+            const ivaMonthly = totalMonthly - baseMonthly;
+
+            // 2. Sidebar resumen
+            document.getElementById('summaryActiveOptionTitle').innerText = activeOpt.name;
+            document.getElementById('summaryActiveOptionLabel').innerText = `Cuota ${activeOpt.name}`;
+            document.getElementById('summaryTotalMonthly').innerText = formatEuro(totalMonthly);
+            document.getElementById('summaryBaseMonthly').innerText = `${formatEuro(baseMonthly)} €`;
+            document.getElementById('summaryIvaMonthly').innerText = `${formatEuro(ivaMonthly)} €`;
+
+            const rowInitial = document.getElementById('rowInitialPayment');
+            if (totalOneTime > 0) {
+                rowInitial.style.display = 'flex';
+                document.getElementById('summaryInitialPayment').innerText = `${formatEuro(totalOneTime)} €`;
+            } else {
+                rowInitial.style.display = 'none';
+            }
+
+            // 3. Mini lista de alternativas en sidebar
+            const miniList = document.getElementById('alternativesMiniList');
+            miniList.innerHTML = proposalState.options.map((opt, idx) => {
+                const tm = calcOptionMonthlyTotal(opt);
+                return `
+                    <div class="alt-mini-item ${idx === proposalState.activeOptionIndex ? 'active' : ''}" onclick="selectOption(${idx})" style="cursor: pointer;">
+                        <span>${opt.isRecommended ? '⭐ ' : ''}${escapeHtml(opt.name)}</span>
+                        <strong>${formatEuro(tm)} €/mes</strong>
+                    </div>
+                `;
+            }).join('');
+
+            // 4. Ahorro de la opción activa
+            const currentCost = proposalState.client.currentCost;
+            const savingsBox = document.getElementById('summarySavingsBox');
+            if (currentCost > totalMonthly && currentCost > 0) {
+                const diffM = currentCost - totalMonthly;
+                const diffY = diffM * 12;
+                const perc = Math.round((diffM / currentCost) * 100);
+
+                savingsBox.style.display = 'block';
+                document.getElementById('summarySavingsMonthly').innerText = `${formatEuro(diffM)} €/mes`;
+                document.getElementById('summarySavingsYearly').innerText = `${formatEuro(diffY)} €/año`;
+                document.getElementById('summarySavingsPercent').innerText = `-${perc}%`;
+            } else {
+                savingsBox.style.display = 'none';
+            }
+
+            // 5. Rellenar Modo Documento Comercial
+            document.getElementById('docPropId').innerText = proposalState.id;
+            document.getElementById('docPropDate').innerText = proposalState.date;
+            document.getElementById('docPropVal').innerText = proposalState.validity;
+
+            document.getElementById('docClientName').innerText = proposalState.client.name;
+            document.getElementById('docClientDni').innerText = proposalState.client.dni || 'No especificado';
+            document.getElementById('docClientPhone').innerText = proposalState.client.phone || 'No especificado';
+            document.getElementById('docClientEmail').innerText = proposalState.client.email || 'No especificado';
+            document.getElementById('docClientCity').innerText = proposalState.client.city || 'Plasencia / Alagón';
+
+            document.getElementById('docPermanencia').innerText = proposalState.permanencia;
+            document.getElementById('docNotes').innerText = proposalState.notes;
+
+            // ── RENDER CUADRO COMPARATIVO DE TODAS LAS ALTERNATIVAS ──
+            const compSection = document.getElementById('docComparisonSection');
+            const compGrid = document.getElementById('docComparisonCardsGrid');
+            
+            // Si hay más de 1 alternativa o si hay recomendada, mostramos tarjetas comparativas
+            compSection.style.display = 'block';
+            compGrid.innerHTML = proposalState.options.map((opt, idx) => {
+                const mTotal = calcOptionMonthlyTotal(opt);
+                const oneTime = calcOptionOneTimeTotal(opt);
+                let savHtml = '';
+                if (currentCost > mTotal && currentCost > 0) {
+                    const diffY = (currentCost - mTotal) * 12;
+                    savHtml = `<div class="comparison-card-savings">🎉 Ahorras ${formatEuro(diffY)} €/año</div>`;
+                }
+
+                // Extraer 3 bullets clave
+                const bullets = opt.items.slice(0, 4).map(it => `
+                    <li><i class="fa-solid fa-circle-check"></i> ${escapeHtml(it.concept)}</li>
+                `).join('');
+
+                return `
+                    <div class="comparison-card ${opt.isRecommended ? 'recommended' : ''}" onclick="selectOption(${idx})" style="cursor: pointer;">
+                        ${opt.isRecommended ? `<div class="comparison-card-badge">⭐ Recomendada</div>` : (opt.badge ? `<div class="comparison-card-badge" style="background: var(--navy);">${escapeHtml(opt.badge)}</div>` : '')}
+                        <div>
+                            <div class="comparison-card-name">${escapeHtml(opt.name)}</div>
+                            <div class="comparison-card-price">
+                                ${formatEuro(mTotal)} € <span class="period">/ mes</span>
+                            </div>
+                            ${oneTime > 0 ? `<div style="font-size: 0.75rem; color: #B45309; font-weight: 600; margin-bottom: 0.3rem;">+ ${formatEuro(oneTime)} € pago único</div>` : ''}
+                            ${savHtml}
+                        </div>
+                        <ul class="comparison-card-bullets">
+                            ${bullets}
+                        </ul>
+                    </div>
+                `;
+            }).join('');
+
+            // Título de la tabla de detalle
+            document.getElementById('docTableDetailTitle').innerText = `Desglose Detallado de: ${activeOpt.name}`;
+            document.getElementById('docBaseMonthly').innerText = `${formatEuro(baseMonthly)} €`;
+            document.getElementById('docIvaMonthly').innerText = `${formatEuro(ivaMonthly)} €`;
+            document.getElementById('docTotalFinalMonthly').innerText = formatEuro(totalMonthly);
+
+            const docRowOneTime = document.getElementById('docRowOneTime');
+            if (totalOneTime > 0) {
+                docRowOneTime.style.display = 'flex';
+                document.getElementById('docTotalOneTime').innerText = `${formatEuro(totalOneTime)} €`;
+            } else {
+                docRowOneTime.style.display = 'none';
+            }
+
+            // Filas de la tabla de detalle
+            const docBody = document.getElementById('docItemsBody');
+            docBody.innerHTML = '';
+            activeOpt.items.forEach(it => {
+                const sub = Math.max(0, (it.quantity * it.unitPrice) - it.discount);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <div class="doc-item-title">${escapeHtml(it.concept)}</div>
+                        ${it.discount > 0 ? `<div class="doc-item-desc" style="color: var(--green-dark);">Descuento de ${formatEuro(it.discount)} € aplicado</div>` : ''}
+                    </td>
+                    <td class="text-center">
+                        <span class="badge-type ${it.type === 'mensual' ? 'badge-mensual' : 'badge-unico'}">
+                            ${it.type === 'mensual' ? 'Mensual' : 'Pago Único'}
+                        </span>
+                    </td>
+                    <td class="text-center" style="font-weight: 700;">${it.quantity}</td>
+                    <td class="text-right">${formatEuro(it.unitPrice)} €</td>
+                    <td class="text-right" style="font-weight: 800; color: ${it.type === 'mensual' ? 'var(--navy)' : '#B45309'};">
+                        ${formatEuro(sub)} €
+                    </td>
+                `;
+                docBody.appendChild(tr);
+            });
+        }
+
+        // ── AUTOCOMPLETE CLIENTES ──
+        let searchTimeout = null;
+        async function handleClientSearch(val) {
+            clearTimeout(searchTimeout);
+            const dropdown = document.getElementById('clientDropdown');
+            const q = val.trim();
+
+            if (q.length < 2) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const res = await fetch(`/api/propuesta/buscar-cliente?q=${encodeURIComponent(q)}`);
+                    const data = await res.json();
+                    const list = data.resultados || [];
+
+                    if (list.length === 0) {
+                        dropdown.innerHTML = `<div class="autocomplete-item" style="color: var(--slate-500); cursor: default;">No se encontraron clientes coincidentes en DoWISP</div>`;
+                    } else {
+                        dropdown.innerHTML = list.map(c => `
+                            <div class="autocomplete-item" onclick="selectClientFromSearch('${escapeAttr(c.nombre)}', '${escapeAttr(c.dni)}', '${escapeAttr(c.telefono)}', '${escapeAttr(c.operador_actual)}')">
+                                <div class="autocomplete-item-title">${escapeHtml(c.nombre)}</div>
+                                <div class="autocomplete-item-meta">
+                                    <span><strong>DNI:</strong> ${escapeHtml(c.dni || '—')}</span>
+                                    <span><strong>Tel:</strong> ${escapeHtml(c.telefono || '—')}</span>
+                                    ${c.operador_actual ? `<span><strong>Op:</strong> ${escapeHtml(c.operador_actual)}</span>` : ''}
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                    dropdown.style.display = 'block';
+                } catch (e) {
+                    dropdown.style.display = 'none';
+                }
+            }, 250);
+        }
+
+        function selectClientFromSearch(nombre, dni, telefono, operador) {
+            document.getElementById('clientName').value = nombre;
+            document.getElementById('clientDni').value = dni;
+            document.getElementById('clientPhone').value = telefono;
+            if (operador) {
+                document.getElementById('currentOperator').value = operador;
+            }
+            document.getElementById('clientDropdown').style.display = 'none';
+            document.getElementById('searchClientInput').value = '';
+            showToast(`Cliente seleccionado: ${nombre}`);
+            updateCalculations();
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.autocomplete-wrapper')) {
+                const dd = document.getElementById('clientDropdown');
+                if (dd) dd.style.display = 'none';
+            }
+        });
+
+        // ── EXPORTADOR MULTI-ALTERNATIVA PARA WHATSAPP ──
+        function copyWhatsAppSummary() {
+            updateCalculations();
+
+            const clientName = proposalState.client.name;
+            const currentCost = proposalState.client.currentCost;
+            let optionsText = '';
+
+            proposalState.options.forEach((opt, idx) => {
+                const mTotal = calcOptionMonthlyTotal(opt);
+                const oneTime = calcOptionOneTimeTotal(opt);
+                const isRec = opt.isRecommended;
+
+                let bulletItems = '';
+                opt.items.forEach(it => {
+                    const emoji = it.category === 'fibra' ? '🌐' : (it.category === 'movil' ? '📱' : (it.category === 'fijo' ? '☎️' : '📦'));
+                    bulletItems += `   ${emoji} ${it.concept} (${it.quantity > 1 ? it.quantity + 'x ' : ''}${formatEuro(it.unitPrice)} €)\n`;
+                });
+
+                let savLine = '';
+                if (currentCost > mTotal && currentCost > 0) {
+                    const diffM = currentCost - mTotal;
+                    const diffY = diffM * 12;
+                    savLine = `   🎉 *Ahorras ${formatEuro(diffM)} €/mes (${formatEuro(diffY)} € al año)*\n`;
+                }
+
+                optionsText += `${isRec ? '⭐' : '🔹'} *${opt.name.toUpperCase()}* ${isRec ? '_(RECOMENDADA)_' : ''}\n${bulletItems}   💶 *Cuota:* *${formatEuro(mTotal)} €/mes* (IVA incl.)${oneTime > 0 ? ` (+${formatEuro(oneTime)}€ inicial)` : ''}\n${savLine}\n`;
+            });
+
+            const text = `👋 Hola *${clientName}*, te adjunto las *${proposalState.options.length} alternativas* personalizadas que te hemos preparado en *MásKFundas Telecom*:
+
+📄 *Presupuesto Nº:* ${proposalState.id}
+📅 *Fecha:* ${proposalState.date} (Validez: ${proposalState.validity})
+
+${optionsText}🔒 *Condiciones Generales:*
+• Permanencia: ${proposalState.permanencia}
+• ${proposalState.notes}
+• Portabilidad transparente sin interrupción del servicio
+
+¿Cuál de las opciones te encaja mejor para dejártela reservada? ¡Muchas gracias! 😊`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✅ Alternativas copiadas para WhatsApp');
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('✅ Alternativas copiadas para WhatsApp');
+            });
+        }
+
+        // ── IMPRESIÓN Y GUARDADO ──
+        function setMode(mode) {
+            const btnEditor = document.getElementById('btnModeEditor');
+            const btnPreview = document.getElementById('btnModePreview');
+            const viewEditor = document.getElementById('viewEditor');
+            const viewPreview = document.getElementById('viewPreview');
+
+            if (mode === 'preview') {
+                updateCalculations();
+                btnEditor.classList.remove('active');
+                btnPreview.classList.add('active');
+                viewEditor.classList.remove('active');
+                viewPreview.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                btnEditor.classList.add('active');
+                btnPreview.classList.remove('active');
+                viewEditor.classList.add('active');
+                viewPreview.classList.remove('active');
+            }
+        }
+
+        function printProposal() {
+            setMode('preview');
+            setTimeout(() => {
+                window.print();
+            }, 200);
+        }
+
+        function resetProposal() {
+            if (!confirm('¿Deseas iniciar un nuevo presupuesto en blanco?')) return;
+            proposalState.id = generateProposalId();
+            proposalState.date = new Date().toLocaleDateString('es-ES');
+            proposalState.client = { name: '', dni: '', phone: '', email: '', city: '', currentOperator: '', currentCost: 0 };
+            proposalState.activeOptionIndex = 0;
+            proposalState.options = [
+                {
+                    id: Date.now(),
+                    name: 'Opción 1: Ahorro',
+                    badge: 'Económica',
+                    isRecommended: true,
+                    items: [
+                        { id: Date.now() + 1, type: 'mensual', category: 'fibra', concept: 'Fibra Óptica Simétrica 600 Mbps', quantity: 1, unitPrice: 28.90, discount: 0.00 },
+                        { id: Date.now() + 2, type: 'mensual', category: 'movil', concept: 'Línea Móvil 100 GB + Ilimitadas 5G', quantity: 1, unitPrice: 10.00, discount: 0.00 }
+                    ]
+                }
+            ];
+            renderEditorInputs();
+            renderOptionsTabs();
+            renderActiveOptionTable();
+            updateCalculations();
+            setMode('editor');
+            showToast('Nuevo presupuesto inicializado');
+        }
+
+        function saveCurrentProposal() {
+            updateCalculations();
+            let history = [];
+            try {
+                history = JSON.parse(localStorage.getItem('maskfundas_presupuestos_history') || '[]');
+            } catch(e) { history = []; }
+
+            history = history.filter(h => h.id !== proposalState.id);
+            history.unshift(JSON.parse(JSON.stringify(proposalState)));
+            if (history.length > 25) history = history.slice(0, 25);
+
+            localStorage.setItem('maskfundas_presupuestos_history', JSON.stringify(history));
+            showToast(`Presupuesto ${proposalState.id} guardado con éxito`);
+        }
+
+        function openHistoryModal() {
+            const modal = document.getElementById('historyModal');
+            const listBody = document.getElementById('historyListBody');
+            let history = [];
+            try {
+                history = JSON.parse(localStorage.getItem('maskfundas_presupuestos_history') || '[]');
+            } catch(e) { history = []; }
+
+            if (history.length === 0) {
+                listBody.innerHTML = `<p style="color: var(--slate-500); padding: 1rem 0;">No tienes presupuestos guardados aún en este navegador.</p>`;
+            } else {
+                listBody.innerHTML = history.map(item => `
+                    <div class="history-item">
+                        <div>
+                            <strong style="color: var(--navy); font-size: 0.95rem;">${escapeHtml(item.id)}</strong>
+                            <span style="color: var(--slate-500); font-size: 0.8rem; margin-left: 0.5rem;">${escapeHtml(item.date)}</span>
+                            <div style="font-size: 0.88rem; font-weight: 600; color: var(--slate-800); margin-top: 0.2rem;">
+                                ${escapeHtml(item.client.name || 'Cliente sin nombre')}
+                            </div>
+                            <div style="font-size: 0.78rem; color: var(--slate-500);">
+                                ${(item.options || []).length} alternativas comerciales
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <button class="btn btn-navy-light" style="color: var(--navy); background: var(--slate-100);" onclick="loadProposalFromHistory('${item.id}')">
+                                <i class="fa-solid fa-folder-open"></i> Cargar
+                            </button>
+                            <button class="btn-danger-subtle" onclick="deleteProposalFromHistory('${item.id}')" title="Eliminar">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').classList.remove('active');
+        }
+
+        function loadProposalFromHistory(id) {
+            let history = [];
+            try {
+                history = JSON.parse(localStorage.getItem('maskfundas_presupuestos_history') || '[]');
+            } catch(e) { history = []; }
+
+            const found = history.find(h => h.id === id);
+            if (found) {
+                proposalState = JSON.parse(JSON.stringify(found));
+                renderEditorInputs();
+                renderOptionsTabs();
+                renderActiveOptionTable();
+                closeHistoryModal();
+                showToast(`Presupuesto ${id} cargado`);
+            }
+        }
+
+        function deleteProposalFromHistory(id) {
+            let history = [];
+            try {
+                history = JSON.parse(localStorage.getItem('maskfundas_presupuestos_history') || '[]');
+            } catch(e) { history = []; }
+
+            history = history.filter(h => h.id !== id);
+            localStorage.setItem('maskfundas_presupuestos_history', JSON.stringify(history));
+            openHistoryModal();
+            showToast('Presupuesto eliminado del historial');
+        }
+
+        // ── UTILIDADES ──
+        function formatEuro(num) {
+            return (num || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function escapeAttr(str) {
+            if (!str) return '';
+            return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        let toastTimer = null;
+        function showToast(msg) {
+            clearTimeout(toastTimer);
+            const toast = document.getElementById('toastBox');
+            document.getElementById('toastMessage').innerText = msg;
+            toast.classList.add('show');
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

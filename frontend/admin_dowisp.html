@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>if (window.top !== window.self) { window.top.location.href = window.location.href; }</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoWISP Live — Centro de Mando MásKFundas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin_modern.css?v=3.8">
+    <script src="/js/command_palette.js?v=3.5" defer></script>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100% !important;
+            height: 100dvh !important;
+            max-height: 100vh !important;
+            max-height: 100dvh !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            overflow-x: hidden !important;
+            overflow-y: hidden !important;
+            scrollbar-gutter: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            background: #0f172a !important;
+            position: relative !important;
+        }
+
+        .global-nav { flex-shrink: 0; }
+
+        /* Ocultar barra superior cuando el usuario activa modo pantalla completa o colapso */
+        body.nav-collapsed .global-nav {
+            display: none !important;
+        }
+
+        /* ── Subbarra DoWISP Live ── */
+        .dowisp-subbar {
+            background: #1e293b;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-shrink: 0;
+            z-index: 10;
+            width: 100% !important;
+            max-width: 100vw !important;
+            box-sizing: border-box !important;
+            overflow-x: auto;
+            scrollbar-width: none;
+            transition: all 0.2s ease;
+        }
+        .dowisp-subbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        body.fullscreen-mode .dowisp-subbar {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+            padding: 4px 14px;
+        }
+
+        .quick-nav-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .quick-btn {
+            background: rgba(255, 255, 255, 0.06);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 5px 11px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .quick-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .quick-btn.active {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #3b82f6;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+        }
+
+        .status-badge-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .stealth-tag {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 9px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .stealth-dot {
+            width: 7px;
+            height: 7px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        .session-info {
+            font-size: 11.5px;
+            color: #94a3b8;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        /* Botones de acción (Pantalla completa, ocultar menú, nueva pestaña, recargar) */
+        .action-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: #f1f5f9;
+            padding: 5px 11px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+
+        .action-btn.btn-primary {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+        }
+
+        .action-btn.btn-primary:hover {
+            background: linear-gradient(135deg, #0369a1, #075985);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.5);
+        }
+
+        .action-btn.active {
+            background: #0284c7;
+            border-color: #38bdf8;
+            color: #ffffff;
+        }
+
+        /* ── Contenedor Iframe (100% Responsive, Cero Cortes) ── */
+        .iframe-container {
+            flex: 1 1 0% !important;
+            min-height: 0 !important;
+            min-width: 0 !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            height: 100% !important;
+            position: relative !important;
+            background: #ffffff !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+        }
+
+        iframe#dowisp-frame {
+            width: 100% !important;
+            height: 100% !important;
+            min-width: 100% !important;
+            min-height: 100% !important;
+            border: none !important;
+            display: block !important;
+            background: #ffffff !important;
+        }
+
+        /* Botón flotante para restaurar si se ocultan ambas barras */
+        .floating-exit-bar {
+            position: fixed;
+            top: 10px;
+            right: 16px;
+            z-index: 99999;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.94);
+            backdrop-filter: blur(12px);
+            padding: 5px 12px;
+            border-radius: 30px;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        body.fullscreen-mode .floating-exit-bar {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="global-nav" aria-label="Navegación principal">
+    <div class="global-nav-inner">
+        <div class="global-nav-brand"><i class="fa-solid fa-shield-halved"></i><span>MásKFundas Admin</span></div>
+        <div class="global-nav-links" id="globalNavLinks">
+            <a href="/admin" id="nav-dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="/admin/dowisp" id="nav-dowisp" class="active nav-dowisp-highlight" aria-current="page"><i class="fa-solid fa-satellite-dish"></i> DoWISP Live <span class="nav-live-pill">LIVE</span></a>
+            <a href="/admin/morosos" id="nav-morosos"><i class="fa-solid fa-file-invoice-dollar"></i> Morosos</a>
+            <a href="/admin/facturas-directas" id="nav-facturas-directas"><i class="fa-solid fa-paper-plane"></i> Facturas Directas</a>
+            <a href="/admin/auditoria" id="nav-auditoria"><i class="fa-solid fa-tower-cell"></i> Líneas No Facturadas</a>
+            <a href="/admin/consumos" id="nav-consumos"><i class="fa-solid fa-fire-flame-curved"></i> Consumos</a>
+            <a href="/admin/devoluciones" id="nav-devoluciones"><i class="fa-solid fa-rotate-left"></i> Devoluciones SEPA</a>
+            <a href="/admin/visor" id="nav-visor"><i class="fa-solid fa-headset"></i> Visor Clientes</a>
+            <a href="https://clientes.maskfundas.es/apn" id="nav-apn" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-tower-broadcast"></i> Guía APN</a>
+<a href="/admin/propuesta" id="nav-propuesta" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-file-invoice-dollar"></i> Presupuestos</a>
+            <a href="https://sat.maskfundas.es" id="nav-sat" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-screwdriver-wrench"></i> SAT</a>
+            <a href="/admin/seguridad" id="nav-seguridad"><i class="fa-solid fa-lock"></i> Seguridad</a>
+        </div>
+        <div class="global-nav-right">
+            <a href="/admin/logout" class="global-nav-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</a>
+        </div>
+    </div>
+</nav>
+
+<div class="dowisp-subbar">
+    <div class="quick-nav-group">
+        <button class="quick-btn active" onclick="loadProxyRoute('/admin/')"><i class="fa-solid fa-house"></i> Inicio DoWISP</button>
+        <button class="quick-btn" onclick="loadProxyRoute('/admin/servicios_isp/serviciotelefonomovil/')"><i class="fa-solid fa-mobile-screen"></i> Líneas Móviles</button>
+        <button class="quick-btn" onclick="loadProxyRoute('/admin/clientes/cliente/')"><i class="fa-solid fa-users"></i> Clientes</button>
+        <button class="quick-btn" onclick="loadProxyRoute('/admin/finanzas/facturacliente/')"><i class="fa-solid fa-file-invoice"></i> Facturas</button>
+        <button class="quick-btn" onclick="loadProxyRoute('/admin/helpdesk/ticket/?status__exact=-1')"><i class="fa-solid fa-ticket"></i> Tickets Abiertos</button>
+        <button class="quick-btn" onclick="loadDirectRoute('/_/')"><i class="fa-solid fa-desktop"></i> Portal Moderno (_/)</button>
+    </div>
+
+    <div class="status-badge-container">
+        <div class="stealth-tag" title="Todo el tráfico fluye desde 93.93.115.93 con huella exacta de Windows 10/11 Chrome">
+            <span class="stealth-dot"></span>
+            <span>STEALTH: ACTIVO</span>
+        </div>
+        <span class="session-info" id="session-info-text">
+            <i class="fa-regular fa-clock"></i> Comprobando sesión...
+        </span>
+
+        <!-- Botón Volver a Dashboard MásKFundas -->
+        <a class="action-btn" href="/admin?view=dashboard" title="Ver Dashboard de Métricas y Estadísticas MásKFundas">
+            <i class="fa-solid fa-chart-line"></i> Dashboard
+        </a>
+
+        <!-- Botón Ocultar/Mostrar Menú Superior -->
+        <button class="action-btn" id="btn-toggle-nav" onclick="toggleNav()" title="Ocultar o mostrar la barra superior de MásKFundas (Ctrl+M)">
+            <i class="fa-solid fa-arrows-up-down"></i> <span id="txt-toggle-nav">Ocultar Menú</span>
+        </button>
+
+        <!-- Botón Pantalla Completa -->
+        <button class="action-btn btn-primary" id="btn-fullscreen" onclick="toggleFullscreen()" title="Modo pantalla completa DoWISP sin distracciones (F11)">
+            <i class="fa-solid fa-expand"></i> <span id="txt-fullscreen">Pantalla Completa</span>
+        </button>
+
+        <!-- Enlace Abrir en Pestaña Nueva -->
+        <a class="action-btn" id="btn-new-tab" href="/admin/dowisp-proxy/admin/" target="_blank" title="Abrir DoWISP directamente en una nueva pestaña del navegador">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Pestaña Nueva
+        </a>
+
+        <!-- Botón Recargar Frame -->
+        <button class="action-btn" onclick="reloadFrame()" title="Recargar panel actual">
+            <i class="fa-solid fa-rotate-right"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Barra flotante auxiliar cuando se está en pantalla completa nativa -->
+<div class="floating-exit-bar" id="floating-exit-bar">
+    <span style="font-size: 11.5px; color: #38bdf8; font-weight: 600;"><i class="fa-solid fa-satellite-dish"></i> DoWISP Pantalla Completa</span>
+    <a href="/admin?view=dashboard" class="action-btn" style="padding: 3px 8px; font-size: 11px; text-decoration: none;">
+        <i class="fa-solid fa-chart-line"></i> Dashboard
+    </a>
+    <button class="action-btn" onclick="toggleNav()" style="padding: 3px 8px; font-size: 11px;">
+        <i class="fa-solid fa-bars"></i> Menú
+    </button>
+    <button class="action-btn" onclick="reloadFrame()" style="padding: 3px 8px; font-size: 11px;">
+        <i class="fa-solid fa-rotate-right"></i>
+    </button>
+    <button class="action-btn btn-primary" onclick="toggleFullscreen()" style="padding: 3px 10px; font-size: 11px;">
+        <i class="fa-solid fa-compress"></i> Salir
+    </button>
+</div>
+
+<div class="iframe-container">
+    <iframe id="dowisp-frame" src="/admin/dowisp-proxy/admin/" allow="clipboard-read; clipboard-write"></iframe>
+</div>
+
+<script>
+    let currentProxyRoute = '/admin/dowisp-proxy/admin/';
+
+    function updateNewTabLink(targetUrl) {
+        currentProxyRoute = targetUrl;
+        const newTabBtn = document.getElementById('btn-new-tab');
+        if (newTabBtn) {
+            newTabBtn.href = targetUrl;
+        }
+    }
+
+    function loadProxyRoute(route) {
+        const frame = document.getElementById('dowisp-frame');
+        let target;
+        if (route.startsWith('/admin/dowisp-proxy')) {
+            target = route;
+        } else {
+            target = '/admin/dowisp-proxy' + (route.startsWith('/') ? route : '/' + route);
+        }
+        frame.src = target;
+        updateNewTabLink(target);
+        
+        // Actualizar estado botones activos
+        document.querySelectorAll('.quick-btn').forEach(btn => btn.classList.remove('active'));
+        if (typeof event !== 'undefined' && event && event.currentTarget) {
+            event.currentTarget.classList.add('active');
+        }
+    }
+
+    function loadDirectRoute(route) {
+        const frame = document.getElementById('dowisp-frame');
+        frame.src = route;
+        updateNewTabLink(route);
+        
+        // Actualizar estado botones activos
+        document.querySelectorAll('.quick-btn').forEach(btn => btn.classList.remove('active'));
+        if (event && event.currentTarget) {
+            event.currentTarget.classList.add('active');
+        }
+    }
+
+    function reloadFrame() {
+        const frame = document.getElementById('dowisp-frame');
+        try {
+            frame.contentWindow.location.reload();
+        } catch (e) {
+            frame.src = frame.src;
+        }
+    }
+
+    // ── Modo Ocultar/Mostrar Menú Superior ──
+    function toggleNav() {
+        const isCollapsed = document.body.classList.toggle('nav-collapsed');
+        localStorage.setItem('dowisp_nav_collapsed', isCollapsed ? '1' : '0');
+        updateNavToggleButton(isCollapsed);
+    }
+
+    function updateNavToggleButton(isCollapsed) {
+        const btn = document.getElementById('btn-toggle-nav');
+        const txt = document.getElementById('txt-toggle-nav');
+        if (btn && txt) {
+            if (isCollapsed) {
+                btn.innerHTML = '<i class="fa-solid fa-bars"></i> <span id="txt-toggle-nav">Mostrar Menú</span>';
+                btn.classList.add('active');
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-arrows-up-down"></i> <span id="txt-toggle-nav">Ocultar Menú</span>';
+                btn.classList.remove('active');
+            }
+        }
+    }
+
+    // ── Modo Pantalla Completa ──
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.warn('Error solicitando pantalla completa:', err);
+            });
+            document.body.classList.add('fullscreen-mode');
+            document.body.classList.add('nav-collapsed');
+            updateNavToggleButton(true);
+            updateFullscreenButton(true);
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+            document.body.classList.remove('fullscreen-mode');
+            const savedState = localStorage.getItem('dowisp_nav_collapsed') === '1';
+            if (!savedState) {
+                document.body.classList.remove('nav-collapsed');
+                updateNavToggleButton(false);
+            }
+            updateFullscreenButton(false);
+        }
+    }
+
+    function updateFullscreenButton(isFullscreen) {
+        const btn = document.getElementById('btn-fullscreen');
+        const txt = document.getElementById('txt-fullscreen');
+        if (btn && txt) {
+            if (isFullscreen) {
+                btn.innerHTML = '<i class="fa-solid fa-compress"></i> <span id="txt-fullscreen">Salir Pantalla Completa</span>';
+                btn.classList.add('active');
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-expand"></i> <span id="txt-fullscreen">Pantalla Completa</span>';
+                btn.classList.remove('active');
+            }
+        }
+    }
+
+    // Listener de cambios nativos en pantalla completa (ej. tecla Esc o F11)
+    document.addEventListener('fullscreenchange', () => {
+        const isFS = !!document.fullscreenElement;
+        if (isFS) {
+            document.body.classList.add('fullscreen-mode');
+            document.body.classList.add('nav-collapsed');
+            updateNavToggleButton(true);
+            updateFullscreenButton(true);
+        } else {
+            document.body.classList.remove('fullscreen-mode');
+            const savedState = localStorage.getItem('dowisp_nav_collapsed') === '1';
+            if (!savedState) {
+                document.body.classList.remove('nav-collapsed');
+                updateNavToggleButton(false);
+            }
+            updateFullscreenButton(false);
+        }
+    });
+
+    // Atajos de teclado: Ctrl+M para ocultar/mostrar menú, F11 para pantalla completa
+    window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'm') {
+            e.preventDefault();
+            toggleNav();
+        }
+    });
+
+    // ── Protección Absoluta contra Desplazamiento Horizontal Involuntario ──
+    function enforceZeroScroll() {
+        if (document.body.scrollLeft !== 0) document.body.scrollLeft = 0;
+        if (document.documentElement.scrollLeft !== 0) document.documentElement.scrollLeft = 0;
+        if (window.scrollX !== 0 || window.scrollY !== 0) window.scrollTo(0, 0);
+    }
+    window.addEventListener('resize', enforceZeroScroll);
+    window.addEventListener('scroll', enforceZeroScroll);
+
+    // Restaurar preferencia previa de menú colapsado si existiera
+    if (localStorage.getItem('dowisp_nav_collapsed') === '1') {
+        document.body.classList.add('nav-collapsed');
+        updateNavToggleButton(true);
+    }
+
+    // Estado de la sesión DoWISP
+    async function checkSessionStatus() {
+        try {
+            const res = await fetch('/api/admin/dowisp/status');
+            const data = await res.json();
+            const el = document.getElementById('session-info-text');
+            if (data.valid) {
+                el.innerHTML = `<i class="fa-solid fa-check text-success" style="color:#10b981;"></i> Sesión DoWISP Activa (Sync: ${data.updated_at_str})`;
+            } else {
+                el.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-warning" style="color:#f59e0b;"></i> Sesión caducada o pendiente de sync`;
+            }
+        } catch (e) {
+            console.error('Error comprobando estado de sesión:', e);
+        }
+    }
+
+    // Ejecutar comprobaciones al inicio
+    enforceZeroScroll();
+    checkSessionStatus();
+
+    // Procesar ruta solicitada por URL (deep-link desde portada)
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedRoute = urlParams.get('route');
+        if (requestedRoute) {
+            loadProxyRoute(requestedRoute);
+        }
+    } catch (e) {
+        console.warn('Error leyendo parámetro de ruta inicial:', e);
+    }
+</script>
+
+</body>
+</html>

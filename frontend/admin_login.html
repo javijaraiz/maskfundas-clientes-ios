@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Seguro Administración — MásKFundas</title>
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-canvas: #F8FAFC;
+            --surface-card: #FFFFFF;
+            --surface-border: #E2E8F0;
+            --surface-border-subtle: #F1F5F9;
+            --text-main: #0F172A;
+            --text-secondary: #334155;
+            --text-muted: #64748B;
+            --brand-navy: #0B2265;
+            --brand-blue: #0284C7;
+            --brand-blue-hover: #0369A1;
+            --brand-blue-light: #F0F9FF;
+            --brand-orange: #FF6B00;
+            --brand-orange-light: #FFF7ED;
+            --success-green: #16A34A;
+            --success-bg: #DCFCE7;
+            --danger-red: #EF4444;
+            --danger-bg: #FEE2E2;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-display: 'Space Grotesk', 'Inter', sans-serif;
+            --shadow-card: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100vh;
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 14px;
+        }
+
+        /* Protección de fuentes Font Awesome 6 */
+        .fa, .fa-solid, .fas {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+        }
+        .fa-regular, .far {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 400 !important;
+        }
+        .fa-brands, .fab {
+            font-family: "Font Awesome 6 Brands" !important;
+            font-weight: 400 !important;
+        }
+
+        /* Subtle background aura */
+        body {
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(2, 132, 199, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(255, 107, 0, 0.05) 0%, transparent 40%);
+            background-repeat: no-repeat;
+        }
+
+        /* Header con Logo Oficial */
+        .admin-login-header {
+            text-align: center;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo-container {
+            background: #FFFFFF;
+            padding: 12px 24px;
+            border-radius: 16px;
+            border: 1px solid var(--surface-border);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-logo-img {
+            height: 42px;
+            width: auto;
+            max-width: 190px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .brand-badge-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(2, 132, 199, 0.1);
+            color: var(--brand-blue);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        /* Main Login Card */
+        .admin-card {
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 440px;
+            padding: 34px 30px;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            box-sizing: border-box;
+            transition: all 0.25s ease;
+        }
+
+        @media (max-width: 480px) {
+            .admin-card {
+                padding: 24px 18px;
+                border-radius: 16px;
+            }
+        }
+
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--brand-blue-light);
+            color: var(--brand-blue);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .step-badge-green {
+            background: var(--success-bg);
+            color: var(--success-green);
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            letter-spacing: -0.02em;
+        }
+
+        .card-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 22px;
+            line-height: 1.45;
+        }
+
+        /* Formularios y Campos */
+        .form-group {
+            text-align: left;
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-box i.input-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--text-muted);
+            font-size: 15px;
+            pointer-events: none;
+            transition: color 0.15s ease;
+        }
+
+        .input-box input {
+            width: 100%;
+            padding: 11px 14px 11px 40px;
+            border: 1.5px solid var(--surface-border);
+            border-radius: 10px;
+            font-size: 13.5px;
+            background: #FFFFFF;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.15s ease;
+        }
+
+        .input-box input:focus {
+            border-color: var(--brand-blue);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        .input-box input:focus + i.input-icon {
+            color: var(--brand-blue);
+        }
+
+        /* Botón Principal */
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, var(--brand-blue), #0369a1);
+            color: #FFFFFF;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+            transition: all 0.15s ease;
+            margin-top: 8px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-submit.btn-green {
+            background: linear-gradient(135deg, var(--success-green), #15803d);
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+        }
+        .btn-submit.btn-green:hover {
+            box-shadow: 0 6px 16px rgba(22, 163, 74, 0.35);
+        }
+
+        .btn-resend {
+            width: 100%;
+            background: #FFFFFF;
+            border: 1.5px solid var(--surface-border);
+            color: var(--text-secondary);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: all 0.15s ease;
+            margin-top: 10px;
+        }
+
+        .btn-resend:hover {
+            background: var(--surface-border-subtle);
+            border-color: #cbd5e1;
+            color: var(--text-main);
+        }
+
+        .btn-resend:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Input OTP 2FA */
+        .otp-input-field {
+            width: 100%;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 12px;
+            text-align: center;
+            padding: 12px 14px;
+            border: 2px solid var(--brand-blue);
+            border-radius: 12px;
+            background: var(--brand-blue-light);
+            color: var(--brand-blue-hover);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+        }
+
+        .otp-input-field:focus {
+            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.2);
+        }
+
+        /* Mensajes de Alerta */
+        .alert-box {
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            font-weight: 500;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            text-align: left;
+            line-height: 1.4;
+        }
+
+        .alert-error {
+            background: var(--danger-bg);
+            color: #991b1b;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        .alert-success {
+            background: var(--success-bg);
+            color: #166534;
+            border: 1px solid rgba(22, 163, 74, 0.25);
+        }
+
+        .helper-card {
+            background: var(--surface-border-subtle);
+            border: 1px solid var(--surface-border);
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            text-align: left;
+            line-height: 1.4;
+        }
+
+        .helper-card i {
+            color: var(--brand-blue);
+            margin-top: 2px;
+        }
+
+        .timer-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #F1F5F9;
+            color: var(--brand-blue);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 11.5px;
+            border: 1px solid #E2E8F0;
+            margin-top: 6px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-muted);
+            font-size: 12.5px;
+            font-weight: 600;
+            margin-top: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+
+        .back-link:hover {
+            color: var(--brand-blue);
+        }
+
+        /* Footer */
+        .admin-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .admin-footer a {
+            color: var(--brand-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .admin-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 11.5px;
+            color: #64748B;
+        }
+
+        .security-badge i {
+            color: var(--success-green);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Corporativo MásKFundas -->
+    <div class="admin-login-header">
+        <div class="brand-logo-container">
+            <img src="/img/logo.png" onerror="this.onerror=null; this.src='/static/img/logo.png';" alt="MásKFundas" class="brand-logo-img">
+        </div>
+        <div class="brand-badge-row">
+            <i class="fa-solid fa-shield-halved"></i> Panel de Administración
+        </div>
+    </div>
+
+    <!-- Main Auth Card -->
+    <div class="admin-card">
+        
+        <!-- PASO 1: USUARIO Y CONTRASEÑA -->
+        <div id="stepPassword">
+            <div class="step-badge">Paso 1 de 2 · Credenciales</div>
+            <h1 class="card-title">Acceso de Administración</h1>
+            <p class="card-subtitle">Introduce tu usuario corporativo para recibir tu clave 2FA.</p>
+
+            <div id="errorBox1" class="alert-box alert-error">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span id="errorText1"></span>
+            </div>
+
+            <form onsubmit="handleStep1(event)">
+                <div class="form-group">
+                    <label class="form-label" for="username">Usuario o Correo Electrónico</label>
+                    <div class="input-box">
+                        <input type="text" id="username" required placeholder="Usuario / Email corporativo" autocomplete="username" autofocus>
+                        <i class="fa-solid fa-envelope input-icon"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Contraseña</label>
+                    <div class="input-box">
+                        <input type="password" id="password" required placeholder="••••••••••••" autocomplete="current-password">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnSubmit1" class="btn-submit">
+                    <span>Continuar al Paso 2</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- PASO 2: CÓDIGO 2FA -->
+        <div id="step2FA" style="display: none;">
+            <div class="step-badge step-badge-green">Paso 2 de 2 · Verificación 2FA</div>
+            <h1 class="card-title">Código de Seguridad</h1>
+            <p class="card-subtitle">
+                Hemos enviado un código seguro de 6 dígitos a <br>
+                <strong id="sentEmailTarget" style="color: var(--brand-blue);"></strong>
+                <br>
+                <span id="timerBadge" class="timer-badge">
+                    <i class="fa-regular fa-clock"></i> <span id="timerText">Validez: 10:00</span>
+                </span>
+            </p>
+
+            <div class="helper-card">
+                <i class="fa-solid fa-circle-info"></i>
+                <div>
+                    <strong>Revisa tu correo:</strong> Si no lo recibes en unos segundos, revisa tu carpeta de Spam.
+                </div>
+            </div>
+
+            <div id="errorBox2" class="alert-box alert-error">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span id="errorText2"></span>
+            </div>
+            <div id="infoBox2" class="alert-box alert-success">
+                <i class="fa-solid fa-circle-check"></i>
+                <span id="infoText2"></span>
+            </div>
+
+            <form onsubmit="handleStep2(event)">
+                <div class="form-group">
+                    <label class="form-label" for="otpCode" style="text-align: center;">CÓDIGO DE 6 DÍGITOS</label>
+                    <input type="text" id="otpCode" class="otp-input-field" maxlength="6" pattern="[0-9]{6}" required placeholder="------" autocomplete="one-time-code" inputmode="numeric">
+                </div>
+
+                <button type="submit" id="btnSubmit2" class="btn-submit btn-green">
+                    <i class="fa-solid fa-lock-open"></i>
+                    <span>Verificar y Entrar al Panel</span>
+                </button>
+
+                <button type="button" id="btnResend" class="btn-resend" onclick="resendCode()">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Reenviar nuevo código</span>
+                </button>
+
+                <div style="text-align: center;">
+                    <a class="back-link" onclick="goBackToStep1()">
+                        <i class="fa-solid fa-arrow-left"></i> Cambiar de usuario o contraseña
+                    </a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Footer Corporativo -->
+    <div class="admin-footer">
+        <div class="security-badge">
+            <i class="fa-solid fa-shield-check"></i> Conexión Cifrada SSL 256-bit
+        </div>
+        <div>
+            MásKFundas &copy; 2026 · <a href="https://clientes.maskfundas.es">Volver al Portal de Clientes</a>
+        </div>
+    </div>
+
+    <script>
+        let currentEmail = "";
+        let currentPassword = "";
+        let countdownInterval = null;
+        let timeLeft = 600;
+
+        function startCountdown() {
+            clearInterval(countdownInterval);
+            timeLeft = 600;
+            updateTimerDisplay();
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById('timerText').textContent = "Código caducado";
+                    document.getElementById('timerBadge').style.color = "var(--danger-red)";
+                } else {
+                    updateTimerDisplay();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            document.getElementById('timerText').textContent = `Caduca en ${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        async function handleStep1(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit1');
+            const errBox = document.getElementById('errorBox1');
+            const errText = document.getElementById('errorText1');
+
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+            currentEmail = u;
+            currentPassword = p;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Autenticando...';
+            errBox.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/admin/auth/login-step1', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+
+                let data = {};
+                try {
+                    data = await res.json();
+                } catch (jsonErr) {
+                    data = { detail: 'Error de respuesta del servidor (' + res.status + ')' };
+                }
+
+                if (res.ok && data.step === '2fa_required') {
+                    document.getElementById('sentEmailTarget').textContent = u;
+                    document.getElementById('stepPassword').style.display = 'none';
+                    document.getElementById('step2FA').style.display = 'block';
+                    document.getElementById('errorBox2').style.display = 'none';
+                    document.getElementById('infoBox2').style.display = 'none';
+                    document.getElementById('otpCode').value = '';
+                    document.getElementById('otpCode').focus();
+                    startCountdown();
+                } else {
+                    errText.textContent = data.detail || 'Usuario o contraseña incorrectos.';
+                    errBox.style.display = 'flex';
+                }
+            } catch (err) {
+                console.error("Error en login-step1:", err);
+                errText.textContent = 'Error de conexión con el servidor. Por favor, inténtalo de nuevo.';
+                errBox.style.display = 'flex';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Continuar al Paso 2</span> <i class="fa-solid fa-arrow-right"></i>';
+            }
+        }
+
+        async function handleStep2(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit2');
+            const errBox = document.getElementById('errorBox2');
+            const errText = document.getElementById('errorText2');
+            const code = document.getElementById('otpCode').value.trim();
+
+            if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+                errText.textContent = 'Por favor, introduce los 6 dígitos numéricos recibidos en tu correo.';
+                errBox.style.display = 'flex';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Comprobando código...';
+            errBox.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/admin/auth/verify-2fa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ username: currentEmail, code: code })
+                });
+
+                let data = {};
+                try {
+                    data = await res.json();
+                } catch (jsonErr) {
+                    data = { detail: 'Error de respuesta del servidor (' + res.status + ')' };
+                }
+
+                if (res.ok && data.success) {
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Acceso concedido!';
+                    if (data.token) {
+                        localStorage.setItem('admin_token', data.token);
+                    }
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const preferDowisp = localStorage.getItem('prefer_dowisp_home') === 'true';
+                    const requestedNext = urlParams.get('next') || '';
+                    const nextUrl = requestedNext.startsWith('/admin/') && !requestedNext.startsWith('//')
+                        ? requestedNext
+                        : (preferDowisp ? '/admin/dowisp' : '/');
+                    setTimeout(() => {
+                        window.location.href = nextUrl;
+                    }, 400);
+                } else {
+                    errText.textContent = data.detail || 'El código introducido es incorrecto o ha caducado.';
+                    errBox.style.display = 'flex';
+                    document.getElementById('otpCode').select();
+                }
+            } catch (err) {
+                errText.textContent = 'Error de comunicación al verificar el código.';
+                errBox.style.display = 'flex';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-lock-open"></i> <span>Verificar y Entrar al Panel</span>';
+            }
+        }
+
+        async function resendCode() {
+            const btnResend = document.getElementById('btnResend');
+            const infoBox = document.getElementById('infoBox2');
+            const infoText = document.getElementById('infoText2');
+            const errBox = document.getElementById('errorBox2');
+            
+            errBox.style.display = 'none';
+            btnResend.disabled = true;
+            btnResend.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando nuevo código...';
+
+            try {
+                const res = await fetch('/api/admin/auth/login-step1', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: currentEmail, password: currentPassword })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    infoText.textContent = `¡Nuevo código de 6 dígitos enviado a ${currentEmail}!`;
+                    infoBox.style.display = 'flex';
+                    document.getElementById('otpCode').value = '';
+                    document.getElementById('otpCode').focus();
+                    startCountdown();
+                } else {
+                    infoBox.style.display = 'none';
+                    document.getElementById('errorText2').textContent = data.detail || 'No se pudo generar un nuevo código.';
+                    errBox.style.display = 'flex';
+                }
+            } catch (err) {
+                infoBox.style.display = 'none';
+                document.getElementById('errorText2').textContent = 'Error de red al solicitar el código.';
+                errBox.style.display = 'flex';
+            } finally {
+                btnResend.disabled = false;
+                btnResend.innerHTML = '<i class="fa-solid fa-rotate-right"></i> <span>Reenviar nuevo código</span>';
+            }
+        }
+
+        function goBackToStep1() {
+            clearInterval(countdownInterval);
+            document.getElementById('step2FA').style.display = 'none';
+            document.getElementById('stepPassword').style.display = 'block';
+            document.getElementById('errorBox1').style.display = 'none';
+            document.getElementById('password').value = '';
+            document.getElementById('password').focus();
+        }
+    </script>
+</body>
+</html>

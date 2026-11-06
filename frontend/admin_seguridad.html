@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>if (window.top !== window.self) { window.top.location.href = window.location.href; }</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoría de Seguridad y Accesos 2FA — MásKFundas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/admin_modern.css?v=3.8" rel="stylesheet">
+    <script src="/js/command_palette.js?v=3.5" defer></script>
+    <script src="/js/admin_compact_tables.js?v=6" defer></script>
+    <style>
+        .sec-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .sec-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            position: relative;
+            overflow: hidden;
+        }
+        .sec-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 4px;
+        }
+        .sec-card.green::before { background: var(--green); }
+        .sec-card.red::before { background: var(--red); }
+        .sec-card.blue::before { background: var(--blue); }
+        .sec-card.yellow::before { background: var(--yellow); }
+        
+        .sec-card .num {
+            font-size: 26px;
+            font-weight: 800;
+            font-family: 'Space Grotesk', sans-serif;
+            margin-bottom: 4px;
+        }
+        .sec-card.green .num { color: var(--green); }
+        .sec-card.red .num { color: var(--red); }
+        .sec-card.blue .num { color: var(--blue); }
+        .sec-card.yellow .num { color: var(--yellow); }
+        
+        .sec-card .lbl {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .event-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 700;
+        }
+        .ev-success { background: #dcfce7; color: #166534; }
+        .ev-danger { background: #fee2e2; color: #991b1b; }
+        .ev-warn { background: #fef3c7; color: #92400e; }
+        .ev-info { background: #e0f2fe; color: #075985; }
+
+        .tabs-sec {
+            display: flex;
+            flex-wrap: wrap;
+            min-width: 0;
+            gap: 10px;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 18px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.15s ease;
+            display: flex;
+            flex: 1 1 260px;
+            min-width: 0;
+            align-items: center;
+            gap: 8px;
+            text-align: left;
+        }
+        .tab-btn.active {
+            color: var(--blue);
+            border-bottom-color: var(--blue);
+            font-weight: 700;
+        }
+        .security-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .security-table th { position: sticky; top: 0; z-index: 1; background: #f8fafc; color: #475569; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+        .security-table td { vertical-align: top; line-height: 1.45; }
+        .security-table tbody tr:hover { background: #f8fafc; }
+        .security-date { white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .security-ip { white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+        .security-secondary { display: block; color: var(--muted); font-size: 11px; margin-top: 3px; }
+        .block-list { display: grid; gap: 12px; padding: 16px; }
+        .block-item { display: grid; grid-template-columns: minmax(150px, .8fr) minmax(180px, 1fr) minmax(190px, 1.2fr) auto; align-items: center; gap: 14px; padding: 14px; border: 1px solid #fecaca; border-left: 4px solid #dc2626; border-radius: 8px; background: #fff; }
+        .block-item strong { display: block; color: var(--text); overflow-wrap: anywhere; }
+        .block-label { display: block; color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+        .block-unlock { border: 1px solid #b91c1c; border-radius: 6px; padding: 9px 12px; color: #991b1b; background: #fff; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .block-unlock:hover { background: #fef2f2; }
+        .empty-blocks { padding: 28px 16px; color: var(--muted); text-align: center; }
+        @media (max-width: 520px) {
+            .tabs-sec { gap: 6px; }
+            .tabs-sec .tab-btn { flex-basis: 100%; padding: 10px 12px; font-size: 12px; }
+            .block-item { grid-template-columns: 1fr; gap: 10px; }
+            .block-unlock { width: 100%; }
+            .security-table { min-width: 0; }
+            .security-table thead { display: none; }
+            .security-table tbody tr { display: block; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+            .security-table tbody td { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 10px; padding: 6px 0; border: 0; white-space: normal; overflow-wrap: anywhere; }
+            .security-table tbody td::before { content: attr(data-label); color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+            .security-table tbody td[colspan] { display: block; text-align: center; }
+            .security-table tbody td[colspan]::before { content: none; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="global-nav" aria-label="Navegación principal">
+    <div class="global-nav-inner">
+        <div class="global-nav-brand"><i class="fa-solid fa-shield-halved"></i><span>MásKFundas Admin</span></div>
+        <div class="global-nav-links" id="globalNavLinks">
+            <a href="/admin" id="nav-dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="/admin/dowisp" id="nav-dowisp" class="nav-dowisp-highlight"><i class="fa-solid fa-satellite-dish"></i> DoWISP Live <span class="nav-live-pill">LIVE</span></a>
+            <a href="/admin/morosos" id="nav-morosos"><i class="fa-solid fa-file-invoice-dollar"></i> Morosos</a>
+            <a href="/admin/facturas-directas" id="nav-facturas-directas"><i class="fa-solid fa-paper-plane"></i> Facturas Directas</a>
+            <a href="/admin/auditoria" id="nav-auditoria"><i class="fa-solid fa-tower-cell"></i> Líneas No Facturadas</a>
+            <a href="/admin/consumos" id="nav-consumos"><i class="fa-solid fa-fire-flame-curved"></i> Consumos</a>
+            <a href="/admin/devoluciones" id="nav-devoluciones"><i class="fa-solid fa-rotate-left"></i> Devoluciones SEPA</a>
+            <a href="/admin/visor" id="nav-visor"><i class="fa-solid fa-headset"></i> Visor Clientes</a>
+            <a href="https://clientes.maskfundas.es/apn" id="nav-apn" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-tower-broadcast"></i> Guía APN</a>
+<a href="/admin/propuesta" id="nav-propuesta" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-file-invoice-dollar"></i> Presupuestos</a>
+            <a href="https://sat.maskfundas.es" id="nav-sat" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-screwdriver-wrench"></i> SAT</a>
+            <a href="/admin/seguridad" id="nav-seguridad" class="active" aria-current="page"><i class="fa-solid fa-lock"></i> Seguridad</a>
+        </div>
+        <div class="global-nav-right">
+            <a href="/admin/logout" class="global-nav-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</a>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container">
+
+<div class="header">
+    <div class="header-title">
+        <div class="icon" style="background: linear-gradient(135deg, #1e293b, #0f172a);"><i class="fa-solid fa-shield-halved"></i></div>
+        <div>
+            <h1>Auditoría y Seguridad 2FA</h1>
+            <div class="meta-info" id="metaInfo">Monitorización de accesos, alertas y bloqueos de seguridad</div>
+        </div>
+    </div>
+    <div class="header-actions-group">
+        <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Filtrar por IP, usuario o evento..." oninput="filtrarLogs()">
+        </div>
+        <button class="btn-refresh" onclick="cargarLogsSeguridad()">
+            <i class="fa-solid fa-arrows-rotate"></i> Actualizar
+        </button>
+    </div>
+</div>
+
+<div class="sec-grid">
+    <div class="sec-card green">
+        <div class="num" id="kpiLoginsOk">-</div>
+        <div class="lbl">Logins 2FA Exitosos</div>
+    </div>
+    <div class="sec-card red">
+        <div class="num" id="kpiFallos2fa">-</div>
+        <div class="lbl">Intentos Fallidos 2FA</div>
+    </div>
+    <div class="sec-card yellow">
+        <div class="num" id="kpiBloqueos">-</div>
+        <div class="lbl">IP bloqueadas ahora</div>
+    </div>
+    <div class="sec-card blue">
+        <div class="num" id="kpiTotalAdmin">-</div>
+        <div class="lbl">Eventos recientes Panel Admin</div>
+    </div>
+</div>
+
+<div class="tabs-sec">
+    <button class="tab-btn active" id="tabBtnAdmin" onclick="cambiarPestana('admin')">
+        <i class="fa-solid fa-user-shield"></i> Accesos Panel de Administración
+    </button>
+    <button class="tab-btn" id="tabBtnPortal" onclick="cambiarPestana('portal')">
+        <i class="fa-solid fa-users"></i> Accesos y Escaneos Portal Clientes
+    </button>
+    <button class="tab-btn" id="tabBtnBlocks" onclick="cambiarPestana('blocks')">
+        <i class="fa-solid fa-ban"></i> Bloqueos Temporales IP <span id="blockCountBadge"></span>
+    </button>
+</div>
+
+<div class="section" id="paneAdmin">
+    <div class="section-header">
+        <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--text);">
+            <i class="fa-solid fa-clock-rotate-left"></i> Registro de Actividad y Autenticación Administrativa
+        </h3>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="security-table" data-no-compact>
+            <thead>
+                <tr>
+                    <th style="width: 160px;">Fecha y Hora</th>
+                    <th style="width: 170px;">Evento</th>
+                    <th>Usuario</th>
+                    <th>Dirección IP</th>
+                    <th>Detalles / Intentos</th>
+                    <th>Navegador / Dispositivo</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyAdmin">
+                <tr><td colspan="6" class="loading-overlay"><i class="fa-solid fa-spinner fa-spin"></i> Cargando logs...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="section" id="panePortal" style="display: none;">
+    <div class="section-header">
+        <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--text);">
+            <i class="fa-solid fa-shield-virus"></i> Registro de Accesos y Detección de Fugas en Portal
+        </h3>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="security-table" data-no-compact>
+            <thead>
+                <tr>
+                    <th style="width: 160px;">Fecha y Hora</th>
+                    <th style="width: 150px;">Acción</th>
+                    <th>Cliente Consultado</th>
+                    <th>Dirección IP</th>
+                    <th>Estado</th>
+                    <th>Detalles</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyPortal">
+                <tr><td colspan="6" class="loading-overlay"><i class="fa-solid fa-spinner fa-spin"></i> Cargando logs...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="section" id="paneBlocks" style="display:none;">
+    <div class="section-header">
+        <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--text)"><i class="fa-solid fa-shield-halved"></i> IP bloqueadas actualmente</h3>
+        <span style="color:var(--muted);font-size:12px">Identificador intentado, motivo y duración del bloqueo.</span>
+    </div>
+    <div id="activeBlocks" class="block-list"><div class="empty-blocks"><i class="fa-solid fa-spinner fa-spin"></i> Cargando bloqueos...</div></div>
+    <div class="section-header" style="border-top:1px solid var(--border)">
+        <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--text)"><i class="fa-solid fa-clock-rotate-left"></i> Historial reciente de bloqueos</h3>
+        <span style="color:var(--muted);font-size:12px">Incluye bloqueos ya caducados; solo los activos permiten desbloqueo.</span>
+    </div>
+    <div style="overflow-x:auto">
+        <table class="security-table" data-no-compact>
+            <thead><tr><th>Fecha y hora</th><th>Acceso</th><th>Usuario o teléfono intentado</th><th>IP</th><th>Motivo</th><th>Estado</th></tr></thead>
+            <tbody id="tbodyBlocks"><tr><td colspan="6" class="empty-blocks">Cargando historial...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+let logsData = null;
+let currentTab = ['admin', 'portal', 'blocks'].includes(new URLSearchParams(window.location.search).get('tab')) ? new URLSearchParams(window.location.search).get('tab') : 'admin';
+const escSecurityText = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function cambiarPestana(tab) {
+    currentTab = tab;
+    document.getElementById('tabBtnAdmin').classList.toggle('active', tab === 'admin');
+    document.getElementById('tabBtnPortal').classList.toggle('active', tab === 'portal');
+    document.getElementById('paneAdmin').style.display = tab === 'admin' ? 'block' : 'none';
+    document.getElementById('panePortal').style.display = tab === 'portal' ? 'block' : 'none';
+    document.getElementById('paneBlocks').style.display = tab === 'blocks' ? 'block' : 'none';
+    document.getElementById('tabBtnBlocks').classList.toggle('active', tab === 'blocks');
+}
+
+function formatDate(value) {
+    if (!value) return '-';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? String(value).replace('T', ' ').split('.')[0] : new Intl.DateTimeFormat('es-ES', { dateStyle: 'short', timeStyle: 'short' }).format(date);
+}
+
+function detailsText(details) {
+    if (!details || typeof details !== 'object') return String(details || '-');
+    const names = { reason: 'Motivo', motivo: 'Motivo', attempt: 'Intento', attempts: 'Intentos', mins: 'Minutos de bloqueo', estado: 'Estado', cliente_id: 'Cliente', telefono: 'Teléfono', username: 'Usuario' };
+    const preferred = ['reason', 'motivo', 'attempt', 'attempts', 'mins', 'estado', 'cliente_id', 'telefono', 'username'];
+    const parts = preferred.filter(key => details[key] !== undefined && details[key] !== '').map(key => `${names[key] || key}: ${details[key]}`);
+    return parts.join(' · ') || Object.entries(details).map(([key, value]) => `${key}: ${typeof value === 'object' ? JSON.stringify(value) : value}`).join(' · ') || '-';
+}
+
+function renderizarBloqueos(rows) {
+    const root = document.getElementById('activeBlocks');
+    document.getElementById('blockCountBadge').textContent = `(${rows.length})`;
+    if (!rows.length) {
+        root.innerHTML = '<div class="empty-blocks"><i class="fa-solid fa-circle-check" style="color:#15803d"></i><br>No hay IP bloqueadas actualmente.</div>';
+        return;
+    }
+    root.innerHTML = rows.map(row => {
+        const tried = (row.identificadores || []).length ? row.identificadores.join(', ') : 'No disponible en los registros anteriores';
+        const expires = row.expira ? `Hasta ${formatDate(row.expira * 1000)}` : `Hasta el final del día ${escSecurityText(row.dia || '')}`;
+        return `<article class="block-item">
+            <div><span class="block-label">IP · ${escSecurityText(row.tipo)}</span><strong class="security-ip">${escSecurityText(row.ip)}</strong><span class="security-secondary">${Number(row.intentos || 0)} solicitudes posteriores</span></div>
+            <div><span class="block-label">Usuario o teléfono intentado</span><strong>${escSecurityText(tried)}</strong></div>
+            <div><span class="block-label">Motivo y duración</span><strong>${escSecurityText(row.motivo)}</strong><span class="security-secondary">${escSecurityText(expires)}</span></div>
+            <button type="button" class="block-unlock" onclick="desbloquearIp('${escSecurityText(row.ip)}','${escSecurityText(row.tipo)}')"><i class="fa-solid fa-unlock-keyhole"></i> Desbloquear IP</button>
+        </article>`;
+    }).join('');
+}
+
+function renderizarHistorialBloqueos(rows) {
+    const body = document.getElementById('tbodyBlocks');
+    if (!rows.length) {
+        body.innerHTML = '<tr><td colspan="6" class="empty-blocks">Todavía no hay bloqueos registrados.</td></tr>';
+        return;
+    }
+    body.innerHTML = rows.map(row => {
+        const identifiers = (row.identificadores || []).length ? row.identificadores.join(', ') : 'No conservado en el registro histórico';
+        const statusClass = row.estado === 'Activo' ? 'ev-danger' : 'ev-info';
+        return `<tr>
+            <td class="security-date" data-label="Fecha y hora">${escSecurityText(formatDate(row.fecha))}</td>
+            <td data-label="Acceso">${escSecurityText(row.tipo)}</td>
+            <td data-label="Usuario o teléfono intentado">${escSecurityText(identifiers)}</td>
+            <td class="security-ip" data-label="Dirección IP">${escSecurityText(row.ip)}</td>
+            <td data-label="Motivo">${escSecurityText(row.motivo)}</td>
+            <td data-label="Estado"><span class="event-tag ${statusClass}">${escSecurityText(row.estado)}</span></td>
+        </tr>`;
+    }).join('');
+}
+
+async function desbloquearIp(ip, tipo) {
+    if (!window.confirm(`¿Desbloquear ${ip} (${tipo})? La IP podrá volver a intentar el acceso.`)) return;
+    try {
+        const res = await fetch('/api/admin/seguridad/bloqueos/desbloquear', {
+            method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ip, tipo })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.detail || `Error ${res.status}`);
+        await cargarLogsSeguridad();
+        document.getElementById('metaInfo').textContent = 'IP desbloqueada y acción registrada en la auditoría.';
+    } catch (error) {
+        window.alert(`No se pudo desbloquear la IP: ${error.message}`);
+    }
+}
+
+function getEventBadge(ev) {
+    const e = (ev || '').toUpperCase();
+    if (e.includes('SUCCESS') || e.includes('OK')) {
+        return `<span class="event-tag ev-success"><i class="fa-solid fa-circle-check"></i> ${escSecurityText(ev)}</span>`;
+    } else if (e.includes('FAIL') || e.includes('INVALID') || e.includes('ERROR') || e.includes('RECHAZADO')) {
+        return `<span class="event-tag ev-danger"><i class="fa-solid fa-circle-xmark"></i> ${escSecurityText(ev)}</span>`;
+    } else if (e.includes('BAN') || e.includes('BLOCK') || e.includes('BRUTA')) {
+        return `<span class="event-tag ev-warn"><i class="fa-solid fa-ban"></i> ${escSecurityText(ev)}</span>`;
+    } else {
+        return `<span class="event-tag ev-info"><i class="fa-solid fa-circle-info"></i> ${escSecurityText(ev)}</span>`;
+    }
+}
+
+async function cargarLogsSeguridad() {
+    try {
+        const res = await fetch('/api/admin/seguridad/logs', { credentials: 'include' });
+        if (!res.ok) {
+            if (res.status === 401) { window.location.href = '/admin/login'; return; }
+            throw new Error('Error ' + res.status);
+        }
+        logsData = await res.json();
+        
+        // KPIs
+        const stats = logsData.stats || {};
+        document.getElementById('kpiLoginsOk').textContent = stats.logins_exitosos_2fa || 0;
+        document.getElementById('kpiFallos2fa').textContent = stats.intentos_fallidos_2fa || 0;
+        document.getElementById('kpiBloqueos').textContent = stats.bloqueos_temporales || 0;
+        document.getElementById('kpiTotalAdmin').textContent = stats.total_eventos_admin || 0;
+        renderizarBloqueos(logsData.bloqueos_activos || []);
+        renderizarHistorialBloqueos(logsData.historial_bloqueos || []);
+
+        renderizarTablas();
+    } catch(err) {
+        document.getElementById('metaInfo').textContent = 'Error al cargar: ' + err.message;
+    }
+}
+
+function filtrarLogs() {
+    renderizarTablas();
+}
+
+function renderizarTablas() {
+    if (!logsData) return;
+    const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+
+    // 1. Tabla Admin
+    const fAdmin = (logsData.eventos_admin || []).filter(e => {
+        if (!q) return true;
+        const u = JSON.stringify(e).toLowerCase();
+        return u.includes(q);
+    });
+
+    let hAdmin = '';
+    if (fAdmin.length === 0) {
+        hAdmin = `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">Sin registros que coincidan</td></tr>`;
+    } else {
+        fAdmin.forEach(e => {
+            const dt = e.details || {};
+            const user = dt.username || '-';
+            const rawDate = e.timestamp || '';
+            const dateFmt = formatDate(rawDate);
+            
+            hAdmin += `<tr>
+                <td class="security-date" data-label="Fecha y hora"><strong>${escSecurityText(dateFmt)}</strong></td>
+                <td data-label="Evento">${getEventBadge(e.event)}</td>
+                <td data-label="Usuario"><strong>${escSecurityText(user)}</strong></td>
+                <td class="security-ip" data-label="Dirección IP">${escSecurityText(e.ip || '-')}<span class="security-secondary">Proxy: ${escSecurityText(e.proxy_ip || '—')} · ${escSecurityText(e.ip_source || 'origen anterior')}</span></td>
+                <td data-label="Detalles e intentos">${escSecurityText(detailsText(dt))}</td>
+                <td data-label="Navegador y dispositivo" style="font-size:11px;color:var(--muted);max-width:250px;">${escSecurityText(e.user_agent || '-')}</td>
+            </tr>`;
+        });
+    }
+    document.getElementById('tbodyAdmin').innerHTML = hAdmin;
+
+    // 2. Tabla Portal
+    const fPortal = (logsData.eventos_portal || []).filter(e => {
+        if (!q) return true;
+        return JSON.stringify(e).toLowerCase().includes(q);
+    });
+
+    let hPortal = '';
+    if (fPortal.length === 0) {
+        hPortal = `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">Sin registros que coincidan</td></tr>`;
+    } else {
+        fPortal.forEach(e => {
+            hPortal += `<tr>
+                <td class="security-date" data-label="Fecha y hora"><strong>${escSecurityText(formatDate(e.timestamp))}</strong></td>
+                <td data-label="Acción"><span class="event-tag ev-info">${escSecurityText(e.accion || '-')}</span></td>
+                <td data-label="Cliente o teléfono"><strong>${escSecurityText(e.cliente_consultado || '-')}</strong></td>
+                <td class="security-ip" data-label="Dirección IP">${escSecurityText(e.ip || '-')}<span class="security-secondary">Proxy: ${escSecurityText(e.proxy_ip || '—')} · ${escSecurityText(e.ip_source || 'origen anterior')}</span></td>
+                <td data-label="Estado">${getEventBadge(e.estado || '')}</td>
+                <td data-label="Detalles" style="font-size:12px;">${escSecurityText(e.detalles || '-')}</td>
+            </tr>`;
+        });
+    }
+    document.getElementById('tbodyPortal').innerHTML = hPortal;
+}
+
+cambiarPestana(currentTab);
+cargarLogsSeguridad();
+</script>
+</div>
+</body>
+</html>

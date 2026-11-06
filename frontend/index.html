@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Área de Clientes | MásKFundas</title>
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/static/pwa/apple-touch-icon.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#F8F6F2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="MásKFundas">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css?v=19">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            });
+        }
+    </script>
+</head>
+<body>
+    <!-- Capa de Carga Inicial -->
+    <div id="appLoadingOverlay" class="app-loading-overlay">
+        <div class="loading-content-box">
+            <div class="loading-logo-glow">
+                <img src="/static/img/logo.png" alt="MásKFundas" class="loading-logo-img">
+            </div>
+            <div class="loading-spinner-ring"></div>
+            <p class="loading-text" id="loadingMainText">Tu línea, de un vistazo</p>
+            <span class="loading-subtext" id="loadingSubText">Conectando de forma segura con MásKFundas</span>
+        </div>
+    </div>
+
+    <!-- Shell Principal Centrado -->
+    <div class="app-shell">
+
+        <!-- Topbar Limpia y Compacta -->
+        <header class="app-topbar">
+            <div class="topbar-brand">
+                <img src="/static/img/logo.png" alt="MásKFundas" class="topbar-logo">
+            </div>
+            <div class="topbar-actions">
+                <!-- Selector multi-línea -->
+                <button type="button" class="line-selector-pill" id="btnLineSelector" onclick="toggleLineModal(true)">
+                    <span id="currentLineNumber">600 123 123</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </button>
+
+                <!-- Toggle Modo Oscuro -->
+                <button type="button" class="icon-circle-btn" onclick="toggleTheme()" title="Cambiar tema">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Viewport Principal con las 4 Pantallas -->
+        <main class="app-viewport">
+
+            <!-- ══════════════════════════════════════════════════
+                 PANTALLA 1: INICIO (HOME)
+            ══════════════════════════════════════════════════ -->
+            <section class="tab-pane active" id="paneInicio">
+                <!-- Saludo y Perfil -->
+                <div class="greeting-header">
+                    <div class="greeting-text">
+                        <h1>Hola, <span id="homeClientGreeting">Cliente</span></h1>
+                        <p class="greeting-subtext">Tu línea va genial</p>
+                    </div>
+                    <div class="greeting-avatar" id="homeAvatarBtn" onclick="cambiarTab('mas')" title="Ver perfil">
+                        <span id="userAvatarText"><i class="fa-solid fa-user"></i></span>
+                    </div>
+                </div>
+
+                <!-- Hero Principal de Gigas con Arco e Ilustración Editorial -->
+                <div class="hero-radial-card">
+                    <div class="hero-radial-stat">
+                        <div>
+                            <span class="hero-stat-number" id="homeRemainingGb">--</span>
+                            <span class="hero-stat-unit">GB</span>
+                        </div>
+                        <span class="hero-stat-sublabel">de <span id="homeTotalGb">--</span> GB disponibles</span>
+                    </div>
+
+                    <!-- Arco Gráfico con Ilustración Integrada -->
+                    <div class="radial-visual-container">
+                        <svg class="radial-svg" viewBox="0 0 240 145">
+                            <path class="radial-track" d="M 30,135 A 90,90 0 0,1 210,135" />
+                            <path class="radial-bar" id="homeRadialProgressBar" d="M 30,135 A 90,90 0 0,1 210,135" stroke-dasharray="283" stroke-dashoffset="100" />
+                        </svg>
+
+                        <!-- Badge Porcentaje Usado -->
+                        <span class="radial-badge-pill" id="homePercentBadge">--% usado</span>
+
+                        <!-- Ilustración de marca: móvil y señal de datos -->
+                        <div class="radial-center-illustration" aria-hidden="true">
+                            <svg viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="60" cy="54" r="37" fill="#FFF0E7" />
+                                <path d="M79 28c5 3 8 8 9 14M83 21c8 4 13 11 15 20" stroke="#FF5C00" stroke-width="2.5" stroke-linecap="round" />
+                                <circle cx="77" cy="29" r="3" fill="#FF5C00" />
+                                <rect x="42" y="18" width="36" height="65" rx="9" fill="#171719" />
+                                <rect x="46" y="23" width="28" height="54" rx="5" fill="#FFFFFF" />
+                                <rect x="55" y="27" width="10" height="2.5" rx="1.25" fill="#D8D5D1" />
+                                <path d="M52 65h4v6h-4zM59 59h4v12h-4zM66 52h4v19h-4z" fill="#FF5C00" />
+                                <path d="m52 57 8-5 7-7 4-2" stroke="#171719" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                                <circle cx="60" cy="80" r="1.5" fill="#FFF0E7" />
+                                <path d="M29 87h62" stroke="#E9DDD3" stroke-width="2" stroke-linecap="round" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <p class="hero-cycle-meta" id="homeCycleText">Renueva el 1 de mes · Calculando días...</p>
+
+                    <button type="button" class="hero-cta-btn" onclick="cambiarTab('consumo')">
+                        <span>Ver consumo</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- 4 Accesos Rápidos en Fila -->
+                <div class="quick-shortcuts-row">
+                    <button type="button" class="shortcut-item" onclick="cambiarTab('facturas')">
+                        <div class="shortcut-icon-circle">
+                            <i class="fa-regular fa-file-lines"></i>
+                        </div>
+                        <span class="shortcut-label">Facturas</span>
+                    </button>
+
+                    <button type="button" class="shortcut-item" onclick="mostrarModalPuk()">
+                        <div class="shortcut-icon-circle">
+                            <i class="fa-solid fa-key"></i>
+                        </div>
+                        <span class="shortcut-label">Ver PUK</span>
+                    </button>
+
+                    <button type="button" class="shortcut-item" onclick="abrirModalSolicitud('roaming')">
+                        <div class="shortcut-icon-circle">
+                            <i class="fa-solid fa-plane-departure"></i>
+                        </div>
+                        <span class="shortcut-label">Roaming</span>
+                    </button>
+
+                    <button type="button" class="shortcut-item" onclick="abrirModalSolicitud('soporte')">
+                        <div class="shortcut-icon-circle">
+                            <i class="fa-regular fa-circle-question"></i>
+                        </div>
+                        <span class="shortcut-label">Ayuda</span>
+                    </button>
+                </div>
+
+                <!-- Sección "Tu Línea" con Hairlines -->
+                <div class="section-hairline-group">
+                    <div class="hairline-header">
+                        <span class="hairline-title">Tu línea</span>
+                        <span class="hairline-phone" id="homeFormattedLine">600 123 123</span>
+                    </div>
+
+                    <div class="hairline-row" id="homeFiberRow" style="display:none;">
+                        <div class="hairline-row-left">
+                            <i class="fa-solid fa-wifi hairline-row-icon"></i>
+                            <span class="hairline-row-name" id="homeFiberPlan">Fibra 600 Mb</span>
+                        </div>
+                        <span class="status-pill status-ok">Todo OK</span>
+                    </div>
+
+                    <div class="hairline-row">
+                        <div class="hairline-row-left">
+                            <i class="fa-solid fa-mobile-screen hairline-row-icon"></i>
+                            <span class="hairline-row-name" id="homeMobilePlan">Móvil Principal</span>
+                        </div>
+                        <span class="status-pill status-ok">Todo OK</span>
+                    </div>
+                </div>
+
+                <section class="products-overview" aria-labelledby="customerProductsTitle">
+                    <div class="products-overview-heading">
+                        <h2 id="customerProductsTitle">Mis productos</h2>
+                        <span id="productsCountLabel" aria-live="polite"></span>
+                    </div>
+                    <div id="servicesListContainer" aria-live="polite"></div>
+                </section>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════
+                 PANTALLA 2: CONSUMO
+            ══════════════════════════════════════════════════ -->
+            <section class="tab-pane" id="paneConsumo">
+                <div class="page-title-row">
+                    <h1 class="page-title">Consumo</h1>
+                </div>
+
+                <!-- Control Segmentado -->
+                <div class="segmented-pills-wrap">
+                    <button type="button" class="segment-btn active" id="segBtnDatos" onclick="cambiarConsumoSubtab('datos')">Datos</button>
+                    <button type="button" class="segment-btn" id="segBtnLlamadas" onclick="cambiarConsumoSubtab('llamadas')">Llamadas</button>
+                </div>
+
+                <!-- Selector de Periodo / Meses con Flechas -->
+                <div class="month-navigator-bar">
+                    <button type="button" class="month-nav-arrow" id="btnMesAnterior" onclick="navegarMesConsumo(-1)" aria-label="Mes anterior" title="Mes anterior">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <div class="month-picker-pill">
+                        <i class="fa-regular fa-calendar month-cal-icon"></i>
+                        <select id="consumoMonthSelect" class="month-selector-native" onchange="seleccionarMesConsumo(this.value)" aria-label="Seleccionar mes de consumo">
+                            <!-- Poblado dinámicamente -->
+                        </select>
+                        <span id="consumoMonthLabel" class="month-picker-label">Octubre 2026</span>
+                        <i class="fa-solid fa-chevron-down month-picker-caret"></i>
+                    </div>
+                    <button type="button" class="month-nav-arrow" id="btnMesSiguiente" onclick="navegarMesConsumo(1)" aria-label="Mes siguiente" title="Mes siguiente" disabled>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <!-- Subvista: DATOS -->
+                <div id="subviewConsumoDatos">
+                    <div class="tank-section-card">
+                        <div class="tank-headline">
+                            <div class="tank-headline-label" id="tankHeadlineLabel">Te quedan</div>
+                            <div class="tank-headline-stat">
+                                <span id="tankRemainingVal">--</span> GB
+                                <span class="tank-headline-sub" id="tankHeadlineSub">de <span id="tankTotalVal">--</span> GB</span>
+                            </div>
+                        </div>
+
+                        <!-- Tanque Vertical Físico -->
+                        <div class="vertical-tank-assembly">
+                            <div class="tank-vessel">
+                                <div class="tank-liquid-fill" id="tankLiquidFill" style="height: 60%;"></div>
+                            </div>
+                            <div class="tank-scale-ticks">
+                                <div class="tick-mark">
+                                    <div class="tick-line"></div>
+                                    <span id="tankMaxTick">-- GB</span>
+                                </div>
+                                <div class="tick-mark tick-level-active">
+                                    <div class="tick-line" style="background: var(--brand-orange); width: 14px;"></div>
+                                    <span id="tankLevelTick">-- GB disponibles</span>
+                                </div>
+                                <div class="tick-mark">
+                                    <div class="tick-line"></div>
+                                    <span>0 GB</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="tank-cycle-text" id="tankCycleSubText">Renueva el 1 de mes</p>
+                    </div>
+
+                    <!-- Histograma de Consumo Diario -->
+                    <div class="daily-histogram-card">
+                        <div class="histogram-header">
+                            <h3>Tu consumo</h3>
+                            <span class="today-usage-badge" id="todayUsageBadge">Calculando hoy...</span>
+                        </div>
+
+                        <div class="bars-container" id="dailyBarsContainer">
+                            <!-- Se generan dinámicamente según CDRs -->
+                        </div>
+
+                        <div class="bars-xaxis-labels" id="dailyBarsXAxis">
+                            <span>1</span>
+                            <span>8</span>
+                            <span>15</span>
+                            <span>22</span>
+                            <span>28</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subvista: LLAMADAS -->
+                <div id="subviewConsumoLlamadas" style="display: none;">
+                    <div class="tank-section-card">
+                        <div class="tank-headline">
+                            <div class="tank-headline-label">Llamadas nacionales</div>
+                            <div class="tank-headline-stat">
+                                <span id="callMinutesVal">--</span> min
+                            </div>
+                            <span class="tank-headline-sub" id="callPlanSub">Llamadas Ilimitadas Nacionales</span>
+                        </div>
+
+                        <div style="margin: 20px 0; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+                            <i class="fa-solid fa-phone-volume" style="font-size: 2.5rem; color: var(--brand-orange); margin-bottom: 10px; display: block;"></i>
+                            <span id="callCountTotal">-- llamadas realizadas en este ciclo</span>
+                        </div>
+
+                        <button type="button" class="btn-primary-orange" onclick="mostrarModalLlamadas()">Ver detalle de llamadas</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════
+                 PANTALLA 3: FACTURAS
+            ══════════════════════════════════════════════════ -->
+            <section class="tab-pane" id="paneFacturas">
+                <div class="page-title-row">
+                    <h1 class="page-title">Facturas</h1>
+                </div>
+
+                <!-- Micro-Hero Última Factura (Peach Cálido) -->
+                <div class="invoice-hero-peach" id="heroInvoiceBox">
+                    <div class="invoice-hero-label">Última factura</div>
+                    <div class="invoice-hero-amount" id="heroInvoiceAmount">-- €</div>
+                    <div class="invoice-hero-date" id="heroInvoiceDate">Consultando...</div>
+
+                    <div class="invoice-hero-status-row">
+                        <span class="status-pill status-paid" id="heroInvoiceStatusBadge">Pagada</span>
+                        <button type="button" class="invoice-view-link" id="heroInvoiceDownloadBtn" onclick="descargarUltimaFactura()">
+                            <span>Ver factura</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <!-- Ilustración de Recibo Minimalista -->
+                    <div class="invoice-hero-illustration">
+                        <svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="20" y="10" width="50" height="70" rx="8" fill="#FFFFFF" stroke="#FED7AA" stroke-width="2" />
+                            <line x1="30" y1="26" x2="60" y2="26" stroke="#FED7AA" stroke-width="2.5" stroke-linecap="round" />
+                            <line x1="30" y1="36" x2="52" y2="36" stroke="#FED7AA" stroke-width="2" stroke-linecap="round" />
+                            <line x1="30" y1="46" x2="48" y2="46" stroke="#FED7AA" stroke-width="2" stroke-linecap="round" />
+                            <circle cx="56" cy="62" r="8" fill="#FF5C00" opacity="0.2" />
+                            <path d="M53 62 L55 64 L59 60" stroke="#FF5C00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Historial Continuo (Extracto Editorial con Hairlines) -->
+                <h3 class="history-section-title">Historial</h3>
+                <div class="invoice-history-list" id="invoiceHistoryList">
+                    <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+                          Cargando tus facturas...
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════
+                 PANTALLA 4: MÁS (AJUSTES, PUK Y GESTIONES)
+            ══════════════════════════════════════════════════ -->
+            <section class="tab-pane" id="paneMas">
+                <div class="page-title-row">
+                    <h1 class="page-title">Más</h1>
+                </div>
+
+                <!-- Menú Utilitario con Hairlines -->
+                <div class="mas-menu-list">
+                    <!-- 1. Gestionar SIM (PUK / ICCID) -->
+                    <button type="button" class="mas-menu-item" onclick="mostrarModalPuk()">
+                        <div class="mas-item-left">
+                            <i class="fa-solid fa-sim-card mas-item-icon" style="color: var(--brand-orange);"></i>
+                            <div>
+                                <div class="mas-item-title">Gestionar SIM</div>
+                                <div class="mas-item-subtitle">Código PUK, PIN y número ICCID</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right mas-item-chevron"></i>
+                    </button>
+
+                    <!-- 2. Cambiar tarifa -->
+                    <button type="button" class="mas-menu-item" onclick="abrirModalSolicitud('cambio_tarifa')">
+                        <div class="mas-item-left">
+                            <i class="fa-solid fa-sliders mas-item-icon"></i>
+                            <div>
+                                <div class="mas-item-title">Cambiar tarifa</div>
+                                <div class="mas-item-subtitle">Descubre nuestras mejores tarifas</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right mas-item-chevron"></i>
+                    </button>
+
+                    <button type="button" class="mas-menu-item" onclick="mostrarModalGestiones()">
+                        <div class="mas-item-left">
+                            <i class="fa-solid fa-message mas-item-icon"></i>
+                            <div>
+                                <div class="mas-item-title">Mis solicitudes</div>
+                                <div class="mas-item-subtitle">Consulta el estado y responde al equipo</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right mas-item-chevron"></i>
+                    </button>
+
+                    <!-- 4. Roaming -->
+                    <button type="button" class="mas-menu-item" onclick="abrirModalSolicitud('roaming')">
+                        <div class="mas-item-left">
+                            <i class="fa-solid fa-earth-americas mas-item-icon"></i>
+                            <div>
+                                <div class="mas-item-title">Roaming</div>
+                                <div class="mas-item-subtitle">Configura tu viaje en la UE y extranjero</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right mas-item-chevron"></i>
+                    </button>
+
+                    <!-- 5. Configurar APN -->
+                    <a href="/apn" target="_blank" class="mas-menu-item">
+                        <div class="mas-item-left">
+                            <i class="fa-solid fa-wifi mas-item-icon"></i>
+                            <div>
+                                <div class="mas-item-title">Configurar Internet / APN</div>
+                                <div class="mas-item-subtitle">Instrucciones para Android y iPhone</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right-from-square mas-item-chevron"></i>
+                    </a>
+
+                    <!-- 7. Tus Datos Personales -->
+                    <button type="button" class="mas-menu-item" onclick="mostrarModalDatosPersonales()">
+                        <div class="mas-item-left">
+                            <i class="fa-solid fa-user-shield mas-item-icon"></i>
+                            <div>
+                                <div class="mas-item-title">Tus datos personales</div>
+                                <div class="mas-item-subtitle">Titular, DNI y teléfono verificado</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right mas-item-chevron"></i>
+                    </button>
+
+                    <!-- 8. Atención al Cliente -->
+                    <button type="button" class="mas-menu-item" onclick="abrirModalSolicitud('soporte')">
+                        <div class="mas-item-left">
+                            <i class="fa-solid fa-headset mas-item-icon"></i>
+                            <div>
+                                <div class="mas-item-title">Atención al cliente</div>
+                                <div class="mas-item-subtitle">Teléfono 666 67 77 73 y WhatsApp</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right mas-item-chevron"></i>
+                    </button>
+
+                    <!-- Acceso local con passkeys (huella / Face ID) -->
+                    <button type="button" class="mas-menu-item" onclick="gestionarPasskeys()">
+                        <div class="mas-item-left">
+                            <i class="fa-solid fa-fingerprint mas-item-icon"></i>
+                            <div>
+                                <div class="mas-item-title">Acceso con huella o Face ID</div>
+                                <div class="mas-item-subtitle">Gestiona las llaves de acceso de tus dispositivos</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right mas-item-chevron"></i>
+                    </button>
+
+                    <!-- Notificaciones -->
+                    <button type="button" class="mas-menu-item" id="pushToggle" aria-describedby="pushStatus">
+                        <div class="mas-item-left">
+                            <i class="fa-solid fa-bell mas-item-icon" aria-hidden="true"></i>
+                            <div>
+                                <div class="mas-item-title">Notificaciones</div>
+                                <div class="mas-item-subtitle" id="pushStatus" role="status">Comprobando disponibilidad…</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right mas-item-chevron" aria-hidden="true"></i>
+                    </button>
+
+                    <!-- Privacidad y Supresión de Cuenta (Requisito Apple Store 5.1.1v) -->
+                    <button type="button" class="mas-menu-item" onclick="abrirModalSolicitud('baja_cuenta')">
+                        <div class="mas-item-left">
+                            <i class="fa-solid fa-shield-halved mas-item-icon" style="color: #64748b;"></i>
+                            <div>
+                                <div class="mas-item-title">Privacidad y baja de cuenta</div>
+                                <div class="mas-item-subtitle">Gestión de derechos RGPD y supresión</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right mas-item-chevron"></i>
+                    </button>
+
+                    <!-- Cerrar Sesión -->
+                    <button type="button" class="mas-menu-item" onclick="cerrarSesion()">
+                        <div class="mas-item-left">
+                            <i class="fa-solid fa-arrow-right-from-bracket mas-item-icon" style="color: #EF4444;"></i>
+                            <div>
+                                <div class="mas-item-title" style="color: #EF4444;">Cerrar sesión</div>
+                                <div class="mas-item-subtitle">Salir del portal de forma segura</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right mas-item-chevron"></i>
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Barra Inferior de Navegación Fija (Bottom Nav) -->
+        <nav class="bottom-nav-bar" aria-label="Navegación principal">
+            <div class="bottom-nav-container">
+                <button type="button" class="nav-tab-item active" id="tabNavInicio" onclick="cambiarTab('inicio')">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Inicio</span>
+                </button>
+
+                <button type="button" class="nav-tab-item" id="tabNavConsumo" onclick="cambiarTab('consumo')">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <span>Consumo</span>
+                </button>
+
+                <button type="button" class="nav-tab-item" id="tabNavFacturas" onclick="cambiarTab('facturas')">
+                    <i class="fa-regular fa-file-lines"></i>
+                    <span>Facturas</span>
+                </button>
+
+                <button type="button" class="nav-tab-item" id="tabNavMas" onclick="cambiarTab('mas')">
+                    <i class="fa-solid fa-ellipsis"></i>
+                    <span>Más</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         MODALES Y BOTTOM SHEETS
+    ══════════════════════════════════════════════════ -->
+
+    <!-- Modal PUK / SIM Seguro -->
+    <div class="modal-backdrop" id="pukModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-shield-halved" style="color: var(--brand-orange); margin-right: 8px;"></i>Seguridad de tu SIM</h3>
+                <button type="button" class="close-btn" onclick="cerrarModalPuk()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="puk-digit-card">
+                    <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase;">Código PUK de Desbloqueo</span>
+                    <div class="puk-code-display" id="pukCode">--------</div>
+                    <button type="button" class="btn-primary-orange" style="padding: 8px 18px; width: auto; margin: 0 auto; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem;" onclick="copiarTexto('pukCode')">
+                        <i class="fa-regular fa-copy"></i> Copiar PUK
+                    </button>
+                </div>
+
+                <div style="background: var(--surface-card); border: 1px solid var(--surface-hairline); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted);">NÚMERO DE SERIE DE LA SIM (ICCID)</div>
+                        <div style="font-family: var(--font-display); font-size: 0.88rem; font-weight: 700; margin-top: 3px;" id="iccidCode">-------------------</div>
+                    </div>
+                    <button type="button" class="icon-circle-btn" onclick="copiarTexto('iccidCode')" title="Copiar ICCID">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
+
+                <div style="font-size: 0.8rem; color: var(--text-secondary); background: var(--surface-warm); border: 1px solid var(--surface-warm-border); padding: 12px 14px; border-radius: var(--radius-md); line-height: 1.4;">
+                    <i class="fa-solid fa-circle-info" style="color: var(--brand-orange); margin-right: 6px;"></i>
+                    Si tu tarjeta SIM se ha bloqueado al introducir un PIN erróneo, ingresa este código <strong>PUK</strong> de 8 dígitos para reactivarla.
+                </div>
+            </div>
+            <button type="button" class="primary-modal-btn" onclick="cerrarModalPuk()">Entendido</button>
+        </div>
+    </div>
+
+    <!-- Modal Selector de Línea -->
+    <div class="modal-backdrop line-modal-backdrop" id="lineModal" aria-hidden="true" onclick="if (event.target === this) cerrarModalLineas()">
+        <div class="modal-card line-modal-card" role="dialog" aria-modal="true" aria-labelledby="lineModalTitle" aria-describedby="lineModalDescription">
+            <div class="modal-header">
+                <div class="line-modal-heading">
+                    <span class="line-modal-kicker">TUS SERVICIOS</span>
+                    <h3 id="lineModalTitle">Selecciona tu línea</h3>
+                    <p id="lineModalDescription">Elige qué línea quieres consultar.</p>
+                </div>
+                <button type="button" class="close-btn" aria-label="Cerrar selector de líneas" onclick="cerrarModalLineas()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+            </div>
+            <div class="modal-body line-modal-body" id="modalLineList" aria-live="polite">
+                <!-- Se rellena dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detalle Llamadas CDR -->
+    <div class="modal-backdrop" id="callsModal">
+        <div class="modal-card calls-modal-card" role="dialog" aria-modal="true" aria-labelledby="callsModalTitle">
+            <div class="modal-header">
+                <div><span class="calls-modal-kicker">CONSUMO DE VOZ</span><h3 id="callsModalTitle">Detalle de llamadas</h3></div>
+                <button type="button" class="close-btn" aria-label="Cerrar detalle de llamadas" onclick="cerrarModalLlamadas()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <label class="calls-period-label" for="cdrPeriodSelector">Periodo</label>
+                <select class="line-selector-pill calls-period-selector" id="cdrPeriodSelector" onchange="seleccionarPeriodoCDR(this.value)"></select>
+                <div id="cdrPeriodSummary" class="cdr-period-summary" aria-live="polite"></div>
+                <div id="callsListContainer" class="calls-list" aria-live="polite"></div>
+            </div>
+            <button type="button" class="primary-modal-btn" onclick="cerrarModalLlamadas()">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Modal Detalle Conexiones Datos CDR -->
+    <div class="modal-backdrop" id="dataModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Detalle de Conexiones de Datos</h3>
+                <button type="button" class="close-btn" onclick="cerrarModalDatos()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <select class="line-selector-pill" style="width: 100%; margin-bottom: 12px;" id="dataPeriodSelector" onchange="seleccionarPeriodoDatos(this.value)"></select>
+                <div id="dataPeriodSummary" style="margin-bottom: 14px; font-size: 0.85rem; color: var(--text-muted);"></div>
+                <div id="dataListContainer"></div>
+            </div>
+            <button type="button" class="primary-modal-btn" onclick="cerrarModalDatos()">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Modal Solicitud de Servicio -->
+    <div class="modal-backdrop" id="solicitudModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="solicitudModalTitle">Solicitud de Servicio</h3>
+                <button type="button" class="close-btn" onclick="cerrarModalSolicitud()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" id="solicitudModalBody"></div>
+            <button type="button" class="btn-primary-orange" id="btnEnviarSolicitud" onclick="enviarSolicitudServicio()">Confirmar y Solicitar</button>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="gestionesModal">
+        <div class="modal-card tracking-modal-card" role="dialog" aria-modal="true" aria-labelledby="gestionesModalTitle">
+            <div class="modal-header">
+                <button type="button" class="tracking-back" id="trackingBackButton" onclick="cargarSolicitudesCliente()" hidden aria-label="Volver a mis solicitudes"><i class="fa-solid fa-arrow-left"></i></button>
+                <h3 id="gestionesModalTitle">Mis solicitudes</h3>
+                <button type="button" class="close-btn" onclick="cerrarModalGestiones()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body tracking-modal-body" id="gestionesModalBody" aria-live="polite"></div>
+        </div>
+    </div>
+
+    <!-- Modal Datos Personales -->
+    <div class="modal-backdrop" id="datosPersonalesModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Tus Datos Personales</h3>
+                <button type="button" class="close-btn" onclick="cerrarModalDatosPersonales()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="section-hairline-group">
+                    <div class="hairline-row">
+                        <span class="hairline-title">Titular</span>
+                        <strong id="modalProfileName" class="hairline-phone" style="font-size: 0.95rem;">--</strong>
+                    </div>
+                    <div class="hairline-row">
+                        <span class="hairline-title">DNI / CIF</span>
+                        <span id="modalProfileDni" style="font-weight: 700; color: var(--text-secondary);">--</span>
+                    </div>
+                    <div class="hairline-row">
+                        <span class="hairline-title">Teléfono</span>
+                        <span id="modalProfilePhone" style="font-weight: 700; color: var(--text-secondary);">--</span>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="primary-modal-btn" onclick="cerrarModalDatosPersonales()">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Gestión de passkeys -->
+    <div class="modal-backdrop" id="passkeysModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Acceso en tus dispositivos</h3>
+                <button type="button" class="close-btn" onclick="cerrarModalPasskeys()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="margin:0 0 1rem;color:var(--text-secondary);">Usa la huella, Face ID, el PIN de tu dispositivo o una passkey sincronizada. Puedes seguir entrando con el código enviado a tu correo.</p>
+                <div id="passkeyList" class="section-hairline-group" aria-live="polite"></div>
+            </div>
+            <button type="button" class="primary-modal-btn" onclick="registrarPasskeyDesdeApp()">Añadir este dispositivo</button>
+        </div>
+    </div>
+
+    <!-- Toast Flotante -->
+    <div id="appToast" class="app-toast">¡Copiado al portapapeles!</div>
+
+    <script src="/static/js/passkeys.js?v=1"></script>
+    <script src="/static/js/app.js?v=20"></script>
+    <script src="/static/js/notifications.js?v=1"></script>
+</body>
+</html>

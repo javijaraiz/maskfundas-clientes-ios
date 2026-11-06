@@ -1,0 +1,54 @@
+# Node dependencies
+node_modules/
+package-lock.json
+
+# Sensitive data
+data/
+.env
+.vps_known_hosts
+.vps_sync_cache.json
+data/*.db
+data/*.sqlite
+data/*.json
+*.key
+*.csr
+*.p12
+*.p8
+*.mobileprovision
+*.cer
+*.pem
+ios/App/github_secrets.env
+ios/App/*.key
+ios/App/*.csr
+ios/App/*.p12
+ios/App/*.p8
+ios/App/*.mobileprovision
+ios/App/*.cer
+ios/App/*.pem
+
+# Playwright & Automation artifacts
+.playwright-mcp/
+output/
+backups/
+_archivo_externo/
+*.pdf
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Build artifacts
+ios/App/build/
+ios/App/Pods/
+ios/App/Podfile.lock
+ios/App/DerivedData/
+android/build/
+android/app/build/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

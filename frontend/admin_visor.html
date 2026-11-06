@@ -1,0 +1,2367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor de Clientes en Vivo — MásKFundas Admin</title>
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/css/admin_modern.css?v=3.8">
+    <script src="/js/command_palette.js?v=3.5" defer></script>
+    <script src="/js/admin_compact_tables.js?v=7" defer></script>
+    <style>
+        :root {
+            --brand-navy: #0B2265;
+            --brand-blue: #0284C7;
+            --brand-blue-hover: #0369A1;
+            --brand-blue-light: #F0F9FF;
+            --surface-card: #FFFFFF;
+            --surface-bg: #F8FAFC;
+            --surface-border: #E2E8F0;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --success-green: #16A34A;
+            --success-bg: #DCFCE7;
+            --warning-amber: #D97706;
+            --warning-bg: #FEF3C7;
+            --danger-red: #DC2626;
+            --danger-bg: #FEE2E2;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        /* Search Hero Section */
+        .search-hero {
+            background: linear-gradient(135deg, #0B2265 0%, #0369A1 100%);
+            border-radius: 20px;
+            padding: 38px 24px;
+            color: #FFFFFF;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px -5px rgba(2, 132, 199, 0.25);
+            position: relative;
+            overflow: visible;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .search-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-align: center;
+        }
+
+        .search-subtitle {
+            font-size: 14px;
+            color: #E0F2FE;
+            margin-bottom: 24px;
+            opacity: 0.95;
+            text-align: center;
+            max-width: 680px;
+            line-height: 1.5;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-box-field {
+            width: 100%;
+            padding: 16px 50px 16px 52px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            background: #FFFFFF;
+            color: var(--text-main);
+            outline: none;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+            transition: all 0.2s ease;
+        }
+
+        .search-box-field:focus {
+            border-color: #38BDF8;
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.35), 0 14px 32px rgba(0,0,0,0.22);
+        }
+
+        .search-icon-left {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: var(--brand-blue);
+            pointer-events: none;
+        }
+
+        .search-spinner {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--brand-blue);
+            font-size: 18px;
+            display: none;
+        }
+
+        /* Autocomplete Dropdown */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: #FFFFFF;
+            border-radius: 14px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.22);
+            border: 1px solid var(--surface-border);
+            max-height: 420px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            text-align: left;
+        }
+
+        .autocomplete-item {
+            padding: 12px 18px;
+            border-bottom: 1px solid #F1F5F9;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            transition: background 0.15s ease;
+            color: var(--text-main);
+        }
+
+        .autocomplete-item:hover, .autocomplete-item.selected {
+            background: #F0F9FF;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-main-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .item-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #E0F2FE;
+            color: #0284C7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        .item-name {
+            font-weight: 700;
+            font-size: 14.5px;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .item-meta {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .item-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #F1F5F9;
+            color: #475569;
+        }
+
+        /* Banner de Cliente Seleccionado */
+        .client-banner {
+            background: #FFFFFF;
+            border-radius: 16px;
+            border: 1px solid var(--surface-border);
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+        }
+
+        .client-identity {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .client-avatar-lg {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #0284C7, #0369A1);
+            color: #FFFFFF;
+            font-size: 20px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+        }
+
+        .client-full-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 3px;
+        }
+
+        .client-dni-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            background: #F1F5F9;
+            padding: 3px 10px;
+            border-radius: 8px;
+        }
+
+        .client-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action-client {
+            background: #FFFFFF;
+            border: 1.5px solid var(--surface-border);
+            color: var(--text-main);
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+
+        .btn-action-client:hover {
+            background: #F8FAFC;
+            border-color: #CBD5E1;
+            transform: translateY(-1px);
+        }
+
+        .btn-action-primary {
+            background: linear-gradient(135deg, #0284C7, #0369A1);
+            border-color: transparent;
+            color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+        }
+
+        .btn-action-primary:hover {
+            background: linear-gradient(135deg, #0369A1, #075985);
+            color: #FFFFFF;
+            box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+        }
+
+        /* Line Switcher Bar */
+        .line-switcher-bar {
+            background: #F1F5F9;
+            border-radius: 12px;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            margin-bottom: 24px;
+        }
+
+        .line-tab-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 9px;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+
+        .line-tab-carrier {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid #FED7AA;
+            border-radius: 999px;
+            background: #FFF7ED;
+            color: #C2410C;
+            padding: 3px 8px;
+            font-size: 10.5px;
+            font-weight: 800;
+        }
+
+        .line-tab-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .line-tab-btn.active {
+            background: #FFFFFF;
+            color: var(--brand-blue);
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+        }
+
+        /* Portal Dashboard Layout */
+        .portal-grid {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .portal-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Donut Card */
+        .donut-card {
+            background: #FFFFFF;
+            border-radius: 20px;
+            border: 1px solid var(--surface-border);
+            padding: 26px;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .donut-wrapper {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 16px 0;
+        }
+
+        .donut-center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .donut-val-big {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1;
+        }
+
+        .donut-val-sub {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .donut-badge-pct {
+            background: #E0F2FE;
+            color: #0284C7;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-top: 8px;
+        }
+
+        /* Metrics Grid */
+        .metrics-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: #FFFFFF;
+            border-radius: 16px;
+            border: 1px solid var(--surface-border);
+            padding: 18px 20px;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .metric-icon-box {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .metric-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-bottom: 2px;
+        }
+
+        .metric-val {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        /* SIM Security Card */
+        .sim-security-box {
+            background: linear-gradient(135deg, #0F172A, #1E293B);
+            border-radius: 16px;
+            padding: 20px;
+            color: #FFFFFF;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .sim-field-item {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .sim-field-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #94A3B8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sim-field-value {
+            font-family: var(--font-mono);
+            font-size: 22px;
+            font-weight: 800;
+            color: #38BDF8;
+            letter-spacing: 2px;
+        }
+
+        .btn-copy-code {
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #38BDF8;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-copy-code:hover {
+            background: #38BDF8;
+            color: #0F172A;
+        }
+
+        /* Detail Tabs (Llamadas, Facturas, Consumos) */
+        .tab-section-card {
+            background: #FFFFFF;
+            border-radius: 20px;
+            border: 1px solid var(--surface-border);
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+            overflow: hidden;
+        }
+
+        .tab-nav-header {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--surface-border);
+            background: #FAFAFA;
+            padding: 0 16px;
+        }
+
+        .nav-detail-btn {
+            background: transparent;
+            border: none;
+            padding: 16px 20px;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2.5px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s;
+        }
+
+        .nav-detail-btn:hover {
+            color: var(--text-main);
+        }
+
+        .nav-detail-btn.active {
+            color: var(--brand-blue);
+            border-bottom-color: var(--brand-blue);
+            background: #FFFFFF;
+        }
+
+        .tab-content-panel {
+            padding: 24px;
+            display: none;
+        }
+
+        .tab-content-panel.active {
+            display: block;
+        }
+
+        /* Tables */
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .detail-table th {
+            background: #F8FAFC;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .detail-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .detail-table th.sortable:hover {
+            background: #E2E8F0;
+            color: var(--brand-navy);
+        }
+
+        .detail-table th.active-sort {
+            background: #E0F2FE;
+            color: var(--brand-blue);
+        }
+
+        .sort-icon {
+            margin-left: 4px;
+            font-size: 10px;
+            opacity: 0.6;
+        }
+
+        .active-sort .sort-icon {
+            opacity: 1;
+            color: var(--brand-blue);
+        }
+
+        .detail-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #F1F5F9;
+            color: var(--text-main);
+        }
+
+        .detail-table tr:hover td {
+            background: #F8FAFC;
+        }
+
+        .calls-table td { vertical-align: middle; }
+        .calls-table .call-date { color: var(--text-main); white-space: nowrap; }
+        .calls-table .call-destination { color: var(--brand-blue); font-family: var(--font-mono); font-weight: 750; white-space: nowrap; }
+        .calls-table .call-duration { color: #334155; font-weight: 700; white-space: nowrap; }
+        .calls-table .call-cost { font-weight: 750; white-space: nowrap; }
+        .invoices-table td { vertical-align: middle; }
+        .invoices-table .invoice-number { color: var(--brand-navy); font-family: var(--font-mono); font-weight: 800; }
+        .invoices-table .invoice-amount { color: #15803D; font-size: 14px; font-weight: 800; white-space: nowrap; }
+        .invoice-download { min-height: 36px; text-decoration: none; }
+
+        @media (max-width: 700px) {
+            .tab-content-panel { padding: 12px; }
+            .calls-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+            .calls-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+            .calls-table tbody { display: grid; gap: 9px; }
+            .calls-table tbody tr { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 4px 14px; padding: 12px 13px; border: 1px solid var(--surface-border); border-left: 3px solid var(--brand-blue); border-radius: 8px; background: #fff; }
+            .calls-table tbody td { display: flex; min-width: 0; flex-direction: column; gap: 3px; padding: 2px 0; border: 0; background: transparent !important; overflow-wrap: anywhere; }
+            .calls-table tbody td::before { content: attr(data-label); color: var(--text-muted); font-size: 9px; font-weight: 800; letter-spacing: .045em; text-transform: uppercase; }
+            .calls-table tbody td:nth-child(1) { grid-column: 1 / -1; padding-bottom: 7px; margin-bottom: 2px; border-bottom: 1px solid #eef2f7; }
+            .calls-table tbody td:nth-child(2) { grid-column: 1; }
+            .calls-table tbody td:nth-child(3) { grid-column: 2; text-align: right; }
+            .calls-table tbody td:nth-child(4) { grid-column: 1; }
+            .calls-table tbody td:nth-child(5) { grid-column: 2; text-align: right; }
+            .calls-table .call-date,.calls-table .call-destination { font-size: 12px; }
+            .invoices-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+            .invoices-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+            .invoices-table tbody { display: grid; gap: 9px; }
+            .invoices-table tbody tr { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px 14px; padding: 12px 13px; border: 1px solid var(--surface-border); border-left: 3px solid #16A34A; border-radius: 8px; background: #fff; }
+            .invoices-table tbody td { display: flex; min-width: 0; flex-direction: column; justify-content: center; gap: 4px; padding: 2px 0; border: 0; background: transparent !important; overflow-wrap: anywhere; }
+            .invoices-table tbody td::before { content: attr(data-label); color: var(--text-muted); font-size: 9px; font-weight: 800; letter-spacing: .045em; text-transform: uppercase; }
+            .invoices-table tbody td:nth-child(1),.invoices-table tbody td:nth-child(6) { grid-column: 1 / -1; }
+            .invoices-table tbody td:nth-child(1) { padding-bottom: 7px; margin-bottom: 2px; border-bottom: 1px solid #eef2f7; }
+            .invoices-table tbody td:nth-child(6) { padding-top: 7px; border-top: 1px solid #eef2f7; }
+            .invoices-table .invoice-download { justify-content: center; min-height: 42px; }
+        }
+
+        .empty-placeholder {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            color: #CBD5E1;
+            margin-bottom: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navegación Global de Administración -->
+    <nav class="global-nav" aria-label="Navegación principal">
+    <div class="global-nav-inner">
+        <div class="global-nav-brand"><i class="fa-solid fa-shield-halved"></i><span>MásKFundas Admin</span></div>
+        <div class="global-nav-links" id="globalNavLinks">
+            <a href="/admin" id="nav-dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="/admin/dowisp" id="nav-dowisp" class="nav-dowisp-highlight"><i class="fa-solid fa-satellite-dish"></i> DoWISP Live <span class="nav-live-pill">LIVE</span></a>
+            <a href="/admin/morosos" id="nav-morosos"><i class="fa-solid fa-file-invoice-dollar"></i> Morosos</a>
+            <a href="/admin/facturas-directas" id="nav-facturas-directas"><i class="fa-solid fa-paper-plane"></i> Facturas Directas</a>
+            <a href="/admin/auditoria" id="nav-auditoria"><i class="fa-solid fa-tower-cell"></i> Líneas No Facturadas</a>
+            <a href="/admin/consumos" id="nav-consumos"><i class="fa-solid fa-fire-flame-curved"></i> Consumos</a>
+            <a href="/admin/devoluciones" id="nav-devoluciones"><i class="fa-solid fa-rotate-left"></i> Devoluciones SEPA</a>
+            <a href="/admin/visor" id="nav-visor" class="active" aria-current="page"><i class="fa-solid fa-headset"></i> Visor Clientes</a>
+            <a href="https://clientes.maskfundas.es/apn" id="nav-apn" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-tower-broadcast"></i> Guía APN</a>
+<a href="/admin/propuesta" id="nav-propuesta" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-file-invoice-dollar"></i> Presupuestos</a>
+            <a href="https://sat.maskfundas.es" id="nav-sat" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-screwdriver-wrench"></i> SAT</a>
+            <a href="/admin/seguridad" id="nav-seguridad"><i class="fa-solid fa-lock"></i> Seguridad</a>
+        </div>
+        <div class="global-nav-right">
+            <a href="/admin/logout" class="global-nav-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</a>
+        </div>
+    </div>
+</nav>
+
+    <div class="admin-container">
+
+        <!-- Buscador Hero -->
+        <div class="search-hero">
+            <h1 class="search-title">
+                <i class="fa-solid fa-headset"></i> Visor de Cliente y Modo Soporte en Vivo
+            </h1>
+            <p class="search-subtitle">
+                Visualiza el portal de clientes con consumos en tiempo real, facturas de DoWISP y PUK/PIN para asistencia inmediata.
+            </p>
+
+            <div class="search-input-wrapper">
+                <i class="fa-solid fa-magnifying-glass search-icon-left"></i>
+                <input 
+                    type="text" 
+                    id="inputSearchClient" 
+                    class="search-box-field" 
+                    placeholder="Escribe teléfono móvil (ej: 601873540), DNI / CIF o nombre del cliente..." 
+                    autocomplete="off"
+                    autofocus
+                    oninput="handleSearchInput(this.value)"
+                    onkeydown="handleSearchKeydown(event)"
+                >
+                <div class="search-spinner" id="searchSpinner">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                </div>
+
+                <!-- Dropdown Autocompletado -->
+                <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+            </div>
+        </div>
+
+        <!-- Estado Vacío Inicial -->
+        <div id="initialStateBox" class="empty-placeholder" style="background: #FFFFFF; border-radius: 20px; border: 1px solid var(--surface-border);">
+            <div class="empty-icon"><i class="fa-solid fa-magnifying-glass-arrow-right"></i></div>
+            <h3 style="font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">Introduce un teléfono o DNI arriba para comenzar</h3>
+            <p style="font-size: 13.5px; color: var(--text-muted); max-width: 500px; margin: 0 auto;">
+                El sistema cargará de inmediato la ficha completa del cliente, sus líneas asociadas, el donut de gigas consumidos y las facturas oficiales de DoWISP.
+            </p>
+        </div>
+
+        <!-- Panel de Cliente Activo (Se muestra al seleccionar) -->
+        <div id="clientPortalView" style="display: none;">
+
+            <!-- Header de Cliente Seleccionado con Status de Sincronización -->
+            <div class="client-banner">
+                <div class="client-identity">
+                    <div class="client-avatar-lg" id="displayClientInitial">J</div>
+                    <div>
+                        <div class="client-full-name" id="displayClientName">Nombre del Cliente</div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span class="client-dni-badge" id="displayClientDNI"><i class="fa-solid fa-id-card"></i> 12345678Z</span>
+                            <span class="client-dni-badge" id="displayLinesCount" style="background: #E0F2FE; color: #0284C7;"><i class="fa-solid fa-mobile-screen"></i> 1 línea activa</span>
+                            <span class="client-dni-badge" id="badgeLineOperator" style="background: #FFF7ED; color: #C2410C;" title="Mayorista de la línea seleccionada"><i class="fa-solid fa-tower-cell"></i> Mayorista: <span id="displayLineOperator">Cargando...</span></span>
+                            <span class="client-dni-badge" id="badgeSyncCdr" style="background: #FEF3C7; color: #92400E;" title="Última lectura de CDRs oficiales de tráfico móvil"><i class="fa-solid fa-tower-cell"></i> CDR: <span id="displaySyncCdrTime">Cargando...</span></span>
+                            <span class="client-dni-badge" id="badgeSyncDowisp" style="background: #DCFCE7; color: #15803D;" title="Última sincronización de contratos y líneas en DoWISP"><i class="fa-solid fa-database"></i> DoWISP: <span id="displaySyncDowispTime">Cargando...</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="client-actions-group">
+                    <button class="btn-action-client" id="btnActualizarAhora" onclick="ejecutarActualizarAhora()" title="Consultar a DoWISP en vivo y refrescar la ficha">
+                        <i class="fa-solid fa-arrows-rotate" id="iconSyncLive"></i> Actualizar Ahora
+                    </button>
+                    <a id="btnOpenAsClient" href="#" target="_blank" class="btn-action-client btn-action-primary">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Portal como Cliente
+                    </a>
+                </div>
+            </div>
+
+            <!-- Selector de Líneas Activas (Pills) -->
+            <div class="line-switcher-bar" id="lineSwitcherBar"></div>
+
+            <!-- Panel de Resumen General Multilínea (Visible cuando selectedLineIndex === -1) -->
+            <div id="multiLineSummaryView" style="display: none; margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                    <div style="background: #FFFFFF; border: 1.5px solid var(--surface-border); border-radius: 14px; padding: 18px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 6px rgba(15,23,42,0.03);">
+                        <div style="width: 48px; height: 48px; border-radius: 12px; background: #E0F2FE; color: #0284C7; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 11.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Líneas del Titular</div>
+                            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 800; color: var(--brand-navy);" id="summaryTotalLinesCount">0</div>
+                        </div>
+                    </div>
+
+                    <div style="background: #FFFFFF; border: 1.5px solid var(--surface-border); border-radius: 14px; padding: 18px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 6px rgba(15,23,42,0.03);">
+                        <div style="width: 48px; height: 48px; border-radius: 12px; background: #F0FDF4; color: #16A34A; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                            <i class="fa-solid fa-chart-pie"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 11.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Consumo Global Datos</div>
+                            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 800; color: #16A34A;" id="summaryTotalGbConsumed">0.00 GB</div>
+                        </div>
+                    </div>
+
+                    <div style="background: #FFFFFF; border: 1.5px solid var(--surface-border); border-radius: 14px; padding: 18px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 6px rgba(15,23,42,0.03);">
+                        <div style="width: 48px; height: 48px; border-radius: 12px; background: #F3E8FF; color: #7E22CE; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                            <i class="fa-solid fa-phone-volume"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 11.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Minutos Globales</div>
+                            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 800; color: #7E22CE;" id="summaryTotalMinutes">0 min</div>
+                        </div>
+                    </div>
+
+                    <div style="background: #FFFFFF; border: 1.5px solid var(--surface-border); border-radius: 14px; padding: 18px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 6px rgba(15,23,42,0.03);">
+                        <div style="width: 48px; height: 48px; border-radius: 12px; background: #FEF3C7; color: #D97706; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 11.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Costes Extra / Fuera Bono</div>
+                            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 800; color: #D97706;" id="summaryTotalExtraCost">0.00 €</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla Resumen de Todas las Líneas -->
+                <div style="background: #FFFFFF; border-radius: 16px; border: 1px solid var(--surface-border); padding: 22px; box-shadow: 0 2px 8px rgba(15,23,42,0.04);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 800; margin: 0; color: var(--text-main);">
+                                <i class="fa-solid fa-table-list" style="color: var(--brand-blue); margin-right: 6px;"></i> Matriz Comparativa de Líneas Activas
+                            </h3>
+                            <span style="font-size: 12.5px; color: var(--text-muted);">Haz clic en cualquier línea para profundizar en su detalle técnico, llamadas y PUK/PIN</span>
+                        </div>
+                        <!-- Selector de Meses para Resumen Todas -->
+                        <div style="display: flex; align-items: center; gap: 6px; background: #F1F5F9; border-radius: 20px; padding: 4px 10px; border: 1px solid #E2E8F0;">
+                            <span style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-right: 2px;">Mes:</span>
+                            <button onclick="cambiarMesRelativoMulti(-1)" id="btnPrevMonthMulti" title="Mes anterior" style="background: none; border: none; font-size: 12px; color: var(--brand-blue); cursor: pointer; padding: 3px 6px; border-radius: 50%;">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <span id="displaySelectedMonthNameMulti" style="font-size: 12.5px; font-weight: 800; color: var(--brand-navy); min-width: 80px; text-align: center;">Agosto</span>
+                            <button onclick="cambiarMesRelativoMulti(1)" id="btnNextMonthMulti" title="Mes siguiente" style="background: none; border: none; font-size: 12px; color: var(--brand-blue); cursor: pointer; padding: 3px 6px; border-radius: 50%;">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="detail-table">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" onclick="sortMultiLineTable('numero')" id="th_sort_numero">
+                                        Número <i class="fa-solid fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" onclick="sortMultiLineTable('operador')" id="th_sort_operador">
+                                        Operador <i class="fa-solid fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" onclick="sortMultiLineTable('tarifa')" id="th_sort_tarifa">
+                                        Tarifa Contratada <i class="fa-solid fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable active-sort" onclick="sortMultiLineTable('gigas_consumidos')" id="th_sort_gigas_consumidos">
+                                        Consumo Datos <i class="fa-solid fa-sort-down sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" onclick="sortMultiLineTable('minutos_consumidos')" id="th_sort_minutos_consumidos">
+                                        Minutos <i class="fa-solid fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" onclick="sortMultiLineTable('llamadas_totales')" id="th_sort_llamadas_totales">
+                                        Llamadas <i class="fa-solid fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" onclick="sortMultiLineTable('coste_extra')" id="th_sort_coste_extra">
+                                        Extra <i class="fa-solid fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" onclick="sortMultiLineTable('precio')" id="th_sort_precio">
+                                        Cuota / Precio <i class="fa-solid fa-sort sort-icon"></i>
+                                    </th>
+                                    <th>PUK / PIN</th>
+                                    <th style="text-align: right;">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableMultiLineBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid Donut + Métricas Individuales -->
+            <div class="portal-grid" id="singleLinePortalGrid">
+                
+                <!-- Donut Circular con Navegación Mensual -->
+                <div class="donut-card">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 11.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Consumo de Datos</span>
+                        <div style="display: flex; align-items: center; gap: 4px; background: #F1F5F9; border-radius: 20px; padding: 2px 6px;">
+                            <button onclick="cambiarMesRelativo(-1)" id="btnPrevMonth" title="Mes anterior" style="background: none; border: none; font-size: 11px; color: var(--brand-blue); cursor: pointer; padding: 3px 6px; border-radius: 50%;">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <span id="displaySelectedMonthName" style="font-size: 11.5px; font-weight: 800; color: var(--brand-navy); min-width: 70px; text-align: center;">Agosto</span>
+                            <button onclick="cambiarMesRelativo(1)" id="btnNextMonth" title="Mes siguiente" style="background: none; border: none; font-size: 11px; color: var(--brand-blue); cursor: pointer; padding: 3px 6px; border-radius: 50%;">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="donut-wrapper">
+                        <svg width="220" height="220" viewBox="0 0 220 220">
+                            <!-- Background Track -->
+                            <circle cx="110" cy="110" r="85" fill="none" stroke="#F1F5F9" stroke-width="20"></circle>
+                            <!-- Progress Arc -->
+                            <circle id="donutArc" cx="110" cy="110" r="85" fill="none" stroke="#0284C7" stroke-width="20"
+                                stroke-dasharray="534.07" stroke-dashoffset="534.07"
+                                stroke-linecap="round" transform="rotate(-90 110 110)" style="transition: stroke-dashoffset 0.6s ease;">
+                            </circle>
+                        </svg>
+                        <div class="donut-center-text">
+                            <span class="donut-val-big" id="displayGbConsumed">0.00</span>
+                            <span class="donut-val-sub">de <span id="displayGbTotal">50</span> GB</span>
+                            <span class="donut-badge-pct" id="displayPct">0% usado</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 4px;" id="displayTarifaName">
+                        Tarifa MásGigas
+                    </div>
+                </div>
+
+                <!-- Tarjetas de Métricas + SIM Credentials -->
+                <div>
+                    <!-- Fila Destacada: Teléfono, Servicio y Precio -->
+                    <div style="background: #FFFFFF; border: 1.5px solid var(--surface-border); border-radius: 16px; padding: 14px 20px; margin-bottom: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; align-items: center; box-shadow: 0 2px 8px rgba(15,23,42,0.03);">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: #E0F2FE; color: #0284C7; display: flex; align-items: center; justify-content: center; font-size: 17px;">
+                                <i class="fa-solid fa-mobile-screen"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Número de Teléfono</div>
+                                <div style="font-family: var(--font-mono); font-size: 17px; font-weight: 800; color: var(--brand-blue);" id="displayTopTelefono">600 00 00 00</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: #FEF3C7; color: #D97706; display: flex; align-items: center; justify-content: center; font-size: 17px;">
+                                <i class="fa-solid fa-sim-card"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Servicio / Tarifa</div>
+                                <div style="font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 800; color: var(--text-main);" id="displayTopServicio">Tarifa Contratada</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: #DCFCE7; color: #16A34A; display: flex; align-items: center; justify-content: center; font-size: 17px;">
+                                <i class="fa-solid fa-euro-sign"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Cuota / Precio Cliente</div>
+                                <div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 800; color: #15803D;" id="displayTopPrecio">0.00 €/mes</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metrics-cards-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon-box" style="background: #E0F2FE; color: #0284C7;">
+                                <i class="fa-solid fa-phone-volume"></i>
+                            </div>
+                            <div>
+                                <div class="metric-label">Minutos Voz</div>
+                                <div class="metric-val" id="displayMinConsumed">0 min</div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon-box" style="background: #DCFCE7; color: #16A34A;">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div>
+                                <div class="metric-label">Llamadas Totales</div>
+                                <div class="metric-val" id="displayTotalCalls">0</div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon-box" style="background: #FEF3C7; color: #D97706;">
+                                <i class="fa-solid fa-tower-broadcast"></i>
+                            </div>
+                            <div>
+                                <div class="metric-label">Destinos Distintos</div>
+                                <div class="metric-val" id="displayUniqueDest">0</div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon-box" style="background: #FEE2E2; color: #DC2626;">
+                                <i class="fa-solid fa-euro-sign"></i>
+                            </div>
+                            <div>
+                                <div class="metric-label">Coste Extra</div>
+                                <div class="metric-val" id="displayExtraCost">0.00 €</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SIM Credentials Card -->
+                    <div class="sim-security-box">
+                        <div class="sim-field-item">
+                            <div class="sim-field-label">
+                                <span>Código PUK</span>
+                                <button class="btn-copy-code" onclick="copiarAlPortapapeles('displayPukCode', 'PUK')">COPIAR</button>
+                            </div>
+                            <div class="sim-field-value" id="displayPukCode">--------</div>
+                        </div>
+
+                        <div class="sim-field-item">
+                            <div class="sim-field-label">
+                                <span>Código PIN</span>
+                                <button class="btn-copy-code" id="btnCopyPin" onclick="copiarAlPortapapeles('displayPinCode', 'PIN')">COPIAR</button>
+                            </div>
+                            <div class="sim-field-value" id="displayPinCode" style="font-size: 16px; letter-spacing: 1px;">No registrado</div>
+                        </div>
+
+                        <div class="sim-field-item">
+                            <div class="sim-field-label">
+                                <span>Operador / Red</span>
+                            </div>
+                            <div style="font-weight: 800; font-size: 16px; color: #FFFFFF; margin-top: 4px;" id="displayOperador">
+                                Lemonvil
+                            </div>
+                        </div>
+                        <div class="sim-field-item" style="grid-column: 1 / -1; margin-top: 6px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.15);">
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button type="button" class="btn-refresh" onclick="enviarAPNWhatsAppVisor()" style="background: #16A34A; color: #FFF; font-size: 12px; padding: 6px 12px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" title="Enviar guía APN e instrucciones por WhatsApp al cliente">
+                                    <i class="fa-brands fa-whatsapp"></i> Enviar APN por WhatsApp
+                                </button>
+                                <button type="button" class="btn-refresh" onclick="abrirGuiaAPNVisor()" style="background: #0284C7; color: #FFF; font-size: 12px; padding: 6px 12px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" title="Abrir configurador interactivo con el teléfono cargado">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Guía APN
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Tabbed Detail Panels -->
+            <div class="tab-section-card">
+                <div class="tab-nav-header">
+                    <button class="nav-detail-btn active" onclick="switchDetailTab('llamadas', this)">
+                        <i class="fa-solid fa-phone-list"></i> Registro de Llamadas (<span id="countCalls">0</span>)
+                    </button>
+                    <button class="nav-detail-btn" onclick="switchDetailTab('extras', this)">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Consumos Adicionales & Extras (<span id="countExtras">0</span>)
+                    </button>
+                    <button class="nav-detail-btn" onclick="switchDetailTab('consumos', this)">
+                        <i class="fa-solid fa-chart-simple"></i> Desglose Diario de Datos
+                    </button>
+                    <button class="nav-detail-btn" onclick="switchDetailTab('grafica', this)">
+                        <i class="fa-solid fa-chart-line"></i> Evolución Anual (GB)
+                    </button>
+                    <button class="nav-detail-btn" onclick="switchDetailTab('facturas', this)">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> Facturas Oficiales DoWISP (<span id="countInvoices">0</span>)
+                    </button>
+                </div>
+
+                <!-- Panel 1: Llamadas -->
+                <div id="tabPanelLlamadas" class="tab-content-panel active">
+                    <div style="overflow-x: auto;">
+                        <table class="detail-table calls-table" aria-label="Registro de llamadas">
+                            <thead>
+                                <tr>
+                                    <th>Fecha y Hora</th>
+                                    <th>Número Destino</th>
+                                    <th>Duración</th>
+                                    <th>Tipo de Tráfico</th>
+                                    <th>Coste</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableCallsBody">
+                                <tr><td colspan="5" class="empty-placeholder">Sin llamadas registradas en el mes actual</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Panel 2: Consumos Adicionales & Extras -->
+                <div id="tabPanelExtras" class="tab-content-panel">
+                    <div style="overflow-x: auto;">
+                        <table class="detail-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha y Hora</th>
+                                    <th>Concepto / Tipo</th>
+                                    <th>Número / Destino</th>
+                                    <th>Duración / Cantidad</th>
+                                    <th>Importe Extra</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableExtrasBody">
+                                <tr><td colspan="5" class="empty-placeholder">No se registran consumos adicionales ni sobrecostes en el período</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Panel 3: Desglose Diario con Gráfica Diaria -->
+                <div id="tabPanelConsumos" class="tab-content-panel">
+                    <!-- Gráfica Interactiva Diaria -->
+                    <div style="background: #FFFFFF; border: 1.5px solid var(--surface-border); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <h4 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 16px; color: var(--text-main); font-weight: 800;">
+                                    <i class="fa-solid fa-chart-column" style="color: var(--brand-blue); margin-right: 6px;"></i> Curva de Tráfico Diario (MB / GB)
+                                </h4>
+                                <span style="font-size: 12px; color: var(--text-muted);" id="subtitleDailyChart">Consumo por cada día registrado en los ficheros CDR</span>
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <div style="background: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 10px; padding: 5px 12px; font-size: 12px;">
+                                    <span style="color: #0369A1; font-weight: 700;">Total Días:</span> <strong id="statDiasConTrafico" style="color: #0B2265; font-size: 13px;">0</strong>
+                                </div>
+                                <div style="background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 10px; padding: 5px 12px; font-size: 12px;">
+                                    <span style="color: #92400E; font-weight: 700;">Día Mayor Consumo:</span> <strong id="statDiaPico" style="color: #78350F; font-size: 13px;">0 MB</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="position: relative; height: 260px; width: 100%;">
+                            <canvas id="chartConsumoDiario"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Tarjetas de detalle por día -->
+                    <div id="dailyUsageContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;">
+                    </div>
+                </div>
+
+                <!-- Panel 4: Evolución Anual (Gráfica de GB) -->
+                <div id="tabPanelGrafica" class="tab-content-panel">
+                    <div style="background: #FFFFFF; border: 1.5px solid var(--surface-border); border-radius: 16px; padding: 20px; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <h4 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 16px; color: var(--text-main); font-weight: 800;">
+                                    <i class="fa-solid fa-chart-area" style="color: var(--brand-blue); margin-right: 6px;"></i> Histórico de Consumo Anual (2026)
+                                </h4>
+                                <span style="font-size: 12px; color: var(--text-muted);">Evolución de tráfico 4G / 5G mes a mes en el año en curso</span>
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                <div style="background: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 10px; padding: 6px 12px; font-size: 12px;">
+                                    <span style="color: #0369A1; font-weight: 700;">Media Real:</span> <strong id="statMediaAnual" style="color: #0B2265; font-size: 13px;">0.00 GB/mes</strong>
+                                </div>
+                                <div style="background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 10px; padding: 6px 12px; font-size: 12px;">
+                                    <span style="color: #92400E; font-weight: 700;">Pico Máximo:</span> <strong id="statPicoAnual" style="color: #78350F; font-size: 13px;">0.00 GB</strong>
+                                </div>
+                                <div style="background: #F0FDF4; border: 1.5px solid #86EFAC; border-radius: 10px; padding: 6px 12px; font-size: 12px;">
+                                    <span style="color: #15803D; font-weight: 700;"><i class="fa-solid fa-wand-magic-sparkles"></i> Tarifa Óptima:</span> <strong id="statTarifaRecomendada" style="color: #166534; font-size: 13px;">Calculando...</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="position: relative; height: 280px; width: 100%;">
+                            <canvas id="chartConsumoAnual"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 5: Facturas -->
+                <div id="tabPanelFacturas" class="tab-content-panel">
+                    <div style="overflow-x: auto;">
+                        <table class="detail-table invoices-table" aria-label="Facturas oficiales">
+                            <thead>
+                                <tr>
+                                    <th>Nº Factura</th>
+                                    <th>Fecha Emisión</th>
+                                    <th>Periodo</th>
+                                    <th>Importe Total</th>
+                                    <th>Estado</th>
+                                    <th>Descarga PDF</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableInvoicesBody">
+                                <tr><td colspan="6" class="empty-placeholder">No se encontraron facturas emitidas en DoWISP</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        let searchTimeout = null;
+        let currentClientData = null;
+        let selectedLineIndex = 0;
+        let selectedMonthIndex = -1;
+
+        function handleSearchInput(val) {
+            const query = val.trim();
+            const dropdown = document.getElementById('autocompleteDropdown');
+            const spinner = document.getElementById('searchSpinner');
+
+            clearTimeout(searchTimeout);
+
+            if (query.length < 2) {
+                dropdown.style.display = 'none';
+                spinner.style.display = 'none';
+                return;
+            }
+
+            spinner.style.display = 'block';
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const res = await fetch(`/api/admin/visor/buscar?q=${encodeURIComponent(query)}`);
+                    const data = await res.json();
+                    spinner.style.display = 'none';
+
+                    if (data.status === 'ok' && data.resultados && data.resultados.length > 0) {
+                        renderAutocomplete(data.resultados);
+                    } else {
+                        dropdown.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px;">No se encontraron clientes ni líneas</div>';
+                        dropdown.style.display = 'block';
+                    }
+                } catch (e) {
+                    spinner.style.display = 'none';
+                }
+            }, 180);
+        }
+
+        function renderAutocomplete(items) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            dropdown.innerHTML = items.map(item => {
+                const initial = (item.nombre || 'C').charAt(0).toUpperCase();
+                const opBadge = getOperadorBadge(item.operador);
+                return `
+                    <div class="autocomplete-item" onclick="seleccionarCliente('${item.telefono || item.dni}')">
+                        <div class="item-main-info">
+                            <div class="item-avatar">${initial}</div>
+                            <div>
+                                <div class="item-name">${item.nombre}</div>
+                                <div class="item-meta">
+                                    <span><i class="fa-solid fa-phone"></i> ${formatearTelefono(item.telefono)}</span>
+                                    <span><i class="fa-solid fa-id-card"></i> ${item.dni || 'Sin DNI'}</span>
+                                    ${item.total_lineas > 1 ? `<span class="item-badge-pill" style="background: #E0F2FE; color: #0284C7;">${item.total_lineas} líneas</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 700; font-size: 13px; color: var(--text-main);">${item.tarifa || 'Tarifa Estándar'}</div>
+                            <div style="font-size: 11.5px; color: var(--text-muted);">${item.gigas_consumidos} / ${item.gigas_totales} GB ${opBadge}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            dropdown.style.display = 'block';
+        }
+
+        function getOperadorBadge(op) {
+            const opLower = (op || '').toLowerCase();
+            if (opLower.includes('lemonvil')) return '<span class="item-badge-pill" style="background: #FEF3C7; color: #B45309;">Lemonvil</span>';
+            if (opLower.includes('finetwork')) return '<span class="item-badge-pill" style="background: #F3E8FF; color: #7E22CE;">FiNetwork</span>';
+            if (opLower.includes('aire')) return '<span class="item-badge-pill" style="background: #DCFCE7; color: #15803D;">AireNetworks</span>';
+            if (opLower.includes('tmovil') || opLower.includes('t-móvil')) return '<span class="item-badge-pill" style="background: #E0F2FE; color: #0369A1;">T-Móvil</span>';
+            return `<span class="item-badge-pill">${op || 'Móvil'}</span>`;
+        }
+
+        function formatearTelefono(tel) {
+            const clean = (tel || '').replace(/\D/g, '');
+            if (clean.length === 9) {
+                return `${clean.substring(0,3)} ${clean.substring(3,5)} ${clean.substring(5,7)} ${clean.substring(7,9)}`;
+            }
+            return tel || '';
+        }
+
+        async function seleccionarCliente(identificador, pushState = true) {
+            document.getElementById('autocompleteDropdown').style.display = 'none';
+            document.getElementById('searchSpinner').style.display = 'block';
+
+            try {
+                const res = await fetch(`/api/admin/visor/cliente?identificador=${encodeURIComponent(identificador)}`);
+                
+                if (res.status === 401) {
+                    window.location.href = '/admin/login';
+                    return;
+                }
+
+                const data = await res.json();
+                document.getElementById('searchSpinner').style.display = 'none';
+
+                if (res.ok && data.status === 'ok') {
+                    currentClientData = data;
+                    const totalL = (currentClientData.lineas || []).length;
+                    selectedLineIndex = totalL > 1 ? -1 : 0;
+                    
+                    if (pushState) {
+                        const newUrl = new URL(window.location);
+                        newUrl.searchParams.set('q', identificador);
+                        window.history.pushState({ q: identificador }, '', newUrl);
+                    }
+
+                    renderClientView();
+                    
+                    // Cargar facturas en segundo plano sin ralentizar la ficha
+                    const idFacturas = currentClientData.dni || (currentClientData.lineas && currentClientData.lineas[0] && currentClientData.lineas[0].numero) || identificador;
+                    if (idFacturas) {
+                        cargarFacturasAsync(idFacturas);
+                    }
+                } else {
+                    alert(data.detail || 'Cliente o línea no encontrado en la base de datos');
+                }
+            } catch (e) {
+                document.getElementById('searchSpinner').style.display = 'none';
+                console.error("Error al obtener cliente:", e);
+                alert('No se pudo cargar la información del cliente. Por favor, reintenta.');
+            }
+        }
+
+        async function cargarFacturasAsync(identificador) {
+            const tbody = document.getElementById('tableInvoicesBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-placeholder" style="text-align:center; padding:25px; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Consultando facturas oficiales en DoWISP...</td></tr>';
+            try {
+                const res = await fetch(`/api/admin/visor/facturas?dni=${encodeURIComponent(identificador)}`);
+                const data = await res.json();
+                if (data.status === 'ok') {
+                    currentClientData.facturas = data.facturas || [];
+                    renderInvoices(currentClientData.facturas);
+                }
+            } catch (e) {
+                renderInvoices([]);
+            }
+        }
+
+        function renderClientView() {
+            if (!currentClientData) return;
+
+            document.getElementById('initialStateBox').style.display = 'none';
+            document.getElementById('clientPortalView').style.display = 'block';
+
+            const name = currentClientData.nombre || 'Cliente MásKFundas';
+            document.getElementById('displayClientName').textContent = name;
+            document.getElementById('displayClientInitial').textContent = name.charAt(0).toUpperCase();
+            document.getElementById('displayClientDNI').innerHTML = `<i class="fa-solid fa-id-card"></i> ${currentClientData.dni || 'N/D'}`;
+            
+            const totalLines = (currentClientData.lineas || []).length;
+            document.getElementById('displayLinesCount').innerHTML = `<i class="fa-solid fa-mobile-screen"></i> ${totalLines} línea${totalLines !== 1 ? 's' : ''} activa${totalLines !== 1 ? 's' : ''}`;
+
+            // Renderizar Badges de Sincronización Global
+            if (currentClientData.sync_meta) {
+                document.getElementById('displaySyncCdrTime').textContent = currentClientData.sync_meta.ultima_sync_cdr || 'Automático (08:00 AM)';
+                document.getElementById('displaySyncDowispTime').textContent = currentClientData.sync_meta.ultima_sync_dowisp || 'Automático (07:00 AM)';
+            }
+
+            // Renderizar Selector de Líneas
+            const switcher = document.getElementById('lineSwitcherBar');
+            let tabsHtml = '';
+            
+            if (totalLines > 1) {
+                tabsHtml += `
+                    <button class="line-tab-btn ${selectedLineIndex === -1 ? 'active' : ''}" onclick="selectLine(-1)">
+                        <i class="fa-solid fa-list-check"></i> 📊 Resumen Todas (${totalLines})
+                    </button>
+                `;
+            }
+
+            tabsHtml += (currentClientData.lineas || []).map((l, idx) => `
+                <button class="line-tab-btn ${idx === selectedLineIndex ? 'active' : ''}" onclick="selectLine(${idx})">
+                    <i class="fa-solid fa-mobile-screen-button"></i> ${formatearTelefono(l.numero)} (${l.tarifa || 'Tarifa'}) <span class="line-tab-carrier">${escapeHtml(l.operador || 'Mayorista no disponible')}</span>
+                </button>
+            `).join('');
+
+            switcher.innerHTML = tabsHtml;
+
+            // Renderizar Vista Activa
+            if (selectedLineIndex === -1 && totalLines > 1) {
+                const suppliers = [...new Set((currentClientData.lineas || []).map(line => String(line.operador || '').trim()).filter(Boolean))];
+                document.getElementById('displayLineOperator').textContent = suppliers.length === 1 ? suppliers[0] : (suppliers.length > 1 ? 'Varios' : 'No disponible');
+                document.getElementById('multiLineSummaryView').style.display = 'block';
+                document.getElementById('singleLinePortalGrid').style.display = 'none';
+                document.querySelector('.tab-section-card').style.display = 'none';
+                renderMultiLineSummary();
+            } else {
+                if (selectedLineIndex === -1) selectedLineIndex = 0;
+                document.getElementById('multiLineSummaryView').style.display = 'none';
+                document.getElementById('singleLinePortalGrid').style.display = 'grid';
+                document.querySelector('.tab-section-card').style.display = 'block';
+                renderActiveLineDetails();
+            }
+
+            // Renderizar Facturas si ya existen
+            renderInvoices(currentClientData.facturas || []);
+
+            // Actualizar Enlace "Abrir Portal como Cliente"
+            configurarBotonAbrirComoCliente();
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+        }
+
+        let multiLineSortState = { col: 'gigas_consumidos', dir: 'desc' };
+
+        function estimarPrecioTarifa(l) {
+            if (l.precio !== undefined && l.precio !== null && l.precio !== "") {
+                return parseFloat(l.precio) || 0.0;
+            }
+            if (l.cuota !== undefined && l.cuota !== null && l.cuota !== "") {
+                return parseFloat(l.cuota) || 0.0;
+            }
+            // Estimación de cuota oficial según los gigas del contrato si no viene explícita
+            const t = (l.tarifa || '').toUpperCase();
+            const g = parseFloat(l.gigas_totales || 0);
+            if (t.includes('15GB')) return 8.90;
+            if (t.includes('30GB')) return 10.90;
+            if (t.includes('40GB')) return 12.90;
+            if (t.includes('50GB')) return 14.90;
+            if (t.includes('55GB')) return 14.90;
+            if (t.includes('80GB')) return 16.90;
+            if (t.includes('90GB')) return 17.90;
+            if (t.includes('120GB')) return 19.90;
+            if (g >= 120) return 19.90;
+            if (g >= 80) return 16.90;
+            if (g >= 40) return 12.90;
+            if (g >= 30) return 10.90;
+            if (g >= 15) return 8.90;
+            if (g >= 10) return 6.90;
+            return 9.90;
+        }
+
+        function sortMultiLineTable(col) {
+            if (multiLineSortState.col === col) {
+                multiLineSortState.dir = multiLineSortState.dir === 'desc' ? 'asc' : 'desc';
+            } else {
+                multiLineSortState.col = col;
+                multiLineSortState.dir = (col === 'numero' || col === 'operador' || col === 'tarifa') ? 'asc' : 'desc';
+            }
+            renderMultiLineSummary();
+        }
+
+        let multiLineMonthIndex = -1;
+
+        function cambiarMesRelativoMulti(delta) {
+            const mesesList = mesesDisponibles2026;
+            const currentMonthIdx = new Date().getMonth(); // 8 = Septiembre
+            let currentIdx = (multiLineMonthIndex === -1 || multiLineMonthIndex >= mesesList.length) ? currentMonthIdx : multiLineMonthIndex;
+            
+            let newIdx = currentIdx + delta;
+            if (newIdx < 0) newIdx = 0;
+            if (newIdx > currentMonthIdx) newIdx = currentMonthIdx;
+
+            multiLineMonthIndex = newIdx;
+            renderMultiLineSummary();
+        }
+
+        function renderMultiLineSummary() {
+            const rawLines = currentClientData.lineas || [];
+            document.getElementById('multiLineSummaryView').style.display = 'block';
+            document.getElementById('singleLinePortalGrid').style.display = 'none';
+            
+            const mesesList = mesesDisponibles2026;
+            const currentMonthIdx = new Date().getMonth();
+            if (multiLineMonthIndex === -1 || multiLineMonthIndex >= mesesList.length) {
+                multiLineMonthIndex = currentMonthIdx;
+            }
+            const mesActivo = mesesList[multiLineMonthIndex] || mesesList[currentMonthIdx];
+
+            // Actualizar textos y botones del selector de mes
+            const monthDisplay = document.getElementById('displaySelectedMonthNameMulti');
+            if (monthDisplay) monthDisplay.textContent = mesActivo;
+            const btnPrev = document.getElementById('btnPrevMonthMulti');
+            if (btnPrev) {
+                btnPrev.disabled = (multiLineMonthIndex === 0);
+                btnPrev.style.opacity = (multiLineMonthIndex === 0) ? '0.35' : '1';
+            }
+            const btnNext = document.getElementById('btnNextMonthMulti');
+            if (btnNext) {
+                btnNext.disabled = (multiLineMonthIndex >= currentMonthIdx);
+                btnNext.style.opacity = (multiLineMonthIndex >= currentMonthIdx) ? '0.35' : '1';
+            }
+
+            let totalGbCons = 0.0;
+            let totalGbTarifas = 0.0;
+            let totalMins = 0;
+            let totalCosteExtra = 0.0;
+            let totalCuota = 0.0;
+
+            // Extraer consumo según el mes seleccionado
+            const lineas = rawLines.map((l, idx) => {
+                let gbConsMes = 0.0;
+                const hist = l.historico_meses_gb || {};
+                if (multiLineMonthIndex === currentMonthIdx || mesActivo === mesesList[currentMonthIdx]) {
+                    gbConsMes = parseFloat(l.gigas_consumidos || (hist && hist[mesActivo]) || 0.0);
+                } else if (hist && mesActivo in hist) {
+                    gbConsMes = parseFloat(hist[mesActivo]) || 0.0;
+                }
+
+                return {
+                    ...l,
+                    _originalIndex: idx,
+                    _precio: estimarPrecioTarifa(l),
+                    _gigas_consumidos_mes: gbConsMes
+                };
+            });
+
+            const { col, dir } = multiLineSortState;
+
+            lineas.sort((a, b) => {
+                let valA, valB;
+                if (col === 'numero') { valA = a.numero || ''; valB = b.numero || ''; }
+                else if (col === 'operador') { valA = a.operador || ''; valB = b.operador || ''; }
+                else if (col === 'tarifa') { valA = a.tarifa || ''; valB = b.tarifa || ''; }
+                else if (col === 'gigas_consumidos') { valA = a._gigas_consumidos_mes; valB = b._gigas_consumidos_mes; }
+                else if (col === 'minutos_consumidos') { valA = parseInt(a.minutos_consumidos || 0); valB = parseInt(b.minutos_consumidos || 0); }
+                else if (col === 'llamadas_totales') { valA = parseInt(a.llamadas_totales || 0); valB = parseInt(b.llamadas_totales || 0); }
+                else if (col === 'coste_extra') { valA = parseFloat(a.coste_extra || 0); valB = parseFloat(b.coste_extra || 0); }
+                else if (col === 'precio') { valA = a._precio; valB = b._precio; }
+                else { valA = 0; valB = 0; }
+
+                if (typeof valA === 'string') {
+                    const cmp = valA.localeCompare(valB, 'es', { numeric: true });
+                    return dir === 'asc' ? cmp : -cmp;
+                }
+                return dir === 'asc' ? (valA - valB) : (valB - valA);
+            });
+
+            // Actualizar indicadores de ordenación en th
+            ['numero', 'operador', 'tarifa', 'gigas_consumidos', 'minutos_consumidos', 'llamadas_totales', 'coste_extra', 'precio'].forEach(c => {
+                const th = document.getElementById(`th_sort_${c}`);
+                if (th) {
+                    const isActive = col === c;
+                    th.classList.toggle('active-sort', isActive);
+                    const icon = th.querySelector('.sort-icon');
+                    if (icon) {
+                        if (isActive) {
+                            icon.className = dir === 'asc' ? 'fa-solid fa-sort-up sort-icon' : 'fa-solid fa-sort-down sort-icon';
+                        } else {
+                            icon.className = 'fa-solid fa-sort sort-icon';
+                        }
+                    }
+                }
+            });
+
+            const tbody = document.getElementById('tableMultiLineBody');
+            tbody.innerHTML = lineas.map((l) => {
+                const origIdx = l._originalIndex;
+                const gbCons = l._gigas_consumidos_mes;
+                const gbTot = parseFloat(l.gigas_totales || 0.0);
+                const pct = gbTot > 0 ? Math.min(100, Math.round((gbCons / gbTot) * 100)) : 0;
+                const min = parseInt(l.minutos_consumidos || 0) || 0;
+                const llamadas = l.llamadas_totales || (l.llamadas_recientes ? l.llamadas_recientes.length : 0);
+                const extra = parseFloat(l.coste_extra || 0.0);
+                const precioVal = l._precio;
+                const opBadge = getOperadorBadge(l.operador);
+
+                totalGbCons += gbCons;
+                totalGbTarifas += gbTot;
+                totalMins += min;
+                totalCosteExtra += extra;
+                totalCuota += precioVal;
+
+                const barColor = pct >= 90 ? '#DC2626' : (pct >= 75 ? '#D97706' : '#0284C7');
+
+                return `
+                    <tr style="cursor: pointer;" onclick="selectLine(${origIdx})">
+                        <td>
+                            <strong style="font-family: var(--font-mono); font-size: 14.5px; color: var(--brand-blue);">${formatearTelefono(l.numero)}</strong>
+                        </td>
+                        <td>${opBadge}</td>
+                        <td><strong>${l.tarifa || 'Tarifa Móvil'}</strong></td>
+                        <td style="min-width: 170px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 4px;">
+                                <span>${gbCons.toFixed(2)} / ${gbTot.toFixed(0)} GB</span>
+                                <span style="color: ${barColor};">${pct}%</span>
+                            </div>
+                            <div style="background: #E2E8F0; border-radius: 6px; height: 6px; overflow: hidden;">
+                                <div style="background: ${barColor}; width: ${pct}%; height: 100%; border-radius: 6px;"></div>
+                            </div>
+                        </td>
+                        <td><strong>${min} min</strong></td>
+                        <td>${llamadas}</td>
+                        <td><span style="font-weight: 700; color: ${extra > 0 ? 'var(--danger-red)' : 'var(--text-muted)'};">${extra.toFixed(2)} €</span></td>
+                        <td>
+                            <strong style="font-family: 'Space Grotesk', sans-serif; font-size: 14.5px; color: var(--brand-navy);">${precioVal.toFixed(2)} €</strong>
+                        </td>
+                        <td>
+                            <span class="item-badge-pill" style="font-family: var(--font-mono); font-size: 11px;">PUK: ${l.puk || 'N/D'}</span>
+                        </td>
+                        <td style="text-align: right;">
+                            <button class="btn-copy-code" style="padding: 5px 12px;" onclick="event.stopPropagation(); selectLine(${origIdx});">
+                                Ver Detalle <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('summaryTotalLinesCount').textContent = lineas.length;
+            document.getElementById('summaryTotalGbConsumed').textContent = `${totalGbCons.toFixed(2)} / ${totalGbTarifas.toFixed(0)} GB`;
+            document.getElementById('summaryTotalMinutes').textContent = `${totalMins} min`;
+            document.getElementById('summaryTotalExtraCost').textContent = `${totalCosteExtra.toFixed(2)} €`;
+        }
+
+        let currentChartInstance = null;
+        let dailyChartInstance = null;
+        const mesesDisponibles2026 = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+        function selectLine(idx) {
+            selectedLineIndex = idx;
+            renderClientView();
+        }
+
+        async function ejecutarActualizarAhora() {
+            if (!currentClientData) return;
+            const btn = document.getElementById('btnActualizarAhora');
+            const icon = document.getElementById('iconSyncLive');
+            const lineas = currentClientData.lineas || [];
+            const tel = (lineas[selectedLineIndex] && lineas[selectedLineIndex].numero) || currentClientData.dni || '';
+            
+            btn.disabled = true;
+            if (icon) icon.className = 'fa-solid fa-arrows-rotate fa-spin';
+            
+            try {
+                const res = await fetch('/api/admin/visor/actualizar-ahora', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({telefono: tel})
+                });
+                const data = await res.json();
+                if (data.status === 'ok') {
+                    document.getElementById('displaySyncDowispTime').textContent = data.timestamp_dowisp || 'Ahora mismo';
+                }
+                // Recargar cliente
+                await seleccionarCliente(tel, false);
+            } catch (e) {
+                console.error("Error al actualizar ahora:", e);
+                recargarDatosClienteActual();
+            } finally {
+                btn.disabled = false;
+                if (icon) icon.className = 'fa-solid fa-arrows-rotate';
+            }
+        }
+
+        function cambiarMesRelativo(delta) {
+            const lineas = currentClientData.lineas || [];
+            if (lineas.length === 0) return;
+            const currentMonthIdx = new Date().getMonth(); // 8 = Septiembre
+            const mesesList = mesesDisponibles2026;
+
+            let currentIdx = (selectedMonthIndex === -1 || selectedMonthIndex >= mesesList.length) ? currentMonthIdx : selectedMonthIndex;
+            
+            let newIdx = currentIdx + delta;
+            if (newIdx < 0) newIdx = 0;
+            if (newIdx > currentMonthIdx) newIdx = currentMonthIdx; // No navegar a meses futuros sin datos
+
+            selectedMonthIndex = newIdx;
+            renderActiveLineDetails();
+        }
+
+        function renderActiveLineDetails() {
+            const lineas = currentClientData.lineas || [];
+            if (lineas.length === 0) return;
+
+            const l = lineas[selectedLineIndex] || lineas[0];
+            document.getElementById('displayLineOperator').textContent = l.operador || 'No disponible';
+            const hist = l.historico_meses_gb || {};
+            const mesesList = mesesDisponibles2026;
+            const currentMonthIdx = new Date().getMonth(); // 8 para Septiembre
+
+            // Renderizar badges de sincronización
+            if (currentClientData.sync_meta) {
+                document.getElementById('displaySyncCdrTime').textContent = currentClientData.sync_meta.ultima_sync_cdr || 'Automático (08:00 AM)';
+                document.getElementById('displaySyncDowispTime').textContent = currentClientData.sync_meta.ultima_sync_dowisp || 'Automático (07:00 AM)';
+            }
+
+            // Si es -1 o supera el rango, fijar al mes actual en curso (Septiembre)
+            if (selectedMonthIndex === -1 || selectedMonthIndex >= mesesList.length) {
+                selectedMonthIndex = currentMonthIdx;
+            }
+
+            const mesActivo = mesesList[selectedMonthIndex] || mesesList[currentMonthIdx];
+            document.getElementById('displaySelectedMonthName').textContent = mesActivo;
+
+            // Actualizar botones prev/next
+            document.getElementById('btnPrevMonth').disabled = (selectedMonthIndex === 0);
+            document.getElementById('btnPrevMonth').style.opacity = (selectedMonthIndex === 0) ? '0.35' : '1';
+            document.getElementById('btnNextMonth').disabled = (selectedMonthIndex >= currentMonthIdx);
+            document.getElementById('btnNextMonth').style.opacity = (selectedMonthIndex >= currentMonthIdx) ? '0.35' : '1';
+
+            // Donut Data del mes seleccionado
+            const gbTotal = parseFloat(l.gigas_totales || 0);
+            let gbCons = 0.0;
+            const currentMonthName = mesesList[currentMonthIdx];
+
+            if (selectedMonthIndex === currentMonthIdx || mesActivo === currentMonthName) {
+                // Mes actual: usar consumo en vivo de la línea o histórico de Septiembre
+                gbCons = parseFloat(l.gigas_consumidos || (hist && hist[mesActivo]) || 0.0);
+            } else if (hist && mesActivo in hist) {
+                gbCons = parseFloat(hist[mesActivo]) || 0.0;
+            }
+
+            const pct = gbTotal > 0 ? Math.min(100, Math.round((gbCons / gbTotal) * 100)) : 0;
+
+            document.getElementById('displayGbConsumed').textContent = gbCons.toFixed(2);
+            document.getElementById('displayGbTotal').textContent = gbTotal.toFixed(0);
+            document.getElementById('displayPct').textContent = `${pct}% usado`;
+            document.getElementById('displayTarifaName').textContent = `${l.tarifa || 'Tarifa Móvil'} · ${l.operador || 'MásGigas'}`;
+
+            // Actualizar SVG Donut Arc
+            const circumference = 534.07;
+            const offset = circumference - (pct / 100) * circumference;
+            document.getElementById('donutArc').style.strokeDashoffset = offset;
+            document.getElementById('donutArc').style.stroke = pct >= 90 ? '#DC2626' : (pct >= 75 ? '#D97706' : '#0284C7');
+
+            // Fila Destacada Superior: Teléfono, Servicio y Precio
+            const precioReal = estimarPrecioTarifa(l);
+            document.getElementById('displayTopTelefono').textContent = formatearTelefono(l.numero);
+            document.getElementById('displayTopServicio').textContent = l.tarifa || 'Tarifa Contratada';
+            document.getElementById('displayTopPrecio').textContent = `${precioReal.toFixed(2)} €/mes`;
+
+            // Métricas por mes seleccionado
+            const mesNumMap = {
+                "Enero": "01", "Febrero": "02", "Marzo": "03", "Abril": "04",
+                "Mayo": "05", "Junio": "06", "Julio": "07", "Agosto": "08",
+                "Septiembre": "09", "Octubre": "10", "Noviembre": "11", "Diciembre": "12"
+            };
+            const mesKey = `${mesNumMap[mesActivo] || '09'}/2026`;
+            
+            let dailyDataForSelectedMonth = {};
+            let callsForSelectedMonth = [];
+            let minutosMes = l.minutos_consumidos || 0;
+            let llamadasTotalesMes = l.llamadas_totales || (l.llamadas_recientes ? l.llamadas_recientes.length : 0);
+            let costeExtraMes = parseFloat(l.coste_extra || 0);
+
+            if (selectedMonthIndex === currentMonthIdx || mesActivo === currentMonthName) {
+                dailyDataForSelectedMonth = l.datos_diarios || {};
+                callsForSelectedMonth = l.llamadas_recientes || [];
+            } else if (l.datos_cdr_historico && l.datos_cdr_historico[mesKey]) {
+                const histData = l.datos_cdr_historico[mesKey];
+                dailyDataForSelectedMonth = histData.datos_diarios || {};
+                callsForSelectedMonth = histData.llamadas || [];
+                minutosMes = histData.minutos_consumidos || 0;
+                llamadasTotalesMes = histData.llamadas_totales || callsForSelectedMonth.length;
+                costeExtraMes = parseFloat(histData.coste_extra || 0);
+            }
+
+            document.getElementById('displayMinConsumed').textContent = `${minutosMes} min`;
+            document.getElementById('displayTotalCalls').textContent = llamadasTotalesMes;
+            const destinosCount = (selectedMonthIndex === currentMonthIdx) ? (l.destinos_distintos || 0) : new Set(callsForSelectedMonth.map(c => c.destino || c.numero_destino)).size;
+            document.getElementById('displayUniqueDest').textContent = destinosCount;
+            document.getElementById('displayExtraCost').textContent = `${costeExtraMes.toFixed(2)} €`;
+
+            // SIM Credentials (Sin inventar PIN)
+            document.getElementById('displayPukCode').textContent = l.puk || '--------';
+            const pinVal = (l.pin && l.pin !== '1234' && l.pin !== 'None') ? l.pin : '';
+            if (pinVal) {
+                document.getElementById('displayPinCode').textContent = pinVal;
+                document.getElementById('displayPinCode').style.fontSize = '22px';
+                document.getElementById('btnCopyPin').style.display = 'inline-block';
+            } else {
+                document.getElementById('displayPinCode').textContent = 'No registrado';
+                document.getElementById('displayPinCode').style.fontSize = '14px';
+                document.getElementById('btnCopyPin').style.display = 'none';
+            }
+            document.getElementById('displayOperador').textContent = l.operador || 'Operador Móvil';
+
+            // Llamadas
+            renderCalls(callsForSelectedMonth, mesActivo);
+
+            // Consumos Adicionales & Extras
+            renderExtrasTab(l);
+
+            // Desglose Diario con Gráfica
+            renderDailyUsage(dailyDataForSelectedMonth, l, mesActivo, gbCons);
+
+            // Renderizar Gráfica Anual de Evolución
+            renderAnnualChart(l);
+        }
+
+        function enviarAPNWhatsAppVisor() {
+    if (!clienteActual || !clienteActual.lineas || !clienteActual.lineas[selectedLineIndex]) {
+        mostrarToast('Selecciona primero una línea de móvil', 'error');
+        return;
+    }
+    const l = clienteActual.lineas[selectedLineIndex];
+    const tel = l.telefono || l.numero;
+    const op = (l.operador || '').toLowerCase();
+    let apn = 'fi.omv.es';
+    let red = 'Vodafone';
+    let roaming = false;
+
+    if (op.includes('aire') || op.includes('ion')) {
+        apn = 'inet.es';
+        red = 'AireNetworks (Movistar)';
+        roaming = true;
+    } else if (op.includes('lemon')) {
+        apn = 'orangeworld';
+        red = 'Lemonvil (Orange)';
+        roaming = true;
+    } else if (op.includes('tmovil') || op.includes('tmola') || op.includes('masmovil')) {
+        apn = 'internet';
+        red = 'T-Móvil (MasOrange)';
+        roaming = true;
+    }
+
+    const roamingAviso = roaming ? '⚠️ OBLIGATORIO: Activa la "Itinerancia de Datos" en Ajustes.' : 'Itinerancia: Desactivada.';
+    const link = `https://clientes.maskfundas.es/apn?tel=${tel}`;
+
+    const msg = `*Configuración de Internet MásKFundas 5G*\n\n` +
+                `Hola ${clienteActual.nombre ? clienteActual.nombre.split(' ')[0] : ''}, te enviamos los datos para configurar el internet en tu línea *${tel}*:\n\n` +
+                `• Cobertura: ${red}\n` +
+                `• Nombre APN: MásKFundas\n` +
+                `• Punto de acceso (APN): *${apn}*\n` +
+                `• ${roamingAviso}\n\n` +
+                `👉 Si tienes iPhone o quieres la guía visual paso a paso, abre este enlace:\n${link}`;
+
+    const url = `https://wa.me/34${tel}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+}
+
+function abrirGuiaAPNVisor() {
+    if (!clienteActual || !clienteActual.lineas || !clienteActual.lineas[selectedLineIndex]) {
+        window.open('https://clientes.maskfundas.es/apn', '_blank');
+        return;
+    }
+    const l = clienteActual.lineas[selectedLineIndex];
+    const tel = l.telefono || l.numero;
+    window.open(`https://clientes.maskfundas.es/apn?tel=${tel}`, '_blank');
+}
+
+function renderExtrasTab(linea) {
+            const tbody = document.getElementById('tableExtrasBody');
+            const eventos = linea.eventos_con_coste || [];
+            
+            // También filtrar llamadas con coste > 0 o números especiales
+            const llamadasEspeciales = (linea.llamadas_recientes || []).filter(ll => {
+                let c = 0;
+                if (typeof ll.coste === 'string') c = parseFloat(ll.coste.replace('€','').replace(',','.').trim()) || 0;
+                else if (typeof ll.coste === 'number') c = ll.coste;
+                const dest = (ll.destino || ll.numero_destino || '');
+                return c > 0 || dest.startsWith('902') || dest.startsWith('901') || dest.startsWith('806') || dest.startsWith('807') || dest.startsWith('118') || (ll.tipo && (ll.tipo.includes('SMS') || ll.tipo.includes('Inter')));
+            });
+
+            const totalCount = eventos.length + llamadasEspeciales.length;
+            document.getElementById('countExtras').textContent = totalCount;
+
+            if (totalCount === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-placeholder" style="text-align:center; padding:30px; color:var(--text-muted);"><i class="fa-solid fa-circle-check" style="color:var(--success-green); margin-right:6px;"></i> Sin llamadas 902/806, SMS de tarificación especial ni sobrecostes en el mes actual</td></tr>';
+                return;
+            }
+
+            let html = '';
+            
+            eventos.forEach(ev => {
+                const cost = parseFloat(ev.coste || ev.importe || 0).toFixed(2);
+                html += `
+                    <tr style="background: #FEF2F2;">
+                        <td><strong>${ev.fecha || 'N/D'}</strong></td>
+                        <td><span class="item-badge-pill" style="background:#FEE2E2; color:#DC2626;"><i class="fa-solid fa-triangle-exclamation"></i> ${ev.tipo || 'Consumo Extra'}</span></td>
+                        <td><strong style="font-family: var(--font-mono); color: var(--danger-red);">${ev.destino || ev.servicio || 'Exceso / Especial'}</strong></td>
+                        <td>${ev.volumen || ev.duracion || '1 evento'}</td>
+                        <td><strong style="color: var(--danger-red); font-size: 14px;">+${cost} €</strong></td>
+                    </tr>
+                `;
+            });
+
+            llamadasEspeciales.forEach(ll => {
+                let costVal = 0;
+                if (typeof ll.coste === 'string') costVal = parseFloat(ll.coste.replace('€','').replace(',','.').trim()) || 0;
+                else if (typeof ll.coste === 'number') costVal = ll.coste;
+
+                html += `
+                    <tr style="background: #FFFBEB;">
+                        <td><strong>${ll.fecha || ll.fecha_hora || 'N/D'}</strong></td>
+                        <td><span class="item-badge-pill" style="background:#FEF3C7; color:#D97706;"><i class="fa-solid fa-phone-arrow-up-right"></i> ${ll.tipo || 'Llamada Especial'}</span></td>
+                        <td><strong style="font-family: var(--font-mono); color: #B45309;">${formatearTelefono(ll.destino || ll.numero_destino)}</strong></td>
+                        <td>${ll.duracion || (ll.segundos ? `${Math.round(ll.segundos/60)} min` : '1 min')}</td>
+                        <td><strong style="color: #B45309; font-size: 14px;">+${costVal.toFixed(2)} €</strong></td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function renderDailyUsage(daily, linea, mesActivo, gbConsMes) {
+            const container = document.getElementById('dailyUsageContainer');
+            const entries = Object.entries(daily || {});
+            const mesNombre = mesActivo || (currentClientData && currentClientData.sync_meta ? currentClientData.sync_meta.mes_activo : 'Septiembre');
+            
+            const subtitleEl = document.getElementById('subtitleDailyChart');
+            if (subtitleEl) {
+                subtitleEl.textContent = `Consumo por cada día registrado en los ficheros CDR (${mesNombre} 2026)`;
+            }
+            
+            // Gráfica de barras diaria
+            const chartCanvas = document.getElementById('chartConsumoDiario');
+            if (chartCanvas) {
+                if (dailyChartInstance) {
+                    dailyChartInstance.destroy();
+                }
+
+                if (entries.length > 0) {
+                    // Ordenar cronológicamente para la gráfica
+                    const sortedForChart = [...entries].sort((a, b) => {
+                        const parseD = (s) => {
+                            const p = s.split(/[-/]/);
+                            return p.length === 3 ? (p[0].length === 4 ? new Date(p[0], p[1]-1, p[2]) : new Date(p[2], p[1]-1, p[0])) : new Date(0);
+                        };
+                        return parseD(a[0]) - parseD(b[0]);
+                    });
+
+                    const chartLabels = sortedForChart.map(([d]) => d.length > 5 ? d.substring(0, 5) : d);
+                    const chartDataMb = sortedForChart.map(([_, data]) => {
+                        if (data && typeof data === 'object') return parseFloat(data.mb ?? data.megabytes ?? 0) || 0;
+                        if (typeof data === 'number') return data;
+                        return parseFloat(String(data).replace('MB','').trim()) || 0;
+                    });
+
+                    let maxMb = 0;
+                    chartDataMb.forEach(m => { if (m > maxMb) maxMb = m; });
+                    document.getElementById('statDiasConTrafico').textContent = entries.length;
+                    document.getElementById('statDiaPico').textContent = maxMb >= 1024 ? `${(maxMb/1024).toFixed(2)} GB` : `${maxMb.toFixed(1)} MB`;
+
+                    dailyChartInstance = new Chart(chartCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: chartLabels,
+                            datasets: [{
+                                label: 'Tráfico Diario (MB)',
+                                data: chartDataMb,
+                                backgroundColor: chartDataMb.map(m => m >= 1024 ? '#0284C7' : 'rgba(2, 132, 199, 0.6)'),
+                                borderColor: '#0284C7',
+                                borderWidth: 1.5,
+                                borderRadius: 6,
+                                barThickness: 16
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: '#0F172A',
+                                    callbacks: {
+                                        label: (c) => {
+                                            const mb = c.raw;
+                                            return mb >= 1024 ? ` Consumo: ${(mb/1024).toFixed(2)} GB (${mb.toFixed(0)} MB)` : ` Consumo: ${mb.toFixed(1)} MB`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: '#F1F5F9' },
+                                    ticks: {
+                                        font: { family: 'JetBrains Mono', size: 10 },
+                                        callback: (v) => v >= 1024 ? `${(v/1024).toFixed(1)} GB` : `${v} MB`
+                                    }
+                                },
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { font: { family: 'Inter', weight: '600', size: 10 } }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            if (entries.length === 0) {
+                const gbCons = gbConsMes !== undefined ? gbConsMes : parseFloat((linea && linea.gigas_consumidos) || 0);
+                if (gbCons > 0) {
+                    const mbTotal = (gbCons * 1024).toFixed(0);
+                    container.innerHTML = `
+                        <div style="grid-column: 1/-1; background: #F0F9FF; border: 1.5px solid #BAE6FD; border-radius: 14px; padding: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <div style="width: 44px; height: 44px; border-radius: 12px; background: #0284C7; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                                    <i class="fa-solid fa-tower-broadcast"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 800; font-size: 15px; color: #0B2265;">Tráfico de Datos Consolidado de ${linea.operador || 'Mayorista'}</div>
+                                    <div style="font-size: 12.5px; color: var(--text-muted);">Acumulado mensual extraído de los ficheros CDR oficiales</div>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 800; color: #0284C7;">${gbCons.toFixed(2)} GB</div>
+                                <div style="font-size: 11.5px; color: var(--text-muted);">${mbTotal} MB acumulados en ${mesNombre}</div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                container.innerHTML = `<div style="grid-column: 1/-1;" class="empty-placeholder" style="text-align:center; padding:30px; color:var(--text-muted);">No se registran consumos de datos en ${mesNombre}</div>`;
+                return;
+            }
+
+            // Ordenar días del más reciente al más antiguo
+            entries.sort((a, b) => {
+                const parseDate = (dStr) => {
+                    const parts = dStr.split(/[-/]/);
+                    if (parts.length === 3) {
+                        if (parts[0].length === 4) return new Date(parts[0], parts[1]-1, parts[2]);
+                        return new Date(parts[2], parts[1]-1, parts[0]);
+                    }
+                    return new Date(0);
+                };
+                return parseDate(b[0]) - parseDate(a[0]);
+            });
+
+            let totalMb = 0;
+            let totalSesiones = 0;
+
+            const cardsHtml = entries.map(([dia, data]) => {
+                let mb = 0;
+                let sesiones = 0;
+                
+                if (data && typeof data === 'object') {
+                    mb = parseFloat(data.mb ?? data.megabytes ?? (data.bytes ? data.bytes / (1024 * 1024) : 0) ?? 0) || 0;
+                    sesiones = parseInt(data.sesiones ?? data.conexiones ?? 0) || 0;
+                } else if (typeof data === 'number') {
+                    mb = data;
+                } else if (typeof data === 'string') {
+                    mb = parseFloat(data.replace('MB', '').replace('GB', '').replace(',', '.').trim()) || 0;
+                }
+
+                if (isNaN(mb)) mb = 0;
+                totalMb += mb;
+                totalSesiones += sesiones;
+
+                const displayVal = mb >= 1024 ? `${(mb / 1024).toFixed(2)} GB` : `${mb.toFixed(1)} MB`;
+                const isHigh = mb >= 1024;
+                const isVeryHigh = mb >= 3072;
+
+                const badgeBg = isVeryHigh ? '#FEE2E2' : (isHigh ? '#E0F2FE' : '#F1F5F9');
+                const badgeColor = isVeryHigh ? '#DC2626' : (isHigh ? '#0284C7' : '#475569');
+
+                return `
+                    <div style="background: #FFFFFF; border: 1.5px solid var(--surface-border); border-radius: 12px; padding: 14px; text-align: center; box-shadow: 0 2px 5px rgba(15,23,42,0.03); transition: transform 0.15s;">
+                        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;">
+                            ${dia}
+                        </div>
+                        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 800; margin: 6px 0; color: var(--text-main);">
+                            ${displayVal}
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            ${sesiones > 0 ? `<span style="font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: ${badgeBg}; color: ${badgeColor};">${sesiones} conex.</span>` : '<span style="font-size: 10.5px; color: var(--text-muted);">Tráfico CDR</span>'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const totalGb = (totalMb / 1024).toFixed(2);
+            container.innerHTML = `
+                <div style="grid-column: 1/-1; background: #F8FAFC; border: 1px solid var(--surface-border); border-radius: 12px; padding: 12px 18px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">
+                        <i class="fa-solid fa-chart-line" style="color: var(--brand-blue); margin-right: 6px;"></i> Total Tráfico en ${entries.length} días registrados: <strong style="color: var(--brand-blue); font-size: 15px;">${totalGb} GB</strong> (${totalMb.toFixed(0)} MB)
+                    </div>
+                    ${totalSesiones > 0 ? `<div style="font-size: 12.5px; color: var(--text-muted); font-weight: 600;">Total conexiones: <strong>${totalSesiones}</strong></div>` : ''}
+                </div>
+                ${cardsHtml}
+            `;
+        }
+
+        function renderAnnualChart(linea) {
+            const hist = linea.historico_meses_gb || {};
+            
+            // Construir los últimos 12 meses móviles (Rolling 12-Month Window)
+            const mesesNombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            const ahora = new Date();
+            const mesActualIdx = ahora.getMonth(); // 0-11
+            
+            const labels = [];
+            const dataValues = [];
+            let suma = 0;
+            let pico = 0;
+
+            // Generar ventana móvil de 12 meses (o meses del año en curso si son los disponibles)
+            // Si solo hay meses del año en curso, iterar desde Enero hasta el mes actual
+            const mesesAVisualizar = [];
+            for (let i = 0; i <= mesActualIdx; i++) {
+                mesesAVisualizar.push(mesesNombres[i]);
+            }
+
+            // Si hay datos de meses de años anteriores registrados en hist, incluirlos en la ventana de 12 meses
+            mesesAVisualizar.forEach(m => {
+                labels.push(m);
+                const v = parseFloat(hist[m] ?? (m === mesesNombres[mesActualIdx] ? (linea.gigas_consumidos || 0) : 0)) || 0;
+                dataValues.push(v);
+                suma += v;
+                if (v > pico) pico = v;
+            });
+
+            const mesesConConsumo = dataValues.filter(v => v > 0).length || 1;
+            const media = (suma / mesesConConsumo).toFixed(2);
+            document.getElementById('statMediaAnual').textContent = `${media} GB/mes`;
+            document.getElementById('statPicoAnual').textContent = `${pico.toFixed(2)} GB`;
+
+            // Calcular tarifa óptima de reajuste basada en el pico máximo (con margen de seguridad del 20%)
+            const margenSeguridad = pico * 1.2;
+            let tarifaRec = "Ilimitada";
+            if (margenSeguridad <= 15) tarifaRec = "15-20 GB";
+            else if (margenSeguridad <= 30) tarifaRec = "30-35 GB";
+            else if (margenSeguridad <= 50) tarifaRec = "50 GB";
+            else if (margenSeguridad <= 75) tarifaRec = "70-75 GB";
+            else if (margenSeguridad <= 120) tarifaRec = "120 GB";
+            else tarifaRec = "250 GB / Ilimitada";
+
+            const elRec = document.getElementById('statTarifaRecomendada');
+            if (elRec) {
+                elRec.textContent = `${tarifaRec} (Pico: ${pico.toFixed(1)} GB)`;
+            }
+
+            const ctx = document.getElementById('chartConsumoAnual');
+            if (!ctx) return;
+
+            if (currentChartInstance) {
+                currentChartInstance.destroy();
+            }
+
+            const limiteGb = parseFloat(linea.gigas_totales || 0);
+
+            currentChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Consumo Real (GB)',
+                            data: dataValues,
+                            backgroundColor: labels.map((_, i) => i === selectedMonthIndex ? '#0284C7' : 'rgba(2, 132, 199, 0.45)'),
+                            borderColor: '#0284C7',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            barThickness: 28
+                        },
+                        {
+                            type: 'line',
+                            label: `Límite Tarifa (${limiteGb} GB)`,
+                            data: labels.map(() => limiteGb),
+                            borderColor: '#DC2626',
+                            borderWidth: 2,
+                            borderDash: [6, 6],
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (evt, elements) => {
+                        if (elements && elements.length > 0) {
+                            selectedMonthIndex = elements[0].index;
+                            renderActiveLineDetails();
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { font: { family: 'Inter', weight: '700', size: 12 }, boxWidth: 14 }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0F172A',
+                            titleFont: { family: 'Space Grotesk', weight: '800', size: 13 },
+                            bodyFont: { family: 'Inter', size: 12 },
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: (context) => ` ${context.dataset.label}: ${context.raw} GB`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#F1F5F9' },
+                            ticks: {
+                                font: { family: 'JetBrains Mono', size: 11 },
+                                callback: (value) => `${value} GB`
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Inter', weight: '700', size: 12 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderCalls(calls) {
+            document.getElementById('countCalls').textContent = calls.length;
+            const tbody = document.getElementById('tableCallsBody');
+            if (!calls || calls.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-placeholder" style="text-align:center; padding:30px; color:var(--text-muted);">Sin llamadas registradas en el mes actual</td></tr>';
+                return;
+            }
+
+            const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+            tbody.innerHTML = calls.map(c => {
+                let costeNum = 0.0;
+                if (typeof c.coste === 'string') {
+                    costeNum = parseFloat(c.coste.replace('€', '').replace(',', '.').trim()) || 0.0;
+                } else if (typeof c.coste === 'number') {
+                    costeNum = c.coste;
+                }
+
+                const fechaStr = c.fecha || c.fecha_hora || 'N/D';
+                const destStr = c.destino || c.numero_destino || 'Desconocido';
+                const seconds = Number(c.segundos || 0);
+                const secondsFormatted = seconds > 0 ? (seconds < 60 ? `${seconds} seg` : `${Math.floor(seconds / 60)} min${seconds % 60 ? ` ${seconds % 60} seg` : ''}`) : '0 seg';
+                const duracionStr = c.duracion || c.duracion_formateada || secondsFormatted;
+                const tipoStr = c.tipo || 'Nacional';
+
+                return `
+                    <tr>
+                        <td data-label="Fecha y hora"><strong class="call-date">${escape(fechaStr)}</strong></td>
+                        <td data-label="Destino"><span class="call-destination">${escape(formatearTelefono(destStr))}</span></td>
+                        <td data-label="Duración"><span class="call-duration">${escape(duracionStr)}</span></td>
+                        <td data-label="Tipo"><span class="item-badge-pill">${escape(tipoStr)}</span></td>
+                        <td data-label="Coste"><span class="call-cost" style="color: ${costeNum > 0 ? 'var(--danger-red)' : 'var(--text-muted)'};">${costeNum.toFixed(2)} €</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderInvoices(invoices) {
+            document.getElementById('countInvoices').textContent = invoices.length;
+            const tbody = document.getElementById('tableInvoicesBody');
+            if (!invoices || invoices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-placeholder" style="text-align:center; padding:30px; color:var(--text-muted);">No se encontraron facturas emitidas en DoWISP</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = invoices.map(inv => {
+                const pagada = (inv.estado || '').toLowerCase().includes('pag') || (inv.estado || '').toLowerCase().includes('cobr');
+                const badge = pagada 
+                    ? '<span class="item-badge-pill" style="background: var(--success-bg); color: var(--success-green);"><i class="fa-solid fa-circle-check"></i> Pagada</span>'
+                    : '<span class="item-badge-pill" style="background: var(--warning-bg); color: var(--warning-amber);"><i class="fa-solid fa-clock"></i> Pendiente</span>';
+                
+                const importeVal = parseFloat(inv.importe || inv.total || 0) || 0;
+                const invoiceNumber = escapeHtml(inv.numero || inv.id || 'Sin referencia');
+                const issueDate = escapeHtml(inv.fecha || inv.fecha_emision || 'N/D');
+                const period = escapeHtml(inv.periodo || inv.concepto || 'Mensualidad');
+                let pdfUrl = '';
+                try {
+                    const candidate = new URL(String(inv.url_descarga || inv.url_pdf || ''), location.origin);
+                    if (candidate.protocol === 'https:' && (candidate.origin === location.origin || candidate.hostname === 'dowisp.com' || candidate.hostname.endsWith('.dowisp.com'))) pdfUrl = candidate.href;
+                } catch (_) {}
+
+                return `
+                    <tr>
+                        <td data-label="Nº factura"><strong class="invoice-number">${invoiceNumber}</strong></td>
+                        <td data-label="Fecha de emisión">${issueDate}</td>
+                        <td data-label="Periodo">${period}</td>
+                        <td data-label="Importe"><strong class="invoice-amount">${importeVal.toFixed(2)} €</strong></td>
+                        <td data-label="Estado">${badge}</td>
+                        <td data-label="Descarga PDF">
+                            ${pdfUrl ? `<a href="${escapeHtml(pdfUrl)}" target="_blank" rel="noopener noreferrer" class="btn-copy-code invoice-download" aria-label="Descargar factura ${invoiceNumber}" style="text-decoration: none; padding: 5px 10px; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Descargar PDF</a>` : '<span style="color: var(--text-muted);">PDF no disponible</span>'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function configurarBotonAbrirComoCliente() {
+            const lineas = currentClientData.lineas || [];
+            if (lineas.length === 0) return;
+            const tel = lineas[selectedLineIndex].numero || lineas[0].numero;
+
+            const btn = document.getElementById('btnOpenAsClient');
+            btn.onclick = async (e) => {
+                e.preventDefault();
+                try {
+                    const res = await fetch('/api/admin/visor/generar-token', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({telefono: tel})
+                    });
+                    const data = await res.json();
+                    if (data.status === 'ok') {
+                        window.open(`https://clientes.maskfundas.es${data.url}`, '_blank');
+                    }
+                } catch (err) {
+                    alert('Error generando acceso directo');
+                }
+            };
+        }
+
+        function switchDetailTab(tabName, btn) {
+            document.querySelectorAll('.nav-detail-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content-panel').forEach(p => p.classList.remove('active'));
+
+            btn.classList.add('active');
+            if (tabName === 'llamadas') document.getElementById('tabPanelLlamadas').classList.add('active');
+            if (tabName === 'extras') document.getElementById('tabPanelExtras').classList.add('active');
+            if (tabName === 'facturas') document.getElementById('tabPanelFacturas').classList.add('active');
+            if (tabName === 'consumos') {
+                document.getElementById('tabPanelConsumos').classList.add('active');
+                if (currentClientData && currentClientData.lineas) {
+                    renderActiveLineDetails();
+                }
+            }
+            if (tabName === 'grafica') {
+                document.getElementById('tabPanelGrafica').classList.add('active');
+                if (currentClientData && currentClientData.lineas) {
+                    const l = currentClientData.lineas[selectedLineIndex] || currentClientData.lineas[0];
+                    renderAnnualChart(l);
+                }
+            }
+        }
+
+        function copiarAlPortapapeles(elementId, label) {
+            const val = document.getElementById(elementId).textContent.trim();
+            if (val && val !== '--------' && val !== 'No registrado') {
+                navigator.clipboard.writeText(val);
+                alert(`¡Código ${label} (${val}) copiado al portapapeles!`);
+            }
+        }
+
+        function recargarDatosClienteActual() {
+            if (currentClientData) {
+                const lineas = currentClientData.lineas || [];
+                const ident = (lineas[selectedLineIndex] && lineas[selectedLineIndex].numero) || currentClientData.dni;
+                if (ident) seleccionarCliente(ident);
+            }
+        }
+
+        function handleSearchKeydown(e) {
+            if (e.key === 'Escape') {
+                document.getElementById('autocompleteDropdown').style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryParam = urlParams.get('q') || urlParams.get('cliente') || urlParams.get('tel') || urlParams.get('dni') || window.location.hash.replace('#', '').trim();
+            if (queryParam) {
+                const searchInput = document.getElementById('inputSearchClient');
+                if (searchInput) searchInput.value = queryParam;
+                // Registrar estado inicial con el cliente ya en la URL
+                window.history.replaceState({ q: queryParam }, '', window.location.href);
+                seleccionarCliente(queryParam, false);
+            } else {
+                // Registrar estado inicial vacío para poder detectar el "atrás" hasta aquí
+                window.history.replaceState({ q: null }, '', window.location.href);
+            }
+        });
+
+        window.addEventListener('popstate', (e) => {
+            const q = (e.state && e.state.q) || new URLSearchParams(window.location.search).get('q');
+            if (q) {
+                // Volver a un cliente anterior
+                const searchInput = document.getElementById('inputSearchClient');
+                if (searchInput) searchInput.value = q;
+                seleccionarCliente(q, false);
+            } else {
+                // Volver al estado inicial: limpiar ficha y mostrar buscador
+                currentClientData = null;
+                const searchInput = document.getElementById('inputSearchClient');
+                if (searchInput) searchInput.value = '';
+                const clientePanel = document.getElementById('clientPortalView');
+                const emptyState = document.getElementById('initialStateBox');
+                if (clientePanel) clientePanel.style.display = 'none';
+                if (emptyState) emptyState.style.display = '';
+            }
+        });
+    </script>
+</body>
+</html>

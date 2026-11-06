@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>if (window.top !== window.self) { window.top.location.href = window.location.href; }</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sobreconsumos y Control CDR — MásKFundas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/admin_modern.css?v=3.8" rel="stylesheet">
+    <script src="/js/command_palette.js?v=3.5" defer></script>
+    <style>
+        :root {
+            --purple: #9333ea;
+            --purple-bg: rgba(147, 51, 234, 0.08);
+            --orange: #ea580c;
+            --orange-bg: rgba(234, 88, 12, 0.08);
+        }
+        
+        html, body {
+            overflow-x: hidden !important;
+            max-width: 100%;
+        }
+        
+        /* Stat pills interactivos */
+        .stat-pill {
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            position: relative;
+        }
+        .stat-pill:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.08);
+        }
+        .stat-pill.purple { border-color: rgba(147, 51, 234, 0.3); background: var(--purple-bg); }
+        .stat-pill.purple .num { color: var(--purple); }
+        .stat-pill.orange { border-color: rgba(234, 88, 12, 0.3); background: var(--orange-bg); }
+        .stat-pill.orange .num { color: var(--orange); }
+        
+        .badge-purple { background: rgba(147, 51, 234, 0.15); color: var(--purple); }
+        .badge-orange { background: rgba(234, 88, 12, 0.15); color: var(--orange); }
+        .fill-purple { background: var(--purple); }
+        .fill-orange { background: var(--orange); }
+        .pct-purple { color: var(--purple); }
+        .pct-orange { color: var(--orange); }
+        
+        .cost-tag {
+            font-weight: 700;
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .dest-tag {
+            font-weight: 700;
+            color: #c2410c;
+            background: #ffedd5;
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .fi-badge {
+            margin-left: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .sub-lbl {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+        
+        /* ── BARRA DE PESTAÑAS (TABS) ── */
+        .tabs-nav {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 6px;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 20px;
+            padding-bottom: 0;
+            overflow-x: visible !important;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .tabs-nav::-webkit-scrollbar { display: none; }
+        .tab-btn {
+            flex-shrink: 0;
+            background: none;
+            border: none;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 3px solid transparent;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .tab-btn:hover {
+            color: var(--text);
+            background: rgba(0, 0, 0, 0.02);
+        }
+        .tab-btn.active {
+            color: var(--blue);
+            border-bottom-color: var(--blue);
+            font-weight: 700;
+            background: #ffffff;
+        }
+        .tab-badge {
+            padding: 2px 7px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        
+        /* Contenedores de pestañas */
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Columnas ordenables (Sortable Headers) */
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s ease, color 0.15s ease;
+            position: relative;
+            white-space: nowrap;
+        }
+        th.sortable:hover {
+            background: #f1f5f9;
+            color: var(--blue);
+        }
+        th.sortable .sort-icon {
+            margin-left: 6px;
+            font-size: 11px;
+            color: #94a3b8;
+            opacity: 0.7;
+        }
+        th.sortable.active-sort {
+            color: var(--blue);
+            background: rgba(2, 132, 199, 0.05);
+        }
+        th.sortable.active-sort .sort-icon {
+            color: var(--blue);
+            opacity: 1;
+        }
+        
+        /* Medallas de Ranking */
+        .rank-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 800;
+            color: #475569;
+            background: #f1f5f9;
+        }
+        .rank-1 { background: #fef08a; color: #854d0e; font-size: 14px; }
+        .rank-2 { background: #e2e8f0; color: #475569; font-size: 14px; }
+        .rank-3 { background: #ffedd5; color: #9a3412; font-size: 14px; }
+        
+        /* Botón de despliegue */
+        .btn-toggle-detail {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+        .btn-toggle-detail:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+        }
+        .btn-toggle-detail.active {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #b91c1c;
+        }
+        .btn-toggle-detail.active i {
+            transform: rotate(180deg);
+        }
+        
+        /* Fila de detalle desplegable */
+        .detail-row {
+            display: none !important;
+            background: #f8fafc;
+        }
+        .detail-row.active {
+            display: table-row !important;
+        }
+        .detail-cell {
+            padding: 0 !important;
+            border-bottom: 2px solid var(--border) !important;
+        }
+        
+        .breakdown-card {
+            margin: 12px 18px 18px 18px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+        .breakdown-head {
+            padding: 10px 16px;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #334155;
+        }
+        
+        table.subtable {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        table.subtable thead th {
+            background: #ffffff;
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 11px;
+            padding: 8px 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        table.subtable tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+        }
+        table.subtable tbody tr:last-child {
+            border-bottom: none;
+        }
+        table.subtable tbody td {
+            padding: 8px 14px;
+            vertical-align: middle;
+        }
+        
+        .traffic-chip {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .traffic-voz { background: #dbeafe; color: #1e40af; }
+        .traffic-sms { background: #fef3c7; color: #92400e; }
+        .traffic-datos { background: #e0e7ff; color: #3730a3; }
+        .traffic-serv { background: #f3e8ff; color: #6b21a8; }
+
+        /* Contenedores con scroll horizontal táctil para evitar cortes en móvil */
+        .tab-pane, .section {
+            min-width: 0;
+            max-width: 100%;
+        }
+        
+        .table-responsive {
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            display: block !important;
+            border-radius: 8px;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .table-responsive table {
+            width: 100%;
+            min-width: 900px;
+            max-width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* Contenedor de acciones de cabecera (Escritorio) */
+        .header-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            flex: 1;
+            justify-content: flex-end;
+        }
+        
+        .header-actions-group .search-bar {
+            min-width: 280px;
+            flex-grow: 1;
+            max-width: 400px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .header-actions-group {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                gap: 8px;
+            }
+            .header-actions-group .search-bar {
+                max-width: 100% !important;
+                width: 100%;
+            }
+            .header-actions-group .btn-refresh {
+                width: 100%;
+                justify-content: center;
+            }
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 8px;
+            }
+            .stat-pill:last-child:nth-child(odd) {
+                grid-column: span 2;
+            }
+            .tabs-nav {
+                gap: 5px;
+                margin-bottom: 14px;
+                padding-bottom: 6px;
+            }
+            .tab-btn {
+                padding: 7px 11px;
+                font-size: 12px;
+            }
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+            .breakdown-card {
+                margin: 8px 4px;
+            }
+            .breakdown-head {
+                padding: 8px 10px;
+                font-size: 11px;
+            }
+            table {
+                min-width: 0 !important;
+            }
+            table.subtable {
+                min-width: 0 !important;
+            }
+        }
+        @media (max-width: 480px) {
+            .stats-row {
+                grid-template-columns: 1fr 1fr !important;
+            }
+            .stat-pill {
+                padding: 8px 10px;
+            }
+            .stat-pill .num {
+                font-size: 16px;
+            }
+            .stat-pill .lbl {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="global-nav" aria-label="Navegación principal">
+    <div class="global-nav-inner">
+        <div class="global-nav-brand"><i class="fa-solid fa-shield-halved"></i><span>MásKFundas Admin</span></div>
+        <div class="global-nav-links" id="globalNavLinks">
+            <a href="/admin" id="nav-dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="/admin/dowisp" id="nav-dowisp" class="nav-dowisp-highlight"><i class="fa-solid fa-satellite-dish"></i> DoWISP Live <span class="nav-live-pill">LIVE</span></a>
+            <a href="/admin/morosos" id="nav-morosos"><i class="fa-solid fa-file-invoice-dollar"></i> Morosos</a>
+            <a href="/admin/facturas-directas" id="nav-facturas-directas"><i class="fa-solid fa-paper-plane"></i> Facturas Directas</a>
+            <a href="/admin/auditoria" id="nav-auditoria"><i class="fa-solid fa-tower-cell"></i> Líneas No Facturadas</a>
+            <a href="/admin/consumos" id="nav-consumos" class="active" aria-current="page"><i class="fa-solid fa-fire-flame-curved"></i> Consumos</a>
+            <a href="/admin/devoluciones" id="nav-devoluciones"><i class="fa-solid fa-rotate-left"></i> Devoluciones SEPA</a>
+            <a href="/admin/visor" id="nav-visor"><i class="fa-solid fa-headset"></i> Visor Clientes</a>
+            <a href="https://clientes.maskfundas.es/apn" id="nav-apn" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-tower-broadcast"></i> Guía APN</a>
+<a href="/admin/propuesta" id="nav-propuesta" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-file-invoice-dollar"></i> Presupuestos</a>
+            <a href="https://sat.maskfundas.es" id="nav-sat" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-screwdriver-wrench"></i> SAT</a>
+            <a href="/admin/seguridad" id="nav-seguridad"><i class="fa-solid fa-lock"></i> Seguridad</a>
+        </div>
+        <div class="global-nav-right">
+            <a href="/admin/logout" class="global-nav-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</a>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container">
+
+<div class="header">
+    <div class="header-title">
+        <div class="icon" style="background: linear-gradient(135deg, #ea580c, #c2410c);"><i class="fa-solid fa-fire-flame-curved"></i></div>
+        <div>
+            <h1>Sobreconsumos y Control CDR</h1>
+            <div class="meta-info" id="metaInfo">Cargando datos...</div>
+        </div>
+    </div>
+    <div class="header-actions-group">
+        <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Buscar por nombre, teléfono u operador..." oninput="applyFilter()">
+        </div>
+        <a href="/api/admin/consumos/export-csv" class="btn-refresh" style="background:#16a34a;color:#fff;text-decoration:none;" title="Descargar informe consolidado de sobrecostes">
+            <i class="fa-solid fa-file-csv"></i> Exportar CSV
+        </a>
+        <button class="btn-refresh" id="btnRefresh" onclick="loadData()">
+            <i class="fa-solid fa-arrows-rotate"></i> Actualizar
+        </button>
+    </div>
+</div>
+
+<!-- TARJETAS SUPERIORES CON ACCESO DIRECTO A PESTAÑAS -->
+<div class="stats-row" id="statsRow">
+    <div class="stat-pill purple" onclick="switchTab('tab-upselling')" title="Ver candidatos a mejora de tarifa">
+        <div class="num" id="statUpselling">-</div>
+        <div class="lbl">Radar Up-Selling 🚀</div>
+    </div>
+    <div class="stat-pill purple" onclick="switchTab('tab-sobrecoste')" title="Ver líneas con sobrecoste">
+        <div class="num" id="statSobrecoste">-</div>
+        <div class="lbl" id="statSobrecosteLbl">Sobrecoste Extra (€)</div>
+    </div>
+    <div class="stat-pill orange" onclick="switchTab('tab-destinos')" title="Ver líneas en riesgo de destinos">
+        <div class="num" id="statDestinosAlerta">-</div>
+        <div class="lbl">Destinos 100+ (FUP)</div>
+    </div>
+    <div class="stat-pill red" onclick="switchTab('tab-excedidos')" title="Ver líneas al 100%+">
+        <div class="num" id="statExcedidos">-</div>
+        <div class="lbl">Datos al 100%+</div>
+    </div>
+    <div class="stat-pill blue" onclick="switchTab('tab-bonos')" title="Ver bonos mayoristas activos">
+        <div class="num" id="statBonosMayoristas">-</div>
+        <div class="lbl">Bonos Mayoristas 📦</div>
+    </div>
+</div>
+
+<!-- BARRA DE NAVEGACIÓN DE PESTAÑAS (TABS) -->
+<div class="tabs-nav" id="tabsNav">
+    <button class="tab-btn active" id="btnTab-tab-upselling" onclick="switchTab('tab-upselling')">
+        <i class="fa-solid fa-rocket" style="color:var(--purple)"></i> Radar Up-Selling
+        <span class="tab-badge badge-purple" id="tabBadgeUpselling">0</span>
+    </button>
+    <button class="tab-btn" id="btnTab-tab-sobrecoste" onclick="switchTab('tab-sobrecoste')">
+        <i class="fa-solid fa-euro-sign" style="color:var(--purple)"></i> Sobrecostes Extra
+        <span class="tab-badge badge-purple" id="tabBadgeSobrecoste">0</span>
+    </button>
+    <button class="tab-btn" id="btnTab-tab-destinos" onclick="switchTab('tab-destinos')">
+        <i class="fa-solid fa-address-book" style="color:var(--orange)"></i> Límite Destinos (FUP)
+        <span class="tab-badge badge-orange" id="tabBadgeDestinos">0</span>
+    </button>
+    <button class="tab-btn" id="btnTab-tab-excedidos" onclick="switchTab('tab-excedidos')">
+        <i class="fa-solid fa-circle-xmark" style="color:var(--red)"></i> Datos 100%+
+        <span class="tab-badge badge-red" id="tabBadgeExcedidos">0</span>
+    </button>
+    <button class="tab-btn" id="btnTab-tab-alerta" onclick="switchTab('tab-alerta')">
+        <i class="fa-solid fa-triangle-exclamation" style="color:var(--yellow)"></i> Datos 80-99%
+        <span class="tab-badge badge-yellow" id="tabBadgeAlerta">0</span>
+    </button>
+    <button class="tab-btn" id="btnTab-tab-bonos" onclick="switchTab('tab-bonos')">
+        <i class="fa-solid fa-box-open" style="color:var(--blue)"></i> Bonos Mayoristas
+        <span class="tab-badge badge-blue" id="tabBadgeBonos">0</span>
+    </button>
+    <button class="tab-btn" id="btnTab-tab-top-datos" onclick="switchTab('tab-top-datos')">
+        <i class="fa-solid fa-chart-bar" style="color:var(--blue)"></i> Top Datos (GB)
+        <span class="tab-badge badge-blue" id="tabBadgeTopDatos">0</span>
+    </button>
+    <button class="tab-btn" id="btnTab-tab-top-minutos" onclick="switchTab('tab-top-minutos')">
+        <i class="fa-solid fa-phone" style="color:var(--blue)"></i> Top Minutos / Voz
+        <span class="tab-badge badge-blue" id="tabBadgeTopMin">0</span>
+    </button>
+</div>
+
+<!-- ============================================================== -->
+<!-- PESTAÑA RADAR UP-SELLING -->
+<!-- ============================================================== -->
+<div class="tab-pane active" id="tab-upselling">
+    <div class="section">
+        <div class="section-header">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <i class="fa-solid fa-rocket" style="color:var(--purple)"></i>
+                <h2>Radar Comercial de Up-Selling (Candidatos a Ampliación de Tarifa)</h2>
+                <span class="badge badge-purple" id="badgeUpselling">0</span>
+            </div>
+            <span class="sub-lbl" style="width:100%;">Clientes que agotan sus datos, contratan bonos comodín o tienen picos de consumo superiores a su plan contratado.</span>
+        </div>
+        <div id="tableUpselling" class="table-responsive"><div class="loading-overlay"><i class="fa-solid fa-spinner fa-spin"></i> Cargando radar...</div></div>
+    </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- PESTAÑA BONOS MAYORISTAS -->
+<!-- ============================================================== -->
+<div class="tab-pane" id="tab-bonos">
+    <div class="section">
+        <div class="section-header">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <i class="fa-solid fa-box-open" style="color:var(--blue)"></i>
+                <h2>Bonos Mayoristas Contratados (/t-movil-bonos/)</h2>
+                <span class="badge badge-blue" id="badgeBonos">0</span>
+            </div>
+            <span class="sub-lbl" style="width:100%;">Bonos comodín y paquetes de datos extra facturados por AireNetworks y mayoristas.</span>
+        </div>
+        <div id="tableBonos" class="table-responsive"><div class="loading-overlay"><i class="fa-solid fa-spinner fa-spin"></i> Cargando bonos...</div></div>
+    </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- PESTAÑA 1: SOBRECOSTES (€) -->
+<!-- ============================================================== -->
+<div class="tab-pane" id="tab-sobrecoste">
+    <div class="section">
+        <div class="section-header">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <i class="fa-solid fa-euro-sign" style="color:var(--purple)"></i>
+                <h2>Líneas con Sobrecoste / Facturación Extra (€)</h2>
+                <span class="badge badge-purple" id="badgeSobrecoste">0</span>
+            </div>
+            <span class="sub-lbl" style="width:100%;">Haz clic en los encabezados para ordenar. Clic en "Desglose" para ver momentos exactos.</span>
+        </div>
+        <div id="tableSobrecoste" class="table-responsive"><div class="loading-overlay"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div></div>
+    </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- PESTAÑA 2: LÍMITE DESTINOS (FUP) -->
+<!-- ============================================================== -->
+<div class="tab-pane" id="tab-destinos">
+    <div class="section">
+        <div class="section-header">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <i class="fa-solid fa-address-book" style="color:var(--orange)"></i>
+                <h2>Control de Destinos Únicos / Límite de Proveedores (FUP)</h2>
+                <span class="badge badge-orange" id="badgeDestinos">0</span>
+            </div>
+            <span class="sub-lbl" style="width:100%;">Líneas con 100 o más destinos distintos en el mes (Límite mayoristas habitual: 150 / 300 números)</span>
+        </div>
+        <div id="tableDestinos" class="table-responsive"><div class="loading-overlay"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div></div>
+    </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- PESTAÑA 3: DATOS 100%+ -->
+<!-- ============================================================== -->
+<div class="tab-pane" id="tab-excedidos">
+    <div class="section">
+        <div class="section-header">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <i class="fa-solid fa-circle-xmark" style="color:var(--red)"></i>
+                <h2>Líneas que han superado el 100% del bono de datos</h2>
+                <span class="badge badge-red" id="badgeExcedidos">0</span>
+            </div>
+            <span class="sub-lbl" style="width:100%;">Velocidad reducida o tarificación de exceso de datos</span>
+        </div>
+        <div id="tableExcedidos" class="table-responsive"><div class="loading-overlay"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div></div>
+    </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- PESTAÑA 4: DATOS 80-99% -->
+<!-- ============================================================== -->
+<div class="tab-pane" id="tab-alerta">
+    <div class="section">
+        <div class="section-header">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <i class="fa-solid fa-triangle-exclamation" style="color:var(--yellow)"></i>
+                <h2>Líneas en aviso de datos (80% al 99% del bono)</h2>
+                <span class="badge badge-yellow" id="badgeAlerta">0</span>
+            </div>
+        </div>
+        <div id="tableAlerta" class="table-responsive"><div class="loading-overlay"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div></div>
+    </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- PESTAÑA 5: TOP DATOS (GB) -->
+<!-- ============================================================== -->
+<div class="tab-pane" id="tab-top-datos">
+    <div class="section">
+        <div class="section-header">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <i class="fa-solid fa-chart-bar" style="color:var(--blue)"></i>
+                <h2>Ranking por Consumo de Datos Móviles (Mes Actual)</h2>
+                <span class="badge badge-blue" id="badgeTopDatos">0</span>
+            </div>
+        </div>
+        <div id="tableTopDatos" class="table-responsive"><div class="loading-overlay"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+    </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- PESTAÑA 6: TOP MINUTOS / VOZ -->
+<!-- ============================================================== -->
+<div class="tab-pane" id="tab-top-minutos">
+    <div class="section">
+        <div class="section-header">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <i class="fa-solid fa-phone" style="color:var(--blue)"></i>
+                <h2>Ranking por Minutos de Voz Hablados (Mes Actual)</h2>
+                <span class="badge badge-blue" id="badgeTopMin">0</span>
+            </div>
+        </div>
+        <div id="tableTopMinutos" class="table-responsive"><div class="loading-overlay"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+    </div>
+</div>
+
+<script>
+function formatoTiempoRelativo(fechaStr) {
+    if (!fechaStr) return '';
+    let d;
+    const matchDMY = String(fechaStr).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+    if (matchDMY) {
+        const day = parseInt(matchDMY[1], 10);
+        const month = parseInt(matchDMY[2], 10) - 1;
+        const year = parseInt(matchDMY[3], 10);
+        const hour = matchDMY[4] ? parseInt(matchDMY[4], 10) : 0;
+        const min = matchDMY[5] ? parseInt(matchDMY[5], 10) : 0;
+        const sec = matchDMY[6] ? parseInt(matchDMY[6], 10) : 0;
+        d = new Date(year, month, day, hour, min, sec);
+    } else {
+        d = new Date(fechaStr);
+    }
+    if (isNaN(d.getTime())) return fechaStr;
+
+    const ahora = new Date();
+    const diffMs = ahora.getTime() - d.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHoras = Math.floor(diffMin / 60);
+    const diffDias = Math.floor(diffHoras / 24);
+
+    if (diffSec < 45) return 'hace unos segundos';
+    if (diffMin < 60) return diffMin === 1 ? 'hace 1 minuto' : `hace ${diffMin} minutos`;
+    if (diffHoras < 24) return diffHoras === 1 ? 'hace 1 hora' : `hace ${diffHoras} horas`;
+    if (diffDias === 1) return 'ayer';
+    if (diffDias < 7) return `hace ${diffDias} días`;
+    return fechaStr;
+}
+
+let rawData = null;
+let filterText = '';
+let currentTab = 'tab-upselling';
+const expandedRows = new Set();
+
+// Estado de ordenación por cada pestaña
+const sortState = {
+    'tab-upselling': { col: 'porcentaje', dir: 'desc' },
+    'tab-bonos': { col: 'coste', dir: 'desc' },
+    'tab-sobrecoste': { col: 'coste_extra', dir: 'desc' },
+    'tab-destinos': { col: 'destinos_distintos', dir: 'desc' },
+    'tab-excedidos': { col: 'porcentaje', dir: 'desc' },
+    'tab-alerta': { col: 'porcentaje', dir: 'desc' },
+    'tab-top-datos': { col: 'gigas_consumidos', dir: 'desc' },
+    'tab-top-minutos': { col: 'minutos_consumidos', dir: 'desc' }
+};
+
+function handleSort(tabId, col) {
+    if (!sortState[tabId]) {
+        sortState[tabId] = { col: col, dir: 'desc' };
+    } else if (sortState[tabId].col === col) {
+        sortState[tabId].dir = sortState[tabId].dir === 'desc' ? 'asc' : 'desc';
+    } else {
+        sortState[tabId].col = col;
+        sortState[tabId].dir = (col === 'nombre' || col === 'operador' || col === 'tarifa' || col === 'telefono' || col === 'tarifa_actual' || col === 'tarifa_sugerida') ? 'asc' : 'desc';
+    }
+    renderAll();
+}
+
+function applySorting(rows, tabId) {
+    if (!rows || rows.length === 0) return [];
+    const { col, dir } = sortState[tabId] || { col: 'default', dir: 'desc' };
+    const sorted = [...rows];
+    
+    sorted.sort((a, b) => {
+        let valA = a[col];
+        let valB = b[col];
+        
+        if (typeof valA === 'string' || typeof valB === 'string') {
+            const strA = (valA || '').toString();
+            const strB = (valB || '').toString();
+            const cmp = strA.localeCompare(strB, 'es', { sensitivity: 'base', numeric: true });
+            return dir === 'asc' ? cmp : -cmp;
+        } else {
+            valA = Number(valA) || 0;
+            valB = Number(valB) || 0;
+            return dir === 'asc' ? valA - valB : valB - valA;
+        }
+    });
+    return sorted;
+}
+
+function getSortTh(tabId, col, label, style = '') {
+    const cur = sortState[tabId] || {};
+    const isActive = cur.col === col;
+    let icon = '<i class="fa-solid fa-sort sort-icon"></i>';
+    if (isActive) {
+        icon = cur.dir === 'asc' 
+            ? '<i class="fa-solid fa-sort-up sort-icon"></i>' 
+            : '<i class="fa-solid fa-sort-down sort-icon"></i>';
+    }
+    const activeClass = isActive ? 'sortable active-sort' : 'sortable';
+    return `<th class="${activeClass}" style="${style}" onclick="handleSort('${tabId}', '${col}')" title="Ordenar por ${label}">
+        ${label} ${icon}
+    </th>`;
+}
+
+function switchTab(tabId) {
+    currentTab = tabId;
+    
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    const targetBtn = document.getElementById('btnTab-' + tabId);
+    if (targetBtn) targetBtn.classList.add('active');
+
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    const targetPane = document.getElementById(tabId);
+    if (targetPane) targetPane.classList.add('active');
+}
+
+async function loadData() {
+    const btn = document.getElementById('btnRefresh');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Cargando...';
+
+    try {
+        const r = await fetch('/api/admin/consumos/sobreconsumo', {credentials: 'include'});
+        if (!r.ok) {
+            if (r.status === 401) { window.location.href = '/admin/login'; return; }
+            throw new Error('Error ' + r.status);
+        }
+        rawData = await r.json();
+        renderAll();
+    } catch(e) {
+        document.getElementById('metaInfo').textContent = 'Error al cargar: ' + e.message;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Actualizar';
+    }
+}
+
+function applyFilter() {
+    filterText = document.getElementById('searchInput').value.trim().toLowerCase();
+    if (rawData) renderAll();
+}
+
+function filterRows(rows) {
+    if (!rows) return [];
+    if (!filterText) return rows;
+    return rows.filter(r =>
+        (r.nombre || '').toLowerCase().includes(filterText) ||
+        (r.telefono || '').includes(filterText) ||
+        (r.operador || '').toLowerCase().includes(filterText) ||
+        (r.tarifa || '').toLowerCase().includes(filterText) ||
+        (r.tarifa_actual || '').toLowerCase().includes(filterText) ||
+        (r.bono || '').toLowerCase().includes(filterText)
+    );
+}
+
+function toggleDetail(rowId) {
+    const row = document.getElementById(rowId);
+    const btn = document.getElementById('btn-' + rowId);
+    if (!row) return;
+
+    if (row.classList.contains('active')) {
+        row.classList.remove('active');
+        if (btn) btn.classList.remove('active');
+        expandedRows.delete(rowId);
+    } else {
+        row.classList.add('active');
+        if (btn) btn.classList.add('active');
+        expandedRows.add(rowId);
+    }
+}
+
+function normalizarMesEs(mesStr) {
+    if (!mesStr) return '';
+    const meses = {
+        'January': 'Enero', 'February': 'Febrero', 'March': 'Marzo',
+        'April': 'Abril', 'May': 'Mayo', 'June': 'Junio',
+        'July': 'Julio', 'August': 'Agosto', 'September': 'Septiembre',
+        'October': 'Octubre', 'November': 'Noviembre', 'December': 'Diciembre'
+    };
+    let res = mesStr;
+    for (const [en, es] of Object.entries(meses)) {
+        res = res.replace(new RegExp(en, 'gi'), es);
+    }
+    return res;
+}
+
+function renderAll() {
+    if (!rawData) return;
+    const mes = normalizarMesEs(rawData.mes || '');
+    const sync = rawData.ultima_actualizacion || '';
+    const relSync = formatoTiempoRelativo(sync);
+    const totalEuros = (rawData.total_sobrecoste_euros || 0).toFixed(2);
+    
+    document.getElementById('metaInfo').textContent = `Mes: ${mes} · Sincronizado: ${relSync} · ${rawData.total_lineas} líneas en cache`;
+    document.getElementById('metaInfo').title = `Fecha y hora exacta: ${sync}`;
+    
+    // Stats cards superiores
+    document.getElementById('statUpselling').textContent = (rawData.radar_upselling || []).length;
+    document.getElementById('statSobrecoste').textContent = `${(rawData.con_sobrecoste || []).length} (${totalEuros} €)`;
+    document.getElementById('statDestinosAlerta').textContent = (rawData.alerta_destinos || []).length;
+    document.getElementById('statExcedidos').textContent = (rawData.excedidos_100 || []).length;
+    document.getElementById('statBonosMayoristas').textContent = (rawData.bonos_mayoristas || []).length;
+
+    // Badges en las pestañas
+    const fUpselling = filterRows(rawData.radar_upselling || []);
+    const fBonos = filterRows(rawData.bonos_mayoristas || []);
+    const fSobrecoste = filterRows(rawData.con_sobrecoste || []);
+    const fDestinos = filterRows(rawData.alerta_destinos || []);
+    const fExcedidos = filterRows(rawData.excedidos_100 || []);
+    const fAlerta = filterRows(rawData.alerta_80 || []);
+    const fTopDatos = filterRows(rawData.top_datos || []);
+    const fTopMin = filterRows(rawData.top_minutos || []);
+
+    document.getElementById('tabBadgeUpselling').textContent = fUpselling.length;
+    document.getElementById('tabBadgeBonos').textContent = fBonos.length;
+    document.getElementById('tabBadgeSobrecoste').textContent = fSobrecoste.length;
+    document.getElementById('tabBadgeDestinos').textContent = fDestinos.length;
+    document.getElementById('tabBadgeExcedidos').textContent = fExcedidos.length;
+    document.getElementById('tabBadgeAlerta').textContent = fAlerta.length;
+    document.getElementById('tabBadgeTopDatos').textContent = fTopDatos.length;
+    document.getElementById('tabBadgeTopMin').textContent = fTopMin.length;
+
+    // Badges en encabezados de secciones
+    document.getElementById('badgeUpselling').textContent = fUpselling.length;
+    document.getElementById('badgeBonos').textContent = fBonos.length;
+    document.getElementById('badgeSobrecoste').textContent = fSobrecoste.length;
+    document.getElementById('badgeDestinos').textContent = fDestinos.length;
+    document.getElementById('badgeExcedidos').textContent = fExcedidos.length;
+    document.getElementById('badgeAlerta').textContent = fAlerta.length;
+    document.getElementById('badgeTopDatos').textContent = fTopDatos.length;
+    document.getElementById('badgeTopMin').textContent = fTopMin.length;
+
+    // Renderizar tablas aplicando ordenación dinámica
+    renderUpsellingTable('tableUpselling', applySorting(fUpselling, 'tab-upselling'));
+    renderBonosTable('tableBonos', applySorting(fBonos, 'tab-bonos'));
+    renderSobrecosteTable('tableSobrecoste', applySorting(fSobrecoste, 'tab-sobrecoste'));
+    renderDestinosTable('tableDestinos', applySorting(fDestinos, 'tab-destinos'));
+    renderTable('tableExcedidos', applySorting(fExcedidos, 'tab-excedidos'), 'datos', 'red', 'tab-excedidos');
+    renderTable('tableAlerta', applySorting(fAlerta, 'tab-alerta'), 'datos', 'yellow', 'tab-alerta');
+    renderRankingTable('tableTopDatos', applySorting(fTopDatos, 'tab-top-datos'), 'datos', 'tab-top-datos');
+    renderRankingTable('tableTopMinutos', applySorting(fTopMin, 'tab-top-minutos'), 'minutos', 'tab-top-minutos');
+}
+
+function renderUpsellingTable(containerId, rows) {
+    const c = document.getElementById(containerId);
+    if (!rows || rows.length === 0) {
+        c.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-check" style="color:var(--green)"></i>Sin candidatos detectados para ampliación de tarifa</div>`;
+        return;
+    }
+
+    const tabId = 'tab-upselling';
+    let html = `<table data-no-compact="true"><thead><tr>
+        <th style="width:40px;">#</th>
+        ${getSortTh(tabId, 'telefono', 'Teléfono')}
+        ${getSortTh(tabId, 'nombre', 'Cliente')}
+        ${getSortTh(tabId, 'operador', 'Operador')}
+        ${getSortTh(tabId, 'tarifa_actual', 'Tarifa Actual')}
+        ${getSortTh(tabId, 'porcentaje', 'Consumo / Límite')}
+        ${getSortTh(tabId, 'pico_historico_gb', 'Pico Histórico')}
+        ${getSortTh(tabId, 'tarifa_sugerida', 'Tarifa Recomendada 🚀')}
+        <th>Motivo / Diagnóstico</th>
+        <th style="text-align:center;">Acción Comercial</th>
+    </tr></thead><tbody>`;
+
+    rows.forEach((r, idx) => {
+        const isHigh = r.severidad === 'ALTA';
+        const sevClass = isHigh ? 'badge-red' : 'badge-yellow';
+        const pctVal = Math.min(r.porcentaje || 0, 120);
+        const cc = r.porcentaje >= 100 ? 'red' : (r.porcentaje >= 85 ? 'orange' : 'purple');
+
+        const msgWa = encodeURIComponent(`Hola ${r.nombre}, nos ponemos en contacto desde MásKFundas. Al revisar tu línea ${r.telefono} hemos observado: ${r.motivo_principal}. Si te interesa, podemos revisar contigo las opciones disponibles y sus condiciones.`);
+
+        html += `<tr>
+            <td style="color:var(--muted);font-weight:700;font-size:11px;">#${idx + 1}</td>
+            <td><a class="tel-link" href="tel:${r.telefono}">${r.telefono}</a></td>
+            <td><strong>${r.nombre}</strong></td>
+            <td><span class="op-chip">${r.operador}</span></td>
+            <td style="font-size:12px;color:var(--muted);">${r.tarifa_actual} <div class="sub-lbl">${r.gigas_totales} GB contratados</div></td>
+            <td>
+                <div class="progress-wrap">
+                    <div class="progress-bar"><div class="progress-fill fill-${cc}" style="width:${Math.min(pctVal, 100).toFixed(0)}%"></div></div>
+                    <span class="pct-label pct-${cc}">${r.porcentaje}%</span>
+                </div>
+                <div class="sub-lbl">${r.gigas_consumidos} GB consumidos</div>
+            </td>
+            <td><strong>${r.pico_historico_gb} GB</strong></td>
+            <td>
+                <span class="cost-tag" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;">
+                    <i class="fa-solid fa-arrow-up"></i> ${r.tarifa_sugerida}
+                </span>
+            </td>
+            <td><span class="badge ${sevClass}">${r.motivo_principal}</span></td>
+            <td style="text-align:center;">
+                <a href="https://wa.me/34${r.telefono}?text=${msgWa}" target="_blank" rel="noopener noreferrer" class="btn-refresh" style="background:#25d366;color:#fff;padding:4px 8px;font-size:11px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Abre un borrador para revisar; WhatsApp no enviará nada hasta que lo confirmes">
+                    <i class="fa-brands fa-whatsapp"></i> Preparar borrador
+                </a>
+            </td>
+        </tr>`;
+    });
+    html += '</tbody></table>';
+    c.innerHTML = html;
+}
+
+function renderBonosTable(containerId, rows) {
+    const c = document.getElementById(containerId);
+    if (!rows || rows.length === 0) {
+        c.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-check" style="color:var(--green)"></i>Sin bonos mayoristas registrados en el censo actual</div>`;
+        return;
+    }
+
+    const tabId = 'tab-bonos';
+    let html = `<table data-no-compact="true"><thead><tr>
+        <th style="width:40px;">#</th>
+        ${getSortTh(tabId, 'telefono', 'Teléfono')}
+        ${getSortTh(tabId, 'nombre', 'Cliente')}
+        ${getSortTh(tabId, 'operador', 'Operador')}
+        ${getSortTh(tabId, 'bono', 'Bono Mayorista')}
+        ${getSortTh(tabId, 'coste', 'Coste Mayorista (€)')}
+        ${getSortTh(tabId, 'fecha_inicio', 'Fecha Activación')}
+        ${getSortTh(tabId, 'fecha_fin', 'Fecha Caducidad')}
+        <th>Origen</th>
+    </tr></thead><tbody>`;
+
+    rows.forEach((r, idx) => {
+        const costeStr = (r.coste || 0).toFixed(2) + ' €';
+        html += `<tr>
+            <td style="color:var(--muted);font-weight:700;font-size:11px;">#${idx + 1}</td>
+            <td><a class="tel-link" href="tel:${r.telefono}">${r.telefono}</a></td>
+            <td><strong>${r.nombre}</strong></td>
+            <td><span class="op-chip">${r.operador}</span></td>
+            <td><strong style="color:var(--blue);">${r.bono}</strong></td>
+            <td><span class="cost-tag" style="background:#fef3c7;color:#92400e;">+${costeStr}</span></td>
+            <td>${r.fecha_inicio || '-'}</td>
+            <td>${r.fecha_fin || 'Fin de mes / Indefinido'}</td>
+            <td><span class="op-chip" style="font-size:10px;">${r.proveedor || 'AireNetworks'}</span></td>
+        </tr>`;
+    });
+    html += '</tbody></table>';
+    c.innerHTML = html;
+}
+
+function getPctClass(pct) {
+    if (pct >= 100) return 'red';
+    if (pct >= 80) return 'yellow';
+    return 'blue';
+}
+
+function getTrafficClass(tipo) {
+    const t = (tipo || '').toLowerCase();
+    if (t.includes('voz') || t.includes('llamada')) return 'traffic-voz';
+    if (t.includes('sms')) return 'traffic-sms';
+    if (t.includes('dat') || t.includes('gprs')) return 'traffic-datos';
+    return 'traffic-serv';
+}
+
+function renderSobrecosteTable(containerId, rows) {
+    const c = document.getElementById(containerId);
+    if (!rows || rows.length === 0) {
+        c.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-check" style="color:var(--green)"></i>Sin sobrecostes tarifados fuera de bono</div>`;
+        return;
+    }
+
+    const tabId = 'tab-sobrecoste';
+    let html = `<table data-no-compact="true"><thead><tr>
+        <th style="width:40px;">#</th>
+        ${getSortTh(tabId, 'telefono', 'Teléfono')}
+        ${getSortTh(tabId, 'nombre', 'Cliente')}
+        ${getSortTh(tabId, 'operador', 'Operador')}
+        ${getSortTh(tabId, 'tarifa', 'Tarifa')}
+        ${getSortTh(tabId, 'coste_extra', 'Gasto Extra (€)')}
+        ${getSortTh(tabId, 'destinos_distintos', 'Destinos')}
+        ${getSortTh(tabId, 'minutos_consumidos', 'Voz / Minutos')}
+        ${getSortTh(tabId, 'gigas_consumidos', 'Datos')}
+        <th style="text-align:center;">Acciones</th>
+    </tr></thead><tbody>`;
+
+    rows.forEach((r, idx) => {
+        const fiWarn = r.es_finetwork ? `<span class="fi-badge" title="${r.aviso_finetwork}"><i class="fa-solid fa-asterisk"></i> FiNet</span>` : '';
+        const extraCostStr = (r.coste_extra || 0).toFixed(2) + ' €';
+        const evList = r.eventos_con_coste || [];
+        const detailRowId = `detail-sobrecoste-${r.telefono}`;
+        const isExpanded = expandedRows.has(detailRowId);
+        const activeClass = isExpanded ? 'active' : '';
+
+        html += `<tr>
+            <td style="color:var(--muted);font-weight:700;font-size:11px;">#${idx + 1}</td>
+            <td><a class="tel-link" href="tel:${r.telefono}">${r.telefono}</a></td>
+            <td><strong>${r.nombre}</strong>${fiWarn}</td>
+            <td><span class="op-chip">${r.operador}</span></td>
+            <td style="font-size:12px;color:var(--muted);max-width:180px;">${r.tarifa}</td>
+            <td><span class="cost-tag"><i class="fa-solid fa-circle-exclamation"></i> +${extraCostStr}</span></td>
+            <td><span class="dest-tag"><i class="fa-solid fa-address-book"></i> ${r.destinos_distintos || 0}</span></td>
+            <td><strong>${r.minutos_consumidos || 0}</strong> min <div class="sub-lbl">${r.llamadas_totales || 0} llamadas</div></td>
+            <td style="color:var(--muted)">${r.gigas_consumidos || 0} GB</td>
+            <td style="text-align:center;">
+                ${evList.length > 0 
+                    ? `<button class="btn-toggle-detail ${activeClass}" id="btn-${detailRowId}" onclick="toggleDetail('${detailRowId}')">
+                        <i class="fa-solid fa-chevron-down"></i> ${evList.length} ${evList.length === 1 ? 'cargo' : 'cargos'}
+                       </button>` 
+                    : '<span style="font-size:11px;color:var(--muted)">-</span>'}
+            </td>
+        </tr>`;
+
+        if (evList.length > 0) {
+            let subRows = '';
+            for (const ev of evList) {
+                const trClass = getTrafficClass(ev.tipo || ev.concepto);
+                const evCost = (ev.coste || 0).toFixed(2) + ' €';
+                subRows += `<tr>
+                    <td><strong>${ev.fecha || '-'}</strong></td>
+                    <td><span class="traffic-chip ${trClass}">${ev.tipo || 'Servicio'}</span></td>
+                    <td><strong>${ev.concepto || 'Cargo tarifado'}</strong></td>
+                    <td>${ev.destino && ev.destino !== '-' ? `<a class="tel-link" href="https://www.google.es/search?q=${encodeURIComponent(ev.destino)}" target="_blank" rel="noopener noreferrer" style="color:var(--blue); text-decoration:underline;" title="Buscar información del número ${ev.destino} en Google"><i class="fa-brands fa-google" style="font-size:11px; margin-right:4px; color:#4285f4;"></i>${ev.destino} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px; margin-left:3px; opacity:0.6;"></i></a>` : '-'}</td>
+                    <td>${ev.duracion || '-'}</td>
+                    <td><span class="cost-tag" style="font-size:11px;">+${evCost}</span></td>
+                    <td><span class="op-chip" style="font-size:10px;">${ev.proveedor || r.operador}</span></td>
+                </tr>`;
+            }
+
+            html += `<tr id="${detailRowId}" class="detail-row ${activeClass}">
+                <td colspan="10" class="detail-cell">
+                    <div class="breakdown-card">
+                        <div class="breakdown-head">
+                            <div><i class="fa-solid fa-receipt"></i> Detalle de consumos y momentos de sobrecoste — Línea ${r.telefono} (${r.nombre})</div>
+                            <div>Total extra: <span class="cost-tag" style="font-size:12px;">+${extraCostStr}</span></div>
+                        </div>
+                        <table class="subtable">
+                            <thead>
+                                <tr>
+                                    <th>Fecha y Hora</th>
+                                    <th>Tipo</th>
+                                    <th>Concepto Tarificado</th>
+                                    <th>Destino</th>
+                                    <th>Duración / Cantidad</th>
+                                    <th>Coste</th>
+                                    <th>Operador</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${subRows}
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
+            </tr>`;
+        }
+    });
+    html += '</tbody></table>';
+    c.innerHTML = html;
+}
+
+function renderDestinosTable(containerId, rows) {
+    const c = document.getElementById(containerId);
+    if (!rows || rows.length === 0) {
+        c.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-check" style="color:var(--green)"></i>Sin líneas en riesgo de límite de destinos (todas <100)</div>`;
+        return;
+    }
+
+    const tabId = 'tab-destinos';
+    let html = `<table data-no-compact="true"><thead><tr>
+        <th style="width:40px;">#</th>
+        ${getSortTh(tabId, 'telefono', 'Teléfono')}
+        ${getSortTh(tabId, 'nombre', 'Cliente')}
+        ${getSortTh(tabId, 'operador', 'Operador')}
+        ${getSortTh(tabId, 'tarifa', 'Tarifa')}
+        ${getSortTh(tabId, 'destinos_distintos', 'Destinos Únicos / Límite')}
+        ${getSortTh(tabId, 'llamadas_totales', 'Llamadas')}
+        ${getSortTh(tabId, 'minutos_consumidos', 'Voz')}
+        ${getSortTh(tabId, 'coste_extra', 'Gasto Extra')}
+    </tr></thead><tbody>`;
+
+    rows.forEach((r, idx) => {
+        const fiWarn = r.es_finetwork ? `<span class="fi-badge" title="${r.aviso_finetwork}"><i class="fa-solid fa-asterisk"></i> FiNet</span>` : '';
+        const limite = r.limite_destinos || 150;
+        const pctDest = Math.min(r.pct_destinos || 0, 120);
+        const cc = pctDest >= 100 ? 'red' : (pctDest >= 80 ? 'orange' : 'blue');
+        const barWidth = Math.min(pctDest, 100).toFixed(0);
+        const extraCost = (r.coste_extra > 0) 
+            ? `<span class="cost-tag" style="font-size:11px;">+${r.coste_extra.toFixed(2)} €</span>` 
+            : `<span style="color:var(--muted);font-size:12px;">0,00 €</span>`;
+
+        html += `<tr>
+            <td style="color:var(--muted);font-weight:700;font-size:11px;">#${idx + 1}</td>
+            <td><a class="tel-link" href="tel:${r.telefono}">${r.telefono}</a></td>
+            <td><strong>${r.nombre}</strong>${fiWarn}</td>
+            <td><span class="op-chip">${r.operador}</span></td>
+            <td style="font-size:12px;color:var(--muted);max-width:180px;">${r.tarifa}</td>
+            <td>
+                <div class="progress-wrap">
+                    <div class="progress-bar"><div class="progress-fill fill-${cc}" style="width:${barWidth}%"></div></div>
+                    <span class="pct-label pct-${cc}">${r.destinos_distintos} / ${limite}</span>
+                </div>
+                <div class="sub-lbl">${r.pct_destinos}% del límite FUP (${limite} destinos)</div>
+            </td>
+            <td><strong>${r.llamadas_totales || 0}</strong></td>
+            <td style="color:var(--muted)">${r.minutos_consumidos || 0} min</td>
+            <td>${extraCost}</td>
+        </tr>`;
+    });
+    html += '</tbody></table>';
+    c.innerHTML = html;
+}
+
+function renderTable(containerId, rows, mode, colorClass, tabId) {
+    const c = document.getElementById(containerId);
+    if (!rows || rows.length === 0) {
+        c.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-check" style="color:var(--green)"></i>Sin alertas en esta categoría</div>`;
+        return;
+    }
+    
+    const headerCols = mode === 'datos'
+        ? `<th style="width:40px;">#</th>
+           ${getSortTh(tabId, 'telefono', 'Teléfono')}
+           ${getSortTh(tabId, 'nombre', 'Cliente')}
+           ${getSortTh(tabId, 'operador', 'Operador')}
+           ${getSortTh(tabId, 'tarifa', 'Tarifa')}
+           ${getSortTh(tabId, 'porcentaje', 'Gigas consumidos')}
+           ${getSortTh(tabId, 'minutos_consumidos', 'Minutos / Destinos')}
+           ${getSortTh(tabId, 'coste_extra', 'Gasto Extra')}`
+        : `<th style="width:40px;">#</th>
+           ${getSortTh(tabId, 'telefono', 'Teléfono')}
+           ${getSortTh(tabId, 'nombre', 'Cliente')}
+           ${getSortTh(tabId, 'operador', 'Operador')}
+           ${getSortTh(tabId, 'tarifa', 'Tarifa')}
+           ${getSortTh(tabId, 'minutos_consumidos', 'Minutos / Llamadas')}
+           ${getSortTh(tabId, 'destinos_distintos', 'Destinos únicos')}
+           ${getSortTh(tabId, 'coste_extra', 'Gasto Extra')}`;
+
+    let html = `<table data-no-compact="true"><thead><tr>${headerCols}</tr></thead><tbody>`;
+
+    rows.forEach((r, idx) => {
+        const pctVal = Math.min(r.porcentaje || 0, 120);
+        const cc = getPctClass(r.porcentaje);
+        const fiWarn = r.es_finetwork ? `<span class="fi-badge" title="${r.aviso_finetwork}"><i class="fa-solid fa-asterisk"></i> FiNet</span>` : '';
+        const extraCost = (r.coste_extra > 0) 
+            ? `<span class="cost-tag" style="font-size:11px;">+${r.coste_extra.toFixed(2)} €</span>` 
+            : `<span style="color:var(--muted);font-size:11px;">0,00 €</span>`;
+
+        html += `<tr>
+            <td style="color:var(--muted);font-weight:700;font-size:11px;">#${idx + 1}</td>
+            <td><a class="tel-link" href="tel:${r.telefono}">${r.telefono}</a></td>
+            <td><strong>${r.nombre}</strong>${fiWarn}</td>
+            <td><span class="op-chip">${r.operador}</span></td>
+            <td style="font-size:12px;color:var(--muted);max-width:180px;">${r.tarifa}</td>
+            <td>
+                <div class="progress-wrap">
+                    <div class="progress-bar"><div class="progress-fill fill-${cc}" style="width:${Math.min(pctVal, 100).toFixed(0)}%"></div></div>
+                    <span class="pct-label pct-${cc}">${r.porcentaje}%</span>
+                </div>
+                <div class="sub-lbl">${r.gigas_consumidos} GB / ${r.gigas_totales} GB</div>
+            </td>
+            <td style="color:var(--muted)">${r.minutos_consumidos} min <div class="sub-lbl">${r.destinos_distintos || 0} dest.</div></td>
+            <td>${extraCost}</td>
+        </tr>`;
+    });
+    html += '</tbody></table>';
+    c.innerHTML = html;
+}
+
+function renderRankingTable(containerId, rows, mode, tabId) {
+    const c = document.getElementById(containerId);
+    if (!rows || rows.length === 0) {
+        c.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-check" style="color:var(--green)"></i>Sin datos disponibles</div>`;
+        return;
+    }
+
+    const headerCols = mode === 'datos'
+        ? `<th style="width:45px;">Rank</th>
+           ${getSortTh(tabId, 'telefono', 'Teléfono')}
+           ${getSortTh(tabId, 'nombre', 'Cliente')}
+           ${getSortTh(tabId, 'operador', 'Operador')}
+           ${getSortTh(tabId, 'tarifa', 'Tarifa')}
+           ${getSortTh(tabId, 'gigas_consumidos', 'Gigas Consumidos')}
+           ${getSortTh(tabId, 'prevision_fin_mes_gb', 'Previsión Cierre 🔮')}
+           ${getSortTh(tabId, 'minutos_consumidos', 'Minutos / Llamadas')}
+           ${getSortTh(tabId, 'destinos_distintos', 'Destinos')}
+           ${getSortTh(tabId, 'coste_extra', 'Gasto Extra')}`
+        : `<th style="width:45px;">Rank</th>
+           ${getSortTh(tabId, 'telefono', 'Teléfono')}
+           ${getSortTh(tabId, 'nombre', 'Cliente')}
+           ${getSortTh(tabId, 'operador', 'Operador')}
+           ${getSortTh(tabId, 'tarifa', 'Tarifa')}
+           ${getSortTh(tabId, 'minutos_consumidos', 'Minutos Hablados')}
+           ${getSortTh(tabId, 'llamadas_totales', 'Llamadas')}
+           ${getSortTh(tabId, 'destinos_distintos', 'Destinos')}
+           ${getSortTh(tabId, 'coste_extra', 'Gasto Extra')}`;
+
+    let html = `<table data-no-compact="true"><thead><tr>${headerCols}</tr></thead><tbody>`;
+
+    rows.forEach((r, idx) => {
+        const fiWarn = r.es_finetwork ? `<span class="fi-badge" title="${r.aviso_finetwork}"><i class="fa-solid fa-asterisk"></i> FiNet</span>` : '';
+        const extraCost = (r.coste_extra > 0) 
+            ? `<span class="cost-tag" style="font-size:11px;">+${r.coste_extra.toFixed(2)} €</span>` 
+            : `<span style="color:var(--muted);font-size:11px;">0,00 €</span>`;
+        
+        let rankBadge = `<span class="rank-chip">#${idx + 1}</span>`;
+        if (idx === 0 && sortState[tabId].dir === 'desc') rankBadge = `<span class="rank-chip rank-1" title="1º Puesto"><i class="fa-solid fa-trophy" style="color: #eab308;"></i> 1</span>`;
+        else if (idx === 1 && sortState[tabId].dir === 'desc') rankBadge = `<span class="rank-chip rank-2" title="2º Puesto"><i class="fa-solid fa-medal" style="color: #94a3b8;"></i> 2</span>`;
+        else if (idx === 2 && sortState[tabId].dir === 'desc') rankBadge = `<span class="rank-chip rank-3" title="3º Puesto"><i class="fa-solid fa-medal" style="color: #cd7f32;"></i> 3</span>`;
+
+        if (mode === 'datos') {
+            const pctVal = Math.min(r.porcentaje || 0, 120);
+            const cc = getPctClass(r.porcentaje);
+
+            // Diagnóstico visual de Previsión de consumo a fin de mes
+            const pGb = r.prevision_fin_mes_gb || 0;
+            const pPct = r.prevision_pct || 0;
+            const pDiff = r.prevision_diff_gb || 0;
+            let prevHtml = '';
+
+            if (!r.gigas_totales || r.gigas_totales === 0) {
+                prevHtml = `<span style="color:var(--muted);font-size:12px;">~${pGb} GB</span>`;
+            } else if (r.prevision_estado === 'EXCESO' || pPct > 100) {
+                prevHtml = `
+                    <div style="font-weight:700; color:var(--red); font-size:12.5px;">
+                        ~${pGb} GB <span class="badge badge-red" style="font-size:10px; padding:2px 5px; margin-left:2px;" title="Superará el bono a final de mes">+${pDiff} GB ⚠️</span>
+                    </div>
+                    <div class="sub-lbl" style="color:#b91c1c; font-weight:600;">Se saldrá (${pPct}%)</div>
+                `;
+            } else if (r.prevision_estado === 'AL_LIMITE' || pPct >= 85) {
+                prevHtml = `
+                    <div style="font-weight:600; color:var(--orange); font-size:12.5px;">
+                        ~${pGb} GB <span class="badge badge-orange" style="font-size:10px; padding:2px 5px; margin-left:2px;" title="Riesgo de agotar el bono">${pPct}% ⚡</span>
+                    </div>
+                    <div class="sub-lbl" style="color:#c2410c;">Al límite a fin de mes</div>
+                `;
+            } else {
+                prevHtml = `
+                    <div style="font-weight:600; color:var(--green); font-size:12.5px;">
+                        ~${pGb} GB <span class="badge badge-green" style="font-size:10px; padding:2px 5px; margin-left:2px;"><i class="fa-solid fa-check"></i> OK</span>
+                    </div>
+                    <div class="sub-lbl" style="color:var(--muted);">${pPct}% estimado</div>
+                `;
+            }
+
+            html += `<tr>
+                <td>${rankBadge}</td>
+                <td><a class="tel-link" href="tel:${r.telefono}">${r.telefono}</a></td>
+                <td><strong>${r.nombre}</strong>${fiWarn}</td>
+                <td><span class="op-chip">${r.operador}</span></td>
+                <td style="font-size:12px;color:var(--muted);max-width:180px;">${r.tarifa}</td>
+                <td>
+                    <div class="progress-wrap">
+                        <div class="progress-bar"><div class="progress-fill fill-${cc}" style="width:${Math.min(pctVal, 100).toFixed(0)}%"></div></div>
+                        <span class="pct-label pct-${cc}">${r.gigas_consumidos} GB</span>
+                    </div>
+                    <div class="sub-lbl">${r.porcentaje}% de ${r.gigas_totales} GB</div>
+                </td>
+                <td>${prevHtml}</td>
+                <td><strong>${r.minutos_consumidos}</strong> min <div class="sub-lbl">${r.llamadas_totales} llamadas</div></td>
+                <td><span class="dest-tag"><i class="fa-solid fa-address-book"></i> ${r.destinos_distintos || 0}</span></td>
+                <td>${extraCost}</td>
+            </tr>`;
+        } else {
+            html += `<tr>
+                <td>${rankBadge}</td>
+                <td><a class="tel-link" href="tel:${r.telefono}">${r.telefono}</a></td>
+                <td><strong>${r.nombre}</strong>${fiWarn}</td>
+                <td><span class="op-chip">${r.operador}</span></td>
+                <td style="font-size:12px;color:var(--muted);max-width:180px;">${r.tarifa}</td>
+                <td><strong style="color:var(--blue);font-size:14px;">${r.minutos_consumidos}</strong> <span style="font-size:11px;color:var(--muted)">min</span></td>
+                <td><strong>${r.llamadas_totales}</strong></td>
+                <td><span class="dest-tag"><i class="fa-solid fa-address-book"></i> ${r.destinos_distintos || 0}</span></td>
+                <td>${extraCost}</td>
+            </tr>`;
+        }
+    });
+    html += '</tbody></table>';
+    c.innerHTML = html;
+}
+
+loadData();
+</script>
+</div>
+</body>
+</html>

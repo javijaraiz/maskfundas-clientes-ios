@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>if (window.top !== window.self) { window.top.location.href = window.location.href; }</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Mando — MásKFundas</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin_modern.css?v=3.8">
+    <script src="/js/command_palette.js?v=3.5" defer></script>
+    <script src="/js/admin_compact_tables.js?v=5" defer></script>
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .urgent-row {
+            background-color: #fff1f2 !important;
+        }
+        .urgent-row td {
+            border-bottom: 1px solid #ffe4e6 !important;
+        }
+        .badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
+        .badge-yellow { background: rgba(245,158,11,0.15); color: var(--yellow); }
+        .badge-blue { background: rgba(59,130,246,0.15); color: var(--blue); }
+    </style>
+</head>
+<body>
+
+<nav class="global-nav" aria-label="Navegación principal">
+    <div class="global-nav-inner">
+        <div class="global-nav-brand"><i class="fa-solid fa-shield-halved"></i><span>MásKFundas Admin</span></div>
+        <div class="global-nav-links" id="globalNavLinks">
+            <a href="/admin" id="nav-dashboard" class="active" aria-current="page"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="/admin/dowisp" id="nav-dowisp" class="nav-dowisp-highlight"><i class="fa-solid fa-satellite-dish"></i> DoWISP Live <span class="nav-live-pill">LIVE</span></a>
+            <a href="/admin/morosos" id="nav-morosos"><i class="fa-solid fa-file-invoice-dollar"></i> Morosos</a>
+            <a href="/admin/facturas-directas" id="nav-facturas-directas"><i class="fa-solid fa-paper-plane"></i> Facturas Directas</a>
+            <a href="/admin/auditoria" id="nav-auditoria"><i class="fa-solid fa-tower-cell"></i> Líneas No Facturadas</a>
+            <a href="/admin/consumos" id="nav-consumos"><i class="fa-solid fa-fire-flame-curved"></i> Consumos</a>
+            <a href="/admin/devoluciones" id="nav-devoluciones"><i class="fa-solid fa-rotate-left"></i> Devoluciones SEPA</a>
+            <a href="/admin/visor" id="nav-visor"><i class="fa-solid fa-headset"></i> Visor Clientes</a>
+            <a href="https://clientes.maskfundas.es/apn" id="nav-apn" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-tower-broadcast"></i> Guía APN</a>
+<a href="/admin/propuesta" id="nav-propuesta" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-file-invoice-dollar"></i> Presupuestos</a>
+            <a href="https://sat.maskfundas.es" id="nav-sat" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-screwdriver-wrench"></i> SAT</a>
+            <a href="/admin/seguridad" id="nav-seguridad"><i class="fa-solid fa-lock"></i> Seguridad</a>
+        </div>
+        <div class="global-nav-right">
+            <a href="/admin/logout" class="global-nav-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</a>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container">
+
+
+<div class="header">
+    <div class="header-title">
+        <div class="icon" style="background: linear-gradient(135deg, var(--blue), #1e3a8a);"><i class="fa-solid fa-chart-line"></i></div>
+        <div>
+            <h1>Dashboard General</h1>
+            <div class="meta-info" id="lblSyncInfo">Cargando datos globales...</div>
+        </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+        <button class="btn-refresh" onclick="cargarDashboard()">
+            <i class="fa-solid fa-arrows-rotate"></i> Recargar
+        </button>
+    </div>
+</div>
+
+<div class="stats-row" id="statsRow">
+    <div class="stat-pill red">
+        <div class="num" id="kpiDeudaTotal">—</div>
+        <div class="lbl" id="kpiMorososTotal">Calculando...</div>
+    </div>
+    <div class="stat-pill yellow">
+        <div class="num" id="kpiMorososTrafico">—</div>
+        <div class="lbl">Morosos con Tráfico Activo</div>
+    </div>
+    <div class="stat-pill blue">
+        <div class="num" id="kpiFantasmas">—</div>
+        <div class="lbl">Lineas Fantasma</div>
+    </div>
+    <div class="stat-pill red">
+        <div class="num" id="kpiNoFacturado">—</div>
+        <div class="lbl">Consumiendo sin cobro activo</div>
+    </div>
+</div>
+
+<div class="section">
+    <div class="section-header">
+        <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text);">
+            <i class="fa-solid fa-fire text-red" style="margin-right: 5px;"></i> Alertas Urgentes (Fuegos que Apagar)
+        </h3>
+    </div>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Origen</th>
+                    <th>Cliente / Teléfono</th>
+                    <th>Motivo de Alerta</th>
+                    <th>Impacto / Consumo</th>
+                    <th>Estado / Diagnóstico</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyAlertas">
+                <tr>
+                    <td colspan="5" class="loading-overlay">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Consolidando alertas...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function formatoTiempoRelativo(fechaStr) {
+        if (!fechaStr) return '';
+        let d;
+        const matchDMY = String(fechaStr).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+        if (matchDMY) {
+            const day = parseInt(matchDMY[1], 10);
+            const month = parseInt(matchDMY[2], 10) - 1;
+            const year = parseInt(matchDMY[3], 10);
+            const hour = matchDMY[4] ? parseInt(matchDMY[4], 10) : 0;
+            const min = matchDMY[5] ? parseInt(matchDMY[5], 10) : 0;
+            const sec = matchDMY[6] ? parseInt(matchDMY[6], 10) : 0;
+            d = new Date(year, month, day, hour, min, sec);
+        } else {
+            d = new Date(fechaStr);
+        }
+        if (isNaN(d.getTime())) return fechaStr;
+
+        const ahora = new Date();
+        const diffMs = ahora.getTime() - d.getTime();
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHoras = Math.floor(diffMin / 60);
+        const diffDias = Math.floor(diffHoras / 24);
+
+        if (diffSec < 45) return 'hace unos segundos';
+        if (diffMin < 60) return diffMin === 1 ? 'hace 1 minuto' : `hace ${diffMin} minutos`;
+        if (diffHoras < 24) return diffHoras === 1 ? 'hace 1 hora' : `hace ${diffHoras} horas`;
+        if (diffDias === 1) return 'ayer';
+        if (diffDias < 7) return `hace ${diffDias} días`;
+        return fechaStr;
+    }
+
+    async function cargarDashboard() {
+        document.getElementById('tbodyAlertas').innerHTML = `
+            <tr><td colspan="5" class="loading-overlay"><i class="fa-solid fa-spinner fa-spin"></i> Analizando datos...</td></tr>
+        `;
+
+        try {
+            // Fetching both APIs concurrently
+            const [resMorosos, resAuditoria] = await Promise.all([
+                fetch('/api/admin/morosos').catch(() => null),
+                fetch('/api/admin/auditoria').catch(() => null)
+            ]);
+
+            const jsonMorosos = resMorosos && resMorosos.ok ? await resMorosos.json() : null;
+            const jsonAuditoria = resAuditoria && resAuditoria.ok ? await resAuditoria.json() : null;
+
+            let morosos = jsonMorosos && jsonMorosos.morosos ? jsonMorosos.morosos : [];
+            let auditoria = jsonAuditoria && jsonAuditoria.lineas ? jsonAuditoria.lineas : [];
+
+            // --- Calcular KPIs ---
+            let deudaTotal = 0;
+            let totalDeudores = 0;
+            let morososConTrafico = 0;
+            let lineasFantasmas = 0;
+            let lineasNoFacturadas = 0;
+
+            let alertas = [];
+
+            // Analizar Morosos
+            morosos.forEach(m => {
+                if (m.estado_gestion !== 'REGULARIZADO') {
+                    deudaTotal += (m.deuda_total || 0);
+                    totalDeudores++;
+                    
+                    const tieneTrafico = m.alerta_trafico_activo || (m.consumo_gb > 0.5) || (m.consumo_minutos > 10);
+                    if (tieneTrafico) {
+                        morososConTrafico++;
+                        let consumoMoroso = `${m.consumo_gb || 0} GB`;
+                        if (m.consumo_minutos) consumoMoroso += ` / ${m.consumo_minutos} min`;
+                        alertas.push({
+                            origen: 'Morosos',
+                            clase: 'urgent-row',
+                            identificador: `${m.nombre} (${m.dni})`,
+                            motivo: 'Moroso con tráfico activo de datos o voz',
+                            impacto: `<div><strong>Deuda: ${m.deuda_total}€</strong></div><div style="font-size:11.5px; color:#b91c1c; margin-top:2px;">Consumo: ${consumoMoroso}</div>`,
+                            estado: m.estado_gestion || 'PENDIENTE'
+                        });
+                    } else if (m.estado_gestion === 'PROMESA_DE_PAGO') {
+                        // Promesas de pago que quizás requieren revisión hoy
+                        alertas.push({
+                            origen: 'Morosos',
+                            clase: '',
+                            identificador: `${m.nombre} (${m.dni})`,
+                            motivo: 'Promesa de pago activa',
+                            impacto: `<div><strong>Deuda: ${m.deuda_total}€</strong></div>`,
+                            estado: 'PROMESA DE PAGO'
+                        });
+                    }
+                }
+            });
+
+            // Analizar Auditoría
+            auditoria.forEach(a => {
+                const tipoInc = (a.tipo_incidencia || '').toUpperCase();
+                if (tipoInc === 'INTERNA_GERENCIA') return; // no alertar líneas corporativas
+
+                const estadoDowisp = (a.estado_dowisp || '').toUpperCase();
+                const dx = (a.diagnostico || '').toUpperCase();
+
+                let consumoTxt = `${a.consumo_gb || 0} GB`;
+                if (a.consumo_minutos) consumoTxt += ` / ${a.consumo_minutos} min`;
+                let fechaTxt = '';
+                let fUlt = a.fecha_ultimo_cdr && a.fecha_ultimo_cdr !== 'Sin fecha reciente' && a.fecha_ultimo_cdr !== 'Sin fecha registrada' ? a.fecha_ultimo_cdr : (a.fecha_primer_cdr || '');
+                
+                if (fUlt) {
+                    fechaTxt = `<div style="font-size:11px; color:#475569; margin-top:4px;">
+                        <i class="fa-regular fa-clock" style="color:#0284c7;"></i> Última actividad: <strong>${fUlt}</strong>
+                    </div>`;
+                }
+                let impactoHtml = `<div><strong>${consumoTxt}</strong></div>${fechaTxt}`;
+
+                if (estadoDowisp.includes('NO ENCONTRADO') || estadoDowisp.includes('NO EXISTE') || tipoInc === 'FANTASMA') {
+                    lineasFantasmas++;
+                    alertas.push({
+                        origen: 'Auditoría',
+                        clase: 'urgent-row',
+                        identificador: `${a.telefono} (${a.titular_mayorista || 'Sin titular'})`,
+                        motivo: 'Línea Fantasma (En Mayorista pero no en DoWISP)',
+                        impacto: impactoHtml,
+                        estado: a.estado_gestion || 'REVISAR'
+                    });
+                } else if (dx.includes('CANCELADO') || dx.includes('BAJA') || estadoDowisp.includes('BAJA') || tipoInc === 'SIN_FACTURACION') {
+                    lineasNoFacturadas++;
+                    alertas.push({
+                        origen: 'Auditoría',
+                        clase: 'urgent-row',
+                        identificador: `${a.telefono} (${a.titular_dowisp || a.titular_mayorista})`,
+                        motivo: 'Línea Cancelada en DoWISP pero con tráfico',
+                        impacto: impactoHtml,
+                        estado: a.estado_gestion || 'CORTE URGENTE'
+                    });
+                } else if (dx.includes('NO FACTURADO')) {
+                    lineasNoFacturadas++;
+                }
+            });
+
+            // Actualizar DOM
+            document.getElementById('kpiDeudaTotal').textContent = deudaTotal.toLocaleString('es-ES', {minimumFractionDigits: 2}) + ' €';
+            document.getElementById('kpiMorososTotal').textContent = `${totalDeudores} clientes con deuda`;
+            document.getElementById('kpiMorososTrafico').textContent = morososConTrafico;
+            document.getElementById('kpiFantasmas').textContent = lineasFantasmas;
+            document.getElementById('kpiNoFacturado').textContent = lineasNoFacturadas;
+            
+            const uSync = (jsonAuditoria && jsonAuditoria.ultima_sync) || (jsonMorosos && jsonMorosos.ultima_sync && jsonMorosos.ultima_sync.fecha);
+            if (uSync) {
+                const relSync = formatoTiempoRelativo(uSync);
+                document.getElementById('lblSyncInfo').innerHTML = `<i class="fa-solid fa-check-circle text-green"></i> Sincronizado: ${relSync}`;
+                document.getElementById('lblSyncInfo').title = `Fecha exacta: ${uSync}`;
+            } else {
+                document.getElementById('lblSyncInfo').innerHTML = `<i class="fa-solid fa-check-circle text-green"></i> Datos consolidados correctamente`;
+            }
+
+            // Renderizar tabla
+            if (alertas.length === 0) {
+                document.getElementById('tbodyAlertas').innerHTML = `
+                    <tr><td colspan="5" style="text-align: center; padding: 30px; color: var(--green);">
+                        <i class="fa-solid fa-check-circle fa-2x"></i><br><br>Todo en orden. No hay alertas urgentes.
+                    </td></tr>
+                `;
+            } else {
+                let html = '';
+                // Ordenar para que las urgent-row salgan primero
+                alertas.sort((a,b) => a.clase === 'urgent-row' ? -1 : 1);
+
+                alertas.forEach(al => {
+                    let badgeOrigen = al.origen === 'Morosos' ? 'badge-yellow' : 'badge-blue';
+                    let link = al.origen === 'Morosos' ? '/admin/morosos' : '/admin/auditoria';
+                    
+                    html += `
+                        <tr class="${al.clase}">
+                            <td><span class="badge ${badgeOrigen}">${al.origen}</span></td>
+                            <td style="font-weight: 600;">${al.identificador}</td>
+                            <td>${al.motivo}</td>
+                            <td>${al.impacto}</td>
+                            <td>
+                                ${al.estado}
+                                <a href="${link}" style="margin-left: 10px; color: var(--blue); text-decoration: none;" title="Ir a revisar">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                });
+                document.getElementById('tbodyAlertas').innerHTML = html;
+            }
+
+        } catch (e) {
+            document.getElementById('tbodyAlertas').innerHTML = `
+                <tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--red);">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Error al cargar datos: ${e.message}
+                </td></tr>
+            `;
+            document.getElementById('lblSyncInfo').innerHTML = `<span style="color: var(--red);">Error de conexión</span>`;
+        }
+    }
+
+    // Inicializar
+    cargarDashboard();
+</script>
+</div>
+</body>
+</html>

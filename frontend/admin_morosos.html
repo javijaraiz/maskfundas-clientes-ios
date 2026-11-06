@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>if (window.top !== window.self) { window.top.location.href = window.location.href; }</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Impagos y Recobros — MásKFundas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin_modern.css?v=3.8">
+    <script src="/js/command_palette.js?v=3.5" defer></script>
+    <script src="/js/admin_compact_tables.js?v=5" defer></script>
+    <style>
+        .filter-btn {
+            background: var(--card); border: 1px solid var(--border); color: var(--muted);
+            padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+        .filter-btn:hover:not(.active) { background: var(--bg); color: var(--text); }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.2s; }
+        .modal.in { opacity: 1; display: flex !important; }
+    </style>
+</head>
+<body>
+
+<nav class="global-nav" aria-label="Navegación principal">
+    <div class="global-nav-inner">
+        <div class="global-nav-brand"><i class="fa-solid fa-shield-halved"></i><span>MásKFundas Admin</span></div>
+        <div class="global-nav-links" id="globalNavLinks">
+            <a href="/admin" id="nav-dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="/admin/dowisp" id="nav-dowisp" class="nav-dowisp-highlight"><i class="fa-solid fa-satellite-dish"></i> DoWISP Live <span class="nav-live-pill">LIVE</span></a>
+            <a href="/admin/morosos" id="nav-morosos" class="active" aria-current="page"><i class="fa-solid fa-file-invoice-dollar"></i> Morosos</a>
+            <a href="/admin/facturas-directas" id="nav-facturas-directas"><i class="fa-solid fa-paper-plane"></i> Facturas Directas</a>
+            <a href="/admin/auditoria" id="nav-auditoria"><i class="fa-solid fa-tower-cell"></i> Líneas No Facturadas</a>
+            <a href="/admin/consumos" id="nav-consumos"><i class="fa-solid fa-fire-flame-curved"></i> Consumos</a>
+            <a href="/admin/devoluciones" id="nav-devoluciones"><i class="fa-solid fa-rotate-left"></i> Devoluciones SEPA</a>
+            <a href="/admin/visor" id="nav-visor"><i class="fa-solid fa-headset"></i> Visor Clientes</a>
+            <a href="https://clientes.maskfundas.es/apn" id="nav-apn" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-tower-broadcast"></i> Guía APN</a>
+<a href="/admin/propuesta" id="nav-propuesta" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-file-invoice-dollar"></i> Presupuestos</a>
+            <a href="https://sat.maskfundas.es" id="nav-sat" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-screwdriver-wrench"></i> SAT</a>
+            <a href="/admin/seguridad" id="nav-seguridad"><i class="fa-solid fa-lock"></i> Seguridad</a>
+        </div>
+        <div class="global-nav-right">
+            <a href="/admin/logout" class="global-nav-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</a>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container">
+
+<div class="header">
+    <div class="header-title">
+        <div class="icon" style="background: linear-gradient(135deg, var(--yellow), #d97706);"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+        <div>
+            <h1>Gestión de Impagos y Recobros</h1>
+            <div class="meta-info" id="lblUltimaSync">Leyendo caché...</div>
+        </div>
+    </div>
+    <div class="header-actions-group" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn-secondary" id="btnHistorico" onclick="verHistorico()">
+            <i class="fa-solid fa-clock-rotate-left"></i> Histórico
+        </button>
+        <div style="display:flex;align-items:center;gap:4px;">
+            <button class="btn-secondary" onclick="cambiarMes(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+            <span id="lblMes" style="font-weight:700;font-size:13px;min-width:80px;text-align:center;">Mes</span>
+            <button class="btn-secondary" onclick="cambiarMes(1)"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        
+        <button class="btn-secondary" onclick="exportarCSV()">
+            <i class="fa-solid fa-file-csv"></i> CSV
+        </button>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:3px;">
+            <button class="btn-refresh" id="btnSync" onclick="sincronizar()">
+                <i class="fa-solid fa-bolt"></i> Sync DoWISP
+            </button>
+            <div id="lblBtnLastSyncMorosos" style="font-size:10px; color:#475569; font-weight:600; text-align:center; white-space:nowrap; background:#f1f5f9; padding:2px 6px; border-radius:4px; border:1px solid #e2e8f0;">
+                <i class="fa-regular fa-clock" style="color:#0284c7;"></i> <span id="valBtnLastSyncMorosos">Última: ...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="stats-row" id="statsRow">
+    <div class="stat-pill red">
+        <div class="num" id="kpiDeuda">—</div>
+        <div class="lbl" id="kpiDeudaSub">Cargando...</div>
+    </div>
+    <div class="stat-pill yellow">
+        <div class="num" id="kpiClientes">—</div>
+        <div class="lbl" id="kpiClientesSub">Facturas pendientes</div>
+    </div>
+    <div class="stat-pill blue">
+        <div class="num" id="kpiTrafico">—</div>
+        <div class="lbl">Con tráfico activo</div>
+    </div>
+    <div class="stat-pill green">
+        <div class="num" id="kpiPromesas">—</div>
+        <div class="lbl" id="kpiRegularizadosSub">Regularizados</div>
+    </div>
+</div>
+
+<div class="section">
+    <div class="section-header" style="justify-content: space-between; flex-wrap: wrap;">
+        <div style="display:flex; gap: 8px; flex-wrap: wrap;">
+            <button class="filter-btn active" id="flt-TODOS" onclick="setFiltro('TODOS'); document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active');"><i class="fa-solid fa-list"></i> Todos (<span id="cnt-TODOS">0</span>)</button>
+            <button class="filter-btn" id="flt-PENDIENTES" onclick="setFiltro('PENDIENTES'); document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active');"><i class="fa-solid fa-phone-slash"></i> Sin Contactar (<span id="cnt-PENDIENTES">0</span>)</button>
+            <button class="filter-btn" id="flt-PROMESA" onclick="setFiltro('PROMESA'); document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active');"><i class="fa-solid fa-handshake"></i> Promesa (<span id="cnt-PROMESA">0</span>)</button>
+            <button class="filter-btn" id="flt-TRAFICO" onclick="setFiltro('TRAFICO'); document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active');"><i class="fa-solid fa-triangle-exclamation"></i> Con Consumo (<span id="cnt-TRAFICO">0</span>)</button>
+            <button class="filter-btn" id="flt-REGULARIZADOS" onclick="setFiltro('REGULARIZADOS'); document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active');"><i class="fa-solid fa-circle-check"></i> Regularizados (<span id="cnt-REGULARIZADOS">0</span>)</button>
+        </div>
+        <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="inputBuscar" placeholder="Buscar cliente, DNI..." oninput="renderTabla()">
+        </div>
+    </div>
+    <div style="font-size:12px; color:var(--muted); padding: 5px 15px;" id="lblTotalRegistros"></div>
+    <div style="overflow-x: auto;">
+        <table data-compact-primary="0" data-compact-status="3" data-compact-always="7">
+            <thead>
+                <tr>
+                    <th>Cliente / Titular</th>
+                    <th>DNI / CIF</th>
+                    <th>Teléfonos / Servicios</th>
+                    <th>Deuda</th>
+                    <th>Facturas</th>
+                    <th>Consumo Mayorista</th>
+                    <th>Estado Gestión</th>
+                    <th style="text-align:center;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyMorosos">
+                <tr>
+                    <td colspan="8" class="loading-overlay">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Cargando...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!-- MODAL WHATSAPP CON PLANTILLAS Y EDITOR -->
+<div class="modal" id="modalWhatsApp">
+    <div class="modal-content" style="max-width: 580px;">
+        <div class="modal-header" style="background: linear-gradient(135deg, #15803d, #16a34a); color: white;">
+            <h3 id="modalWATitulo" style="color: white; font-size: 15px; margin: 0;"><i class="fa-brands fa-whatsapp"></i> Enviar WhatsApp</h3>
+            <button class="modal-close" onclick="cerrarModalWA()" style="color: white; opacity: 0.9;">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 18px 20px;">
+            <input type="hidden" id="waDni">
+            <input type="hidden" id="waTel">
+            <input type="hidden" id="waNombre">
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <label style="font-weight: 700; font-size: 13px; margin: 0; color: var(--text);">
+                    <i class="fa-solid fa-layer-group text-blue"></i> Seleccionar Plantilla:
+                </label>
+                <button type="button" onclick="abrirConfigPlantillas()" class="btn-secondary" style="font-size: 11px; padding: 3px 8px;" title="Editar los textos por defecto de las plantillas">
+                    <i class="fa-solid fa-gear"></i> Editar Plantillas Base
+                </button>
+            </div>
+
+            <select id="waPlantillaSel" onchange="aplicarPlantillaWA(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; font-weight: 600; margin-bottom: 14px; background: #f8fafc;">
+                <option value="recordatorio"><i class="fa-solid fa-clipboard-list"></i> 1. Recordatorio Amistoso (Recibo devuelto)</option>
+                <option value="corte"><i class="fa-solid fa-triangle-exclamation"></i> 2. Aviso Urgente de Corte (Suspensión inminente)</option>
+                <option value="acuerdo"><i class="fa-solid fa-handshake"></i> 3. Acuerdo / Promesa de Pago</option>
+                <option value="confirmacion"><i class="fa-solid fa-circle-check"></i> 4. Confirmación de Pago Recibido</option>
+            </select>
+
+            <div class="form-group" style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <label style="font-size: 12px; font-weight: 600; color: var(--muted); margin: 0;">
+                        Mensaje editable (puedes retocar el texto antes de enviar):
+                    </label>
+                    <span id="waCharCount" style="font-size: 11px; color: var(--muted);">0 caracteres</span>
+                </div>
+                <textarea id="waMsgText" rows="7" style="width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-family: inherit; font-size: 13px; line-height: 1.45; resize: vertical; box-sizing: border-box;" oninput="actualizarContadorWA()"></textarea>
+            </div>
+
+            <div style="background: #f1f5f9; border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #475569;">
+                <input type="checkbox" id="waAutoLog" checked style="cursor: pointer;">
+                <label for="waAutoLog" style="cursor: pointer; margin: 0;">Registrar automáticamente el envío en el historial de contactos CRM</label>
+            </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+            <button class="btn-secondary" type="button" onclick="copiarTextoWA()" id="btnCopiarWA">
+                <i class="fa-solid fa-copy"></i> Copiar Texto
+            </button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-secondary" type="button" onclick="cerrarModalWA()">Cancelar</button>
+                <button class="btn-refresh" type="button" onclick="enviarWhatsAppFinal()" style="background: #16a34a; border-color: #16a34a;">
+                    <i class="fa-brands fa-whatsapp"></i> Abrir WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONFIGURACIÓN DE PLANTILLAS BASE -->
+<div class="modal" id="modalPlantillasWA">
+    <div class="modal-content" style="max-width: 650px;">
+        <div class="modal-header">
+            <h3 style="margin: 0; font-size: 15px;"><i class="fa-solid fa-gear text-blue"></i> Personalizar Plantillas Base de WhatsApp</h3>
+            <button class="modal-close" onclick="cerrarConfigPlantillas()">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 16px 20px; max-height: 70vh; overflow-y: auto;">
+            <div style="background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #0369a1; margin-bottom: 15px;">
+                <i class="fa-solid fa-circle-info"></i> Puedes usar las variables: <strong>{nombre}</strong>, <strong>{deuda}</strong>, <strong>{dni}</strong>, <strong>{servicio}</strong>, <strong>{telefono}</strong>. Se reemplazarán automáticamente con los datos reales de cada cliente.
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="font-weight: 700; font-size: 12px; color: var(--text);"><i class="fa-solid fa-clipboard-list"></i> 1. Recordatorio Amistoso:</label>
+                <textarea id="cfgPlantillaRecordatorio" rows="4" style="width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 12px; box-sizing: border-box;"></textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="font-weight: 700; font-size: 12px; color: var(--text);"><i class="fa-solid fa-triangle-exclamation"></i> 2. Aviso Urgente de Corte:</label>
+                <textarea id="cfgPlantillaCorte" rows="4" style="width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 12px; box-sizing: border-box;"></textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="font-weight: 700; font-size: 12px; color: var(--text);"><i class="fa-solid fa-handshake"></i> 3. Acuerdo / Promesa de Pago:</label>
+                <textarea id="cfgPlantillaAcuerdo" rows="4" style="width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 12px; box-sizing: border-box;"></textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="font-weight: 700; font-size: 12px; color: var(--text);"><i class="fa-solid fa-circle-check"></i> 4. Confirmación de Pago Recibido:</label>
+                <textarea id="cfgPlantillaConfirmacion" rows="4" style="width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 12px; box-sizing: border-box;"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: space-between;">
+            <button class="btn-secondary" type="button" onclick="restaurarPlantillasDefault()" style="color: var(--red); border-color: rgba(239,68,68,0.3);">
+                <i class="fa-solid fa-rotate-left"></i> Restaurar por Defecto
+            </button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-secondary" type="button" onclick="cerrarConfigPlantillas()">Cancelar</button>
+                <button class="btn-refresh" type="button" onclick="guardarConfigPlantillas()"><i class="fa-solid fa-floppy-disk"></i> Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL DE PROGRESO DE SINCRONIZACIÓN -->
+<div class="modal" id="modalSyncProgress" style="z-index: 10000;">
+    <div class="modal-content" style="max-width: 480px; text-align: center; padding: 22px 24px;">
+        <div id="syncIconWrap" style="width: 50px; height: 50px; border-radius: 50%; background: rgba(14,165,233,0.15); color: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 12px;">
+            <i class="fa-solid fa-arrows-rotate fa-spin" id="syncSpinnerIcon"></i>
+        </div>
+        <h3 id="syncProgressTitle" style="margin: 0 0 4px; font-size: 16px; font-weight: 700;">Sincronizando con DoWISP...</h3>
+        <p id="syncProgressSubtitle" style="font-size: 12px; color: var(--muted); margin: 0 0 16px;">Conectando con el servidor central y mayoristas</p>
+        
+        <div style="background: #e2e8f0; height: 9px; border-radius: 10px; overflow: hidden; margin-bottom: 8px; position: relative;">
+            <div id="syncProgressBarFill" style="width: 15%; height: 100%; background: linear-gradient(90deg, #0ea5e9, #2563eb); border-radius: 10px; transition: width 0.4s ease;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 14px;">
+            <span id="syncStepText">Paso 1: Iniciando</span>
+            <span id="syncPercentText">15%</span>
+        </div>
+
+        <div id="syncLogBox" style="background: #0f172a; color: #38bdf8; font-family: monospace; font-size: 11px; text-align: left; padding: 10px 12px; border-radius: 8px; max-height: 85px; overflow-y: auto; line-height: 1.5; margin-bottom: 16px;">
+            &gt; Conectando con DoWISP...
+        </div>
+
+        <button id="btnCerrarSync" class="btn-refresh" style="display: none; width: 100%; justify-content: center; padding: 9px; font-size: 13px;" onclick="cerrarModalSync()">
+            <i class="fa-solid fa-check"></i> Cerrar y Ver Resultados
+        </button>
+    </div>
+</div>
+
+<!-- MODAL GESTIÓN -->
+<div class="modal" id="modalGestion">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitulo">Registrar Gestión</h3>
+            <button class="modal-close" onclick="cerrarModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="modalDni">
+            <div class="form-group">
+                <label>Canal de Contacto:</label>
+                <select id="modalTipo">
+                    <option value="Llamada Telefónica"><i class="fa-solid fa-phone"></i> Llamada Telefónica</option>
+                    <option value="WhatsApp"><i class="fa-brands fa-whatsapp"></i> WhatsApp</option>
+                    <option value="Email"><i class="fa-solid fa-envelope"></i> Email</option>
+                    <option value="Presencial en Tienda"><i class="fa-solid fa-store"></i> Presencial en Tienda</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Resultado de la Gestión:</label>
+                <select id="modalResultado" onchange="toggleMetodoPago(this.value)">
+                    <option value="No contesta"><i class="fa-solid fa-phone-slash"></i> No contesta / Apagado</option>
+                    <option value="Promesa de pago"><i class="fa-solid fa-handshake"></i> Promesa de pago</option>
+                    <option value="Aviso Enviado"><i class="fa-solid fa-envelope"></i> Aviso enviado</option>
+                    <option value="Reclamación / Disconformidad"><i class="fa-solid fa-triangle-exclamation"></i> Reclamación</option>
+                    <option value="Pagado / Regularizado"><i class="fa-solid fa-circle-check"></i> Pagado / Regularizado</option>
+                </select>
+            </div>
+            <div class="form-group" id="grpMetodoPago" style="display: none; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 10px; border-radius: 8px;">
+                <label style="color: var(--green);">Método de Pago:</label>
+                <select id="modalMetodoPago">
+                    <option value="Bizum">Bizum</option>
+                    <option value="Transferencia">Transferencia Bancaria</option>
+                    <option value="Efectivo">Efectivo (Tienda)</option>
+                    <option value="Tarjeta">Tarjeta de Crédito / Débito</option>
+                    <option value="Otros">Otros</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Observaciones:</label>
+                <textarea id="modalObs" rows="3" placeholder="Detalles de la llamada..."></textarea>
+            </div>
+            <div>
+                <label>Historial:</label>
+                <div id="modalHistorial" style="max-height: 120px; overflow-y: auto; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px;"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+            <button class="btn-refresh" onclick="guardarGestion()"><i class="fa-solid fa-save"></i> Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function formatoTiempoRelativo(fechaStr) {
+        if (!fechaStr) return '';
+        let d;
+        const matchDMY = String(fechaStr).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+        if (matchDMY) {
+            const day = parseInt(matchDMY[1], 10);
+            const month = parseInt(matchDMY[2], 10) - 1;
+            const year = parseInt(matchDMY[3], 10);
+            const hour = matchDMY[4] ? parseInt(matchDMY[4], 10) : 0;
+            const min = matchDMY[5] ? parseInt(matchDMY[5], 10) : 0;
+            const sec = matchDMY[6] ? parseInt(matchDMY[6], 10) : 0;
+            d = new Date(year, month, day, hour, min, sec);
+        } else {
+            d = new Date(fechaStr);
+        }
+        if (isNaN(d.getTime())) return fechaStr;
+
+        const ahora = new Date();
+        const diffMs = ahora.getTime() - d.getTime();
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHoras = Math.floor(diffMin / 60);
+        const diffDias = Math.floor(diffHoras / 24);
+
+        if (diffSec < 45) return 'hace unos segundos';
+        if (diffMin < 60) return diffMin === 1 ? 'hace 1 minuto' : `hace ${diffMin} minutos`;
+        if (diffHoras < 24) return diffHoras === 1 ? 'hace 1 hora' : `hace ${diffHoras} horas`;
+        if (diffDias === 1) return 'ayer';
+        if (diffDias < 7) return `hace ${diffDias} días`;
+        return fechaStr;
+    }
+
+    const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+    let fecha = new Date(); // Agosto 2026
+    let historico = false;
+    let datos = [];
+    let filtroActivo = 'TODOS';
+
+    function actualizarLblMes() {
+        const btnH = document.getElementById('btnHistorico');
+        if (historico) {
+            document.getElementById('lblMes').innerHTML = `<i class="fa fa-history"></i> Histórico Completo`;
+            btnH.classList.add('active');
+        } else {
+            document.getElementById('lblMes').innerHTML = `<i class="fa-solid fa-calendar"></i> ${MESES[fecha.getMonth()]} ${fecha.getFullYear()}`;
+            btnH.classList.remove('active');
+        }
+    }
+
+    function cambiarMes(d) {
+        historico = false;
+        fecha.setMonth(fecha.getMonth() + d);
+        actualizarLblMes();
+        cargarDatos();
+    }
+
+    function verHistorico() {
+        historico = true;
+        actualizarLblMes();
+        cargarDatos();
+    }
+
+        async function cargarDatos() {
+        let url = '/api/admin/morosos';
+        if (!historico) {
+            url += `?mes=${fecha.getMonth()+1}&anio=${fecha.getFullYear()}`;
+        }
+
+        document.getElementById('tbodyMorosos').innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 25px; color: #999;">
+                    <i class="fa fa-spinner fa-spin fa-2x"></i><br>Consultando base de datos...
+                </td>
+            </tr>`;
+
+        try {
+            const res = await fetch(url);
+            if (res.status === 401) {
+                window.location.href = '/admin/login';
+                return;
+            }
+            const json = await res.json();
+            datos = json.morosos || [];
+
+            // Mostrar sincronización
+            const sync = json.ultima_sync;
+            const lblSync = document.getElementById('lblUltimaSync');
+            const valBtnSync = document.getElementById('valBtnLastSyncMorosos');
+            
+            if (sync) {
+                const fechaTxt = sync.fecha || (typeof sync === 'string' ? sync : '');
+                const relTxt = formatoTiempoRelativo(fechaTxt);
+                if (valBtnSync) {
+                    valBtnSync.textContent = `Última: ${relTxt}`;
+                    valBtnSync.parentElement.title = `Sincronizado: ${fechaTxt}`;
+                }
+                lblSync.innerHTML = `<i class="fa-solid fa-check-circle text-green"></i> Sincronizado: ${relTxt} (${sync.total_morosos || datos.length} morosos · ${sync.duracion_seg || '15'}s)`;
+                lblSync.title = `Fecha exacta: ${fechaTxt}`;
+            } else {
+                const globalSync = json.ultima_sync_global;
+                const fechaGlobal = globalSync && globalSync.fecha;
+                const periodo = json.mes && json.anio ? `${String(json.mes).padStart(2, '0')}/${json.anio}` : 'este período';
+                const detalle = fechaGlobal ? `Última sincronización registrada: ${formatoTiempoRelativo(fechaGlobal)}; no hay una sincronización confirmada para ${periodo}.` : `No hay una sincronización confirmada para ${periodo}.`;
+                if (valBtnSync) valBtnSync.textContent = fechaGlobal ? `Período pendiente · global ${formatoTiempoRelativo(fechaGlobal)}` : 'Sin sincronizar';
+                lblSync.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#d97706"></i> ${detalle}`;
+                lblSync.title = fechaGlobal ? `Última sincronización global: ${fechaGlobal}` : detalle;
+            }
+
+            // KPIs
+            const totalDeuda = (json.deuda_acumulada || 0).toLocaleString('es-ES', {minimumFractionDigits: 2}) + ' €';
+            const totalFacturas = datos.reduce((acc, m) => acc + (m.total_facturas_pendientes || 0), 0);
+            const regulares = datos.filter(m => m.estado_gestion === 'REGULARIZADO').length;
+            const conTrafico = datos.filter(m => m.alerta_trafico_activo || (m.consumo_gb > 0.5) || (m.consumo_minutos > 10)).length;
+            const promesas = datos.filter(m => m.estado_gestion === 'PROMESA_DE_PAGO').length;
+            const sinContactar = datos.filter(m => m.estado_gestion === 'PENDIENTE_CONTACTAR').length;
+
+            document.getElementById('kpiDeuda').textContent = totalDeuda;
+            document.getElementById('kpiDeudaSub').textContent = `${datos.length} cliente(s) devueltos`;
+            document.getElementById('kpiClientes').textContent = datos.length;
+            document.getElementById('kpiClientesSub').textContent = `${totalFacturas} facturas pendientes`;
+            document.getElementById('kpiTrafico').textContent = conTrafico;
+            document.getElementById('kpiPromesas').textContent = promesas;
+            document.getElementById('kpiRegularizadosSub').textContent = `${regulares} regularizados`;
+
+            // Contadores de filtros
+            document.getElementById('cnt-TODOS').textContent = datos.length;
+            document.getElementById('cnt-PENDIENTES').textContent = sinContactar;
+            document.getElementById('cnt-PROMESA').textContent = promesas;
+            document.getElementById('cnt-TRAFICO').textContent = conTrafico;
+            document.getElementById('cnt-REGULARIZADOS').textContent = regulares;
+
+            renderTabla();
+        } catch(e) {
+            document.getElementById('tbodyMorosos').innerHTML = `
+                <tr><td colspan="8" style="text-align: center; padding: 20px; color: #dd4b39;"><i class="fa-solid fa-triangle-exclamation"></i> Error al cargar datos: ${e.message}</td></tr>`;
+        }
+    }
+
+    function setFiltro(f) {
+        filtroActivo = f;
+        ['TODOS', 'PENDIENTES', 'PROMESA', 'TRAFICO', 'REGULARIZADOS'].forEach(id => {
+            const el = document.getElementById('flt-' + id);
+            if (el) el.classList.remove('active', 'btn-primary');
+            if (el) el.classList.add('btn-default');
+        });
+        const activo = document.getElementById('flt-' + f);
+        if (activo) {
+            activo.classList.remove('btn-default');
+            activo.classList.add('btn-primary', 'active');
+        }
+        renderTabla();
+    }
+
+    function renderTabla() {
+        const tbody = document.getElementById('tbodyMorosos');
+        const q = (document.getElementById('inputBuscar').value || '').toLowerCase();
+
+        let filtrados = datos.filter(m => {
+            const matchQ = !q ||
+                (m.nombre || '').toLowerCase().includes(q) ||
+                (m.dni || '').toLowerCase().includes(q) ||
+                (m.telefonos || []).some(t => t.includes(q));
+            if (!matchQ) return false;
+            if (filtroActivo === 'PENDIENTES')    return m.estado_gestion === 'PENDIENTE_CONTACTAR';
+            if (filtroActivo === 'PROMESA')        return m.estado_gestion === 'PROMESA_DE_PAGO';
+            if (filtroActivo === 'TRAFICO')        return m.alerta_trafico_activo || (m.consumo_gb > 0.5) || (m.consumo_minutos > 10);
+            if (filtroActivo === 'REGULARIZADOS')  return m.estado_gestion === 'REGULARIZADO';
+            return true;
+        });
+
+        document.getElementById('lblTotalRegistros').textContent = `Mostrando ${filtrados.length} de ${datos.length} clientes`;
+
+        if (filtrados.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 25px; color: #999;"><i class="fa-solid fa-circle-info"></i> No se encontraron registros con los filtros actuales.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = filtrados.map(c => {
+            const nombreCorto = (c.nombre || '').split(' ')[0];
+            const tipoServicio = c.tiene_solo_fibra ? 'tu servicio de fibra' : 'tus líneas móviles';
+
+            // Badge estado de gestión
+            let badgeEstado = '<span class="label label-danger"><i class="fa-solid fa-phone-slash"></i> Sin contactar</span>';
+            if (c.estado_gestion === 'PROMESA_DE_PAGO') badgeEstado = '<span class="label label-warning"><i class="fa-solid fa-handshake"></i> Promesa</span>';
+            if (c.estado_gestion === 'REGULARIZADO') {
+                let txtPago = 'Pagado / Regularizado';
+                if (c.historial_contactos && c.historial_contactos.length > 0) {
+                    const ult = c.historial_contactos[0];
+                    if (ult && ult.resultado && ult.resultado.includes('Pagado')) {
+                        txtPago = ult.resultado;
+                    }
+                }
+                badgeEstado = `<span class="label label-success"><i class="fa-solid fa-check"></i> ${txtPago}</span>`;
+            }
+            if (c.estado_gestion === 'LLAMADO_SIN_RESPUESTA') badgeEstado = '<span class="label label-danger"><i class="fa-solid fa-phone"></i> Sin respuesta</span>';
+            if (c.estado_gestion === 'CONTACTADO') badgeEstado = '<span class="label label-info"><i class="fa-solid fa-comments"></i> Contactado</span>';
+
+            // Celda Teléfonos / Servicios (Botones directos de WA y llamada por CADA número)
+            let htmlTels = '';
+            const tels = c.telefonos || [];
+            const svcs = c.servicios || [];
+
+            if (tels.length > 0) {
+                htmlTels = tels.map(t => {
+                    const msgWA = encodeURIComponent(
+                        `Hola ${nombreCorto}, te contactamos de MásKFundas / MásGigas Plasencia.\n` +
+                        `Te informamos de que tienes pendiente(s) tu(s) recibo(s) por un importe de ${c.deuda_total} €.\n\n` +
+                        `Para evitar la suspensión de ${tipoServicio}, puedes realizar el pago en tu tienda MásKFundas más cercana o por transferencia bancaria indicando tu DNI (${c.dni}).\n\n` +
+                        `Si ya lo has abonado, por favor envíanos el justificante por aquí. ¡Muchas gracias!`
+                    );
+                    const urlWA = `https://wa.me/34${t}?text=${msgWA}`;
+                    
+                    // Buscar plan asociado a este número específico
+                    const svcLine = svcs.find(s => s.numero === t || (s.tipo === 'Móvil' && tels.length === 1));
+                    const planTxt = svcLine ? (svcLine.plan || 'Móvil').substring(0, 22) : 'Móvil';
+
+                    return `
+                        <div style="margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px dashed #eee;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+                                <strong style="color: #337ab7; font-size: 13px;"><i class="fa-solid fa-phone"></i> ${t}</strong>
+                                <div style="display: flex; gap: 4px; align-items: center;">
+                                    <button type="button" onclick="abrirModalWA('${c.dni}', '${t}')" class="btn-wa-pill" title="Elegir plantilla y redactar WhatsApp">
+                                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                                    </button>
+                                    <a href="tel:${t}" class="btn-call-pill" title="Llamar al ${t}">
+                                        <i class="fa-solid fa-phone"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                <span class="service-badge"><i class="fa-solid fa-mobile-screen text-success"></i> ${planTxt}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else if (c.tiene_fibra) {
+                htmlTels = '<span class="text-muted"><i class="fa-solid fa-wifi"></i> Solo Fibra (Sin móvil)</span>';
+            } else {
+                htmlTels = '<span class="text-muted">Sin teléfono registrado</span>';
+            }
+
+            // Agregar badges de fibra si tiene
+            if (c.tiene_fibra) {
+                const svcFibra = svcs.filter(s => s.tipo === 'Fibra');
+                if (svcFibra.length > 0) {
+                    htmlTels += `<div>${svcFibra.map(f => `<span class="service-badge"><i class="fa-solid fa-wifi text-info"></i> ${(f.plan || 'Fibra').substring(0,25)}</span>`).join(' ')}</div>`;
+                }
+            }
+
+            // Celda Facturas
+            const htmlFacs = (c.facturas || []).map(f => {
+                let devInfo = '';
+                if (f.fecha_devolucion) {
+                    devInfo = `<div style="font-size: 11px; color: #dd4b39; font-weight: 600;"><i class="fa-solid fa-reply"></i> Devuelto: ${f.fecha_devolucion}</div>`;
+                } else if (f.estado && f.estado.toLowerCase() !== 'pagada') {
+                    devInfo = `<div style="font-size: 11px; color: #f39c12;"><i class="fa-solid fa-clock"></i> ${f.estado}</div>`;
+                }
+                if (f.forma_pago) {
+                    devInfo += `<div style="font-size: 11px; color: #777;"><i class="fa-solid fa-credit-card"></i> ${f.forma_pago.substring(0,35)}</div>`;
+                }
+                return `<div style="margin-bottom: 3px;"><strong>${f.numero}</strong> <span class="text-muted">(${f.fecha})</span>: <span style="font-weight:700; color:#333;">${f.importe} €</span>${devInfo}</div>`;
+            }).join('');
+
+            // Celda Consumo Mayorista (DESGLOSADO POR LÍNEA)
+            let htmlConsumo = '';
+            const lineasCons = c.lineas_consumo || {};
+            
+            if (c.tiene_solo_fibra) {
+                htmlConsumo = '<span class="label label-info"><i class="fa-solid fa-wifi"></i> Solo Fibra</span>';
+            } else if (tels.length > 0) {
+                htmlConsumo = tels.map(t => {
+                    const svcLine = svcs.find(s => s.numero === t);
+                    const lData = lineasCons[t] || {};
+                    
+                    let gb = 0;
+                    let mins = 0;
+                    let activo = false;
+
+                    if (lData.consumo_gb !== undefined) {
+                        gb = lData.consumo_gb;
+                        mins = lData.consumo_minutos || 0;
+                        activo = lData.activo || (gb > 0.5 || mins > 10);
+                    } else if (svcLine && svcLine.consumo_gb !== undefined) {
+                        gb = svcLine.consumo_gb;
+                        mins = svcLine.consumo_minutos || 0;
+                        activo = svcLine.alerta_trafico_activo || (gb > 0.5 || mins > 10);
+                    } else if (tels.length === 1) {
+                        gb = c.consumo_gb || 0;
+                        mins = c.consumo_minutos || 0;
+                        activo = c.alerta_trafico_activo || (gb > 0.5 || mins > 10);
+                    }
+
+                    let badgeCons;
+                    if (activo || gb > 0.5 || mins > 10) {
+                        badgeCons = `<span class="badge-traffic" style="font-size: 11px;"><i class="fa fa-bolt"></i> ${gb} GB</span>`;
+                        if (mins > 0) badgeCons += ` <span style="color: #d9534f; font-weight: 700; font-size: 11px;"><i class="fa-solid fa-phone"></i> ${mins} min</span>`;
+                    } else if (gb > 0 || mins > 0) {
+                        badgeCons = `<span class="label label-default" style="font-size: 11px;">${gb} GB / ${mins} min</span>`;
+                    } else {
+                        badgeCons = `<span class="text-muted" style="font-size: 11px;">0 GB / 0 min</span>`;
+                    }
+
+                    return `
+                        <div style="margin-bottom: 4px; padding-bottom: 3px; border-bottom: 1px dashed #f0f0f0;">
+                            <div style="font-size: 11px; font-weight: 600; color: #555;"><i class="fa-solid fa-mobile-screen"></i> ${t}:</div>
+                            <div style="margin-top: 1px;">${badgeCons}</div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                htmlConsumo = '<span class="text-muted">Sin líneas móviles</span>';
+            }
+
+            return `
+                <tr>
+                    <td>
+                        <strong style="color: #222; font-size: 13px;">${c.nombre}</strong>
+                        <div style="font-size: 11px; color: #888;">${c.cliente_raw || ''}</div>
+                    </td>
+                    <td><span style="font-family: monospace; font-weight: 600; background: #eee; padding: 2px 5px; border-radius: 2px;">${c.dni}</span></td>
+                    <td>${htmlTels}</td>
+                    <td>
+                        <span style="font-size: 14px; font-weight: 800; color: #dd4b39;">${c.deuda_total} €</span>
+                        <div style="font-size: 11px; color: #888;">${c.total_facturas_pendientes} fact.</div>
+                    </td>
+                    <td>${htmlFacs}</td>
+                    <td>${htmlConsumo}</td>
+                    <td>
+                        ${badgeEstado}
+                        ${c.ultimo_contacto ? `<div style="font-size: 10px; color: #888; margin-top: 2px;"><i class="fa fa-history"></i> ${c.ultimo_contacto}</div>` : ''}
+                    </td>
+                    <td style="text-align: center;">
+                        <button type="button" class="btn-note-pill" onclick="abrirModal('${c.dni}', '${(c.nombre || '').replace(/'/g, "\'")}')" title="Registrar Gestión o Historial">
+                            <i class="fa-solid fa-pen-to-square"></i> Gestión
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    
+    // ── GESTIÓN DE PROGRESO DE SINCRONIZACIÓN ──────────────────────────────
+    let _syncProgressPoll = null;
+
+    function abrirModalSync() {
+        document.getElementById('syncSpinnerIcon').className = 'fa-solid fa-arrows-rotate fa-spin';
+        document.getElementById('syncIconWrap').style.background = 'rgba(14,165,233,0.15)';
+        document.getElementById('syncIconWrap').style.color = '#0ea5e9';
+        document.getElementById('syncProgressTitle').textContent = 'Sincronizando con DoWISP...';
+        document.getElementById('syncProgressSubtitle').textContent = 'Consultando facturas y consumos en tiempo real';
+        document.getElementById('syncProgressBarFill').style.width = '15%';
+        document.getElementById('syncProgressBarFill').style.background = 'linear-gradient(90deg, #0ea5e9, #2563eb)';
+        document.getElementById('syncStepText').textContent = 'Iniciando sesión...';
+        document.getElementById('syncPercentText').textContent = '15%';
+        document.getElementById('syncLogBox').innerHTML = '&gt; Conectando con DoWISP...';
+        document.getElementById('btnCerrarSync').style.display = 'none';
+
+        document.getElementById('modalSyncProgress').style.display = 'flex';
+        document.getElementById('modalSyncProgress').classList.add('in');
+    }
+
+    function cerrarModalSync() {
+        document.getElementById('modalSyncProgress').style.display = 'none';
+        document.getElementById('modalSyncProgress').classList.remove('in');
+    }
+
+    async function ejecutarSincronizacion(urlParam, callbackFin) {
+        abrirModalSync();
+        try {
+            await fetch(urlParam, {method: 'POST'});
+            
+            let simPct = 15;
+            _syncProgressPoll = setInterval(async () => {
+                try {
+                    const r = await fetch('/api/admin/morosos/sync-status');
+                    const data = await r.json();
+                    const s = data.sync_status || {};
+
+                    if (data.sync_running) {
+                        simPct = Math.min(simPct + 10, 92);
+                        const pct = s.progress || simPct;
+                        document.getElementById('syncProgressBarFill').style.width = `${pct}%`;
+                        document.getElementById('syncPercentText').textContent = `${pct}%`;
+                        if (s.step) document.getElementById('syncStepText').textContent = s.step;
+                        if (s.logs && s.logs.length) {
+                            document.getElementById('syncLogBox').innerHTML = s.logs.map(l => `&gt; ${l}`).join('<br>');
+                            document.getElementById('syncLogBox').scrollTop = document.getElementById('syncLogBox').scrollHeight;
+                        }
+                    } else {
+                        clearInterval(_syncProgressPoll);
+                        document.getElementById('syncProgressBarFill').style.width = '100%';
+                        document.getElementById('syncProgressBarFill').style.background = '#16a34a';
+                        document.getElementById('syncPercentText').textContent = '100%';
+                        document.getElementById('syncStepText').textContent = '¡Completado!';
+                        document.getElementById('syncSpinnerIcon').className = 'fa-solid fa-circle-check';
+                        document.getElementById('syncIconWrap').style.background = 'rgba(22,163,74,0.15)';
+                        document.getElementById('syncIconWrap').style.color = '#16a34a';
+                        document.getElementById('syncProgressTitle').textContent = '¡Sincronización Completada!';
+                        document.getElementById('syncProgressSubtitle').textContent = s.last || 'Datos actualizados con éxito.';
+                        if (s.logs && s.logs.length) {
+                            document.getElementById('syncLogBox').innerHTML = s.logs.map(l => `&gt; ${l}`).join('<br>');
+                        }
+                        document.getElementById('btnCerrarSync').style.display = 'flex';
+                        if (callbackFin) await callbackFin();
+                    }
+                } catch(err) {
+                    console.error("Poll error:", err);
+                }
+            }, 1200);
+        } catch(e) {
+            clearInterval(_syncProgressPoll);
+            document.getElementById('syncStepText').textContent = 'Error';
+            document.getElementById('syncProgressTitle').textContent = 'Error al sincronizar';
+            document.getElementById('syncProgressSubtitle').textContent = e.message;
+            document.getElementById('btnCerrarSync').style.display = 'flex';
+        }
+    }
+
+    // ── SYNC MANUAL ────────────────────────────────────────────────────────
+    let _pollInterval = null;
+    function sincronizar() { return syncManual(); }
+    async function syncManual() {
+        let url = '/api/admin/morosos/sync';
+        if (!historico) {
+            url += `?mes=${fecha.getMonth()+1}&anio=${fecha.getFullYear()}`;
+        }
+        await ejecutarSincronizacion(url, async () => {
+            await cargarDatos();
+        });
+    }
+
+    function toggleMetodoPago(val) {
+        const grp = document.getElementById('grpMetodoPago');
+        if (val === 'Pagado / Regularizado') {
+            grp.style.display = 'block';
+        } else {
+            grp.style.display = 'none';
+        }
+    }
+
+    
+    // ── GESTIÓN DE PLANTILLAS Y ENVÍO DE WHATSAPP ──────────────────────────
+    const DEFAULT_PLANTILLAS_WA = {
+        recordatorio: "Hola {nombre}, te contactamos de MásKFundas / MásGigas Plasencia.\nTe informamos de que tienes pendiente(s) tu(s) recibo(s) por un importe de {deuda} €.\n\nPara evitar la suspensión de {servicio}, puedes realizar el pago en tu tienda MásKFundas más cercana o por transferencia bancaria indicando tu DNI ({dni}).\n\nSi ya lo has abonado, por favor envíanos el justificante por aquí. ¡Muchas gracias!",
+        corte: "AVISO IMPORTANTE MásKFundas / MásGigas: Hola {nombre}, te informamos de que tu línea móvil/fibra tiene orden de suspensión por recibo pendiente de {deuda} €.\n\nPor favor, realiza el pago hoy mismo en tu tienda MásKFundas más cercana o por transferencia bancaria (DNI: {dni}) para evitar el corte y costes de reconexión.\n\nSi necesitas aplazar el pago o consultar tus facturas, respóndenos a este mensaje.",
+        acuerdo: "Hola {nombre}, te confirmamos el acuerdo de pago registrado hoy con MásKFundas por tu saldo pendiente de {deuda} €.\n\nQuedamos a la espera del abono en la fecha acordada en tu tienda MásKFundas más cercana o por transferencia (indicando DNI: {dni}).\n\n¡Gracias por tu colaboración!",
+        confirmacion: "Hola {nombre}, te confirmamos que hemos recibido y registrado correctamente el pago de tu recibo pendiente en MásKFundas.\n\nTu cuenta queda completamente regularizada. ¡Muchas gracias por tu confianza!"
+    };
+
+    function obtenerPlantillasWA() {
+        try {
+            const guardadas = localStorage.getItem('plantillas_wa_maskfundas');
+            if (guardadas) return JSON.parse(guardadas);
+        } catch(e) {}
+        return { ...DEFAULT_PLANTILLAS_WA };
+    }
+
+    let clienteWAActual = null;
+
+    function abrirModalWA(dni, tel) {
+        const c = datos.find(m => m.dni === dni);
+        if (!c) return;
+        const nombre = c.nombre || '';
+
+        clienteWAActual = {
+            dni: dni,
+            telefono: tel,
+            nombre: nombre,
+            nombreCorto: (nombre || '').split(' ')[0],
+            deuda: c.deuda_total || '0',
+            servicio: c.tiene_fibra ? 'Fibra y Móvil' : 'Línea Móvil'
+        };
+
+        document.getElementById('waDni').value = dni;
+        document.getElementById('waTel').value = tel;
+        document.getElementById('waNombre').value = nombre;
+        document.getElementById('modalWATitulo').innerHTML = `<i class="fa-brands fa-whatsapp"></i> WhatsApp para ${clienteWAActual.nombreCorto} (${tel})`;
+        
+        document.getElementById('waPlantillaSel').value = 'recordatorio';
+        aplicarPlantillaWA('recordatorio');
+
+        document.getElementById('modalWhatsApp').style.display = 'flex';
+        document.getElementById('modalWhatsApp').classList.add('in');
+    }
+
+    function cerrarModalWA() {
+        document.getElementById('modalWhatsApp').style.display = 'none';
+        document.getElementById('modalWhatsApp').classList.remove('in');
+    }
+
+    function aplicarPlantillaWA(tipo) {
+        if (!clienteWAActual) return;
+        const plantillas = obtenerPlantillasWA();
+        let txt = plantillas[tipo] || DEFAULT_PLANTILLAS_WA[tipo] || DEFAULT_PLANTILLAS_WA.recordatorio;
+
+        txt = txt.replace(/{nombre}/g, clienteWAActual.nombreCorto)
+                 .replace(/{deuda}/g, clienteWAActual.deuda)
+                 .replace(/{dni}/g, clienteWAActual.dni)
+                 .replace(/{servicio}/g, clienteWAActual.servicio)
+                 .replace(/{telefono}/g, clienteWAActual.telefono);
+
+        const txtArea = document.getElementById('waMsgText');
+        txtArea.value = txt;
+        actualizarContadorWA();
+    }
+
+    function actualizarContadorWA() {
+        const txt = document.getElementById('waMsgText').value || '';
+        document.getElementById('waCharCount').textContent = `${txt.length} caracteres`;
+    }
+
+    function copiarTextoWA() {
+        const txt = document.getElementById('waMsgText').value;
+        navigator.clipboard.writeText(txt).then(() => {
+            const btn = document.getElementById('btnCopiarWA');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check text-green"></i> ¡Copiado!';
+            setTimeout(() => { btn.innerHTML = orig; }, 2000);
+        });
+    }
+
+    async function enviarWhatsAppFinal() {
+        if (!clienteWAActual) return;
+        const txt = document.getElementById('waMsgText').value;
+        const tel = clienteWAActual.telefono;
+        const dni = clienteWAActual.dni;
+        const autoLog = document.getElementById('waAutoLog').checked;
+        const tipoPlantilla = document.getElementById('waPlantillaSel').options[document.getElementById('waPlantillaSel').selectedIndex].text;
+
+        // Abrir WhatsApp en nueva pestaña
+        const urlWA = `https://wa.me/34${tel}?text=${encodeURIComponent(txt)}`;
+        window.open(urlWA, '_blank');
+
+        // Registrar automáticamente en CRM si está marcado
+        if (autoLog) {
+            try {
+                await fetch('/api/admin/morosos/log-contact', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        dni: dni,
+                        tipo_contacto: 'WhatsApp',
+                        resultado: 'Aviso Enviado',
+                        observaciones: `Enviado WhatsApp (${tipoPlantilla}) al ${tel}`,
+                        usuario: 'Administración'
+                    })
+                });
+                await cargarDatos();
+            } catch(e) {}
+        }
+
+        cerrarModalWA();
+    }
+
+    // Modal de edición de plantillas base
+    function abrirConfigPlantillas() {
+        const p = obtenerPlantillasWA();
+        document.getElementById('cfgPlantillaRecordatorio').value = p.recordatorio || DEFAULT_PLANTILLAS_WA.recordatorio;
+        document.getElementById('cfgPlantillaCorte').value = p.corte || DEFAULT_PLANTILLAS_WA.corte;
+        document.getElementById('cfgPlantillaAcuerdo').value = p.acuerdo || DEFAULT_PLANTILLAS_WA.acuerdo;
+        document.getElementById('cfgPlantillaConfirmacion').value = p.confirmacion || DEFAULT_PLANTILLAS_WA.confirmacion;
+
+        document.getElementById('modalPlantillasWA').style.display = 'flex';
+        document.getElementById('modalPlantillasWA').classList.add('in');
+    }
+
+    function cerrarConfigPlantillas() {
+        document.getElementById('modalPlantillasWA').style.display = 'none';
+        document.getElementById('modalPlantillasWA').classList.remove('in');
+    }
+
+    function guardarConfigPlantillas() {
+        const nuevas = {
+            recordatorio: document.getElementById('cfgPlantillaRecordatorio').value,
+            corte: document.getElementById('cfgPlantillaCorte').value,
+            acuerdo: document.getElementById('cfgPlantillaAcuerdo').value,
+            confirmacion: document.getElementById('cfgPlantillaConfirmacion').value
+        };
+        localStorage.setItem('plantillas_wa_maskfundas', JSON.stringify(nuevas));
+        cerrarConfigPlantillas();
+        // Refrescar en el modal activo
+        const sel = document.getElementById('waPlantillaSel').value;
+        aplicarPlantillaWA(sel);
+    }
+
+    function restaurarPlantillasDefault() {
+        if (confirm('¿Restaurar los textos originales de fábrica de todas las plantillas?')) {
+            localStorage.removeItem('plantillas_wa_maskfundas');
+            abrirConfigPlantillas();
+            aplicarPlantillaWA(document.getElementById('waPlantillaSel').value);
+        }
+    }
+
+        // ── MODAL DE GESTIÓN ───────────────────────────────────────────────────
+    function abrirModal(dni) {
+        const cl = datos.find(m => m.dni === dni);
+        const nombre = cl ? (cl.nombre || '') : '';
+        document.getElementById('modalDni').value = dni;
+        document.getElementById('modalTitulo').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Gestión: ${nombre}`;
+        document.getElementById('modalObs').value = '';
+        document.getElementById('modalTipo').value = 'Llamada Telefónica';
+        document.getElementById('modalResultado').value = 'No contesta';
+        document.getElementById('grpMetodoPago').style.display = 'none';
+
+        const hist = cl && cl.historial_contactos && cl.historial_contactos.length > 0
+            ? cl.historial_contactos.map(h => {
+                const isPaid = (h.resultado || '').includes('Pagado');
+                const badgeClass = isPaid ? 'label-success' : 'label-info';
+                return `
+                <div style="padding: 6px 8px; border-bottom: 1px solid #eee; font-size: 11px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; color: #666;">
+                        <span><strong>${h.timestamp}</strong> - ${h.usuario} (${h.tipo})</span>
+                        <span class="label ${badgeClass}">${h.resultado}</span>
+                    </div>
+                    <div style="margin-top: 3px; color: #333;">${h.observaciones || 'Sin notas'}</div>
+                </div>`;
+            }).join('')
+            : '<div style="color: #999; font-size: 11px; text-align: center; padding: 10px;">Sin gestiones previas registradas.</div>';
+
+        document.getElementById('modalHistorial').innerHTML = hist;
+        document.getElementById('modalGestion').style.display = 'block';
+        document.getElementById('modalGestion').classList.add('in');
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalGestion').style.display = 'none';
+        document.getElementById('modalGestion').classList.remove('in');
+    }
+
+    async function guardarGestion() {
+        const dni  = document.getElementById('modalDni').value;
+        const tipo = document.getElementById('modalTipo').value;
+        const res  = document.getElementById('modalResultado').value;
+        const obs  = document.getElementById('modalObs').value;
+
+        let resultadoFinal = res;
+        if (res === 'Pagado / Regularizado') {
+            const metodo = document.getElementById('modalMetodoPago').value;
+            resultadoFinal = `Pagado (${metodo})`;
+        }
+
+        try {
+            const r = await fetch('/api/admin/morosos/log-contact', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({dni, tipo_contacto: tipo, resultado: resultadoFinal, observaciones: obs, usuario: 'Administración'})
+            });
+            if (r.ok) {
+                cerrarModal();
+                await cargarDatos();
+            } else {
+                alert('Error al registrar contacto');
+            }
+        } catch(e) {
+            alert('Error de conexión: ' + e.message);
+        }
+    }
+
+    // ── EXPORTACIÓN A CSV / EXCEL ──────────────────────────────────────────
+    function exportarCSV() {
+        if (!datos || datos.length === 0) {
+            alert("No hay registros para exportar.");
+            return;
+        }
+
+        const q = (document.getElementById('inputBuscar').value || '').toLowerCase();
+        let filtrados = datos.filter(m => {
+            const matchQ = !q ||
+                (m.nombre || '').toLowerCase().includes(q) ||
+                (m.dni || '').toLowerCase().includes(q) ||
+                (m.telefonos || []).some(t => t.includes(q));
+            if (!matchQ) return false;
+            if (filtroActivo === 'PENDIENTES')    return m.estado_gestion === 'PENDIENTE_CONTACTAR';
+            if (filtroActivo === 'PROMESA')        return m.estado_gestion === 'PROMESA_DE_PAGO';
+            if (filtroActivo === 'TRAFICO')        return m.alerta_trafico_activo || (m.consumo_gb > 0.5) || (m.consumo_minutos > 10);
+            if (filtroActivo === 'REGULARIZADOS')  return m.estado_gestion === 'REGULARIZADO';
+            return true;
+        });
+
+        const cabeceras = ["Cliente", "DNI/CIF", "Telefonos", "Servicios", "Deuda Total (EUR)", "Num Facturas", "Detalle Facturas", "Consumo GB", "Consumo Min", "Estado Gestion", "Ultimo Contacto"];
+        const filas = [cabeceras];
+
+        filtrados.forEach(c => {
+            const facsStr = (c.facturas || []).map(f => `${f.numero} (${f.fecha}): ${f.importe}€ ${f.fecha_devolucion ? '[Devuelto: ' + f.fecha_devolucion + ']' : ''}`).join(' | ');
+            const svcsStr = (c.servicios || []).map(s => `${s.tipo}: ${s.plan || ''}`).join(' | ');
+            filas.push([
+                `"${(c.nombre || '').replace(/"/g, '""')}"`,
+                `"${(c.dni || '').replace(/"/g, '""')}"`,
+                `"${(c.telefonos || []).join(', ')}"`,
+                `"${svcsStr.replace(/"/g, '""')}"`,
+                `"${c.deuda_total || 0}"`,
+                `"${c.total_facturas_pendientes || 0}"`,
+                `"${facsStr.replace(/"/g, '""')}"`,
+                `"${c.consumo_gb || 0}"`,
+                `"${c.consumo_minutos || 0}"`,
+                `"${(c.estado_gestion || '').replace(/"/g, '""')}"`,
+                `"${(c.ultimo_contacto || '').replace(/"/g, '""')}"`
+            ]);
+        });
+
+        const csvContent = "\uFEFF" + filas.map(e => e.join(";")).join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        const nombrePeriodo = historico ? "historico" : `${MESES[fecha.getMonth()]}_${fecha.getFullYear()}`;
+        link.setAttribute("href", url);
+        link.setAttribute("download", `morosos_dowisp_${nombrePeriodo}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // INIT
+    actualizarLblMes();
+    cargarDatos();
+</script>
+</div>
+</body>
+</html>

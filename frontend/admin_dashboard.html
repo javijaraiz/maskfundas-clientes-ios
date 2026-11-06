@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>
+        if (window.top !== window.self) { window.top.location.href = window.location.href; }
+        // Si el usuario prefiere iniciar siempre en DoWISP y no solicita explícitamente ver el dashboard
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (!urlParams.has('view') && localStorage.getItem('prefer_dowisp_home') === 'true') {
+                window.location.replace('/admin/dowisp');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Mando — MásKFundas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin_modern.css?v=3.8">
+    <script src="/js/command_palette.js?v=3.5" defer></script>
+    <script src="/js/admin_compact_tables.js?v=5" defer></script>
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .urgent-row {
+            background-color: #fff1f2 !important;
+        }
+        .urgent-row td {
+            border-bottom: 1px solid #ffe4e6 !important;
+        }
+        .badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
+        .badge-yellow { background: rgba(245,158,11,0.15); color: var(--yellow); }
+        .badge-blue { background: rgba(59,130,246,0.15); color: var(--blue); }
+        .badge-green { background: rgba(16,185,129,0.15); color: var(--green); }
+        .badge-orange { background: rgba(234,88,12,0.15); color: var(--orange); }
+
+        /* ── SYSTEM STATUS PANEL ── */
+        .system-status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+        .sys-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .sys-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .sys-card-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sys-card-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .sys-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .sys-value {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 2px;
+        }
+        .sys-sub {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        /* ── PROGRESS BAR CONSUMO ── */
+        .prog-container {
+            width: 100%;
+            max-width: 140px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            height: 8px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        .prog-bar {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+        .prog-orange { background: #f97316; }
+        .prog-red { background: #ef4444; }
+
+        .btn-action-sm {
+            padding: 4px 8px;
+            font-size: 11.5px;
+            font-weight: 600;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid var(--border);
+            background: #ffffff;
+            color: var(--blue);
+            transition: all 0.15s ease;
+        }
+        .btn-action-sm:hover {
+            background: #f0f9ff;
+            border-color: #bae6fd;
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+            animation: pulse-dot 2s infinite ease-in-out;
+        }
+        .assistant-card { background:#fff; border:1px solid #cbd5e1; border-radius:16px; padding:22px; margin:0 0 24px; box-shadow:0 8px 28px rgba(15,23,42,.06); }
+        .assistant-card h2 { margin:0 0 5px; font-size:1.25rem; color:#0f172a; }
+        .assistant-card p { margin:0 0 15px; color:#475569; line-height:1.5; }
+        .assistant-prompts { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+        .assistant-prompts button { border:1px solid #cbd5e1; border-radius:999px; background:#f8fafc; color:#1e3a8a; padding:8px 12px; cursor:pointer; font-weight:600; }
+        .assistant-prompts button:hover,.assistant-prompts button:focus-visible { background:#dbeafe; border-color:#60a5fa; }
+        .assistant-form { display:flex; gap:10px; align-items:stretch; }
+        .assistant-form textarea { flex:1; min-width:0; min-height:52px; resize:vertical; border:1px solid #94a3b8; border-radius:10px; padding:12px; font:inherit; }
+        .assistant-form button { border:0; border-radius:10px; background:#1d4ed8; color:#fff; font-weight:700; padding:0 18px; cursor:pointer; }
+        .assistant-form button:disabled { opacity:.6; cursor:wait; }
+        .assistant-answer { margin-top:15px; padding:16px; background:#f1f5f9; border-radius:10px; color:#0f172a; white-space:pre-wrap; line-height:1.6; overflow-wrap:anywhere; }
+        .assistant-answer[hidden] { display:none; }
+        .assistant-answer.puk-mode { background:transparent; padding:0; }
+        .assistant-puk { display:grid; gap:12px; background:#fff; border:2px solid #2563eb; border-radius:14px; padding:20px; max-width:520px; white-space:normal; }
+        .assistant-puk-label { color:#1e40af; font-weight:800; text-transform:uppercase; letter-spacing:.09em; font-size:.79rem; }
+        .assistant-puk-code { color:#0f172a; font-size:clamp(2rem,7vw,3.2rem); font-weight:800; font-family:ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.12em; line-height:1.1; }
+        .assistant-puk-hint { color:#475569; font-size:.85rem; margin-top:-6px; }
+        .assistant-puk-line { border-top:1px solid #cbd5e1; padding-top:12px; color:#334155; }
+        .assistant-puk-line strong { display:block; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:#64748b; }
+        .assistant-puk-line span { font-size:1.08rem; font-weight:700; }
+        .assistant-puk-meta { color:#64748b; font-size:.8rem; }
+        .assistant-puk-copy { justify-self:start; border:0; border-radius:8px; padding:10px 14px; background:#1d4ed8; color:#fff; font:inherit; font-weight:700; cursor:pointer; }
+        .assistant-puk-copy:hover,.assistant-puk-copy:focus-visible { background:#1e40af; }
+        .dashboard-ticket-list { display:grid; }
+        .dashboard-ticket-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; padding:13px 16px; border-bottom:1px solid var(--border); color:var(--text); text-decoration:none; }
+        .dashboard-ticket-row:last-child { border-bottom:0; }
+        .dashboard-ticket-row:hover,.dashboard-ticket-row:focus-visible { background:#f8fafc; outline-color:var(--blue); }
+        .dashboard-ticket-main { min-width:0; display:grid; gap:4px; }
+        .dashboard-ticket-title { font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .dashboard-ticket-meta { color:var(--muted); font-size:12px; }
+        .dashboard-ticket-state { white-space:nowrap; }
+        .dashboard-activity-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-bottom:1px solid var(--border); }
+        .dashboard-activity-stat { padding:14px 16px; border-right:1px solid var(--border); }
+        .dashboard-activity-stat:last-child { border-right:0; }
+        .dashboard-activity-stat strong { display:block; font:700 20px 'Space Grotesk',sans-serif; color:var(--text); }
+        .dashboard-activity-stat span { color:var(--muted); font-size:11px; }
+        .dashboard-activity-list { display:grid; }
+        .dashboard-activity-row { display:grid; grid-template-columns:150px minmax(0,1fr) auto; gap:12px; align-items:center; padding:10px 16px; border-bottom:1px solid var(--border); font-size:12px; }
+        .dashboard-activity-row:last-child { border-bottom:0; }
+        .dashboard-activity-when,.dashboard-activity-client { color:var(--muted); }
+        .dashboard-activity-event { font-weight:600; }
+        @media(max-width:600px) { .dashboard-ticket-row { grid-template-columns:minmax(0,1fr); } .dashboard-ticket-state { justify-self:start; } }
+        @media(max-width:700px) { .dashboard-activity-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .dashboard-activity-stat:nth-child(2) { border-right:0; } .dashboard-activity-stat:nth-child(-n+2) { border-bottom:1px solid var(--border); } .dashboard-activity-row { grid-template-columns:1fr auto; } .dashboard-activity-when { grid-column:1/-1; } }
+        @media (max-width:600px) { .assistant-card { padding:16px; } .assistant-form { flex-direction:column; } .assistant-form button { min-height:44px; } }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="global-nav" aria-label="Navegación principal">
+    <div class="global-nav-inner">
+        <div class="global-nav-brand"><i class="fa-solid fa-shield-halved"></i><span>MásKFundas Admin</span></div>
+        <div class="global-nav-links" id="globalNavLinks">
+            <a href="/" id="nav-dashboard" class="active" aria-current="page"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="/admin/tickets" id="nav-tickets"><i class="fa-solid fa-inbox"></i> Atención al cliente</a>
+            <a href="/admin/dowisp" id="nav-dowisp" class="nav-dowisp-highlight"><i class="fa-solid fa-satellite-dish"></i> DoWISP Live <span class="nav-live-pill">LIVE</span></a>
+            <a href="/admin/morosos" id="nav-morosos"><i class="fa-solid fa-file-invoice-dollar"></i> Morosos</a>
+            <a href="/admin/facturas-directas" id="nav-facturas-directas"><i class="fa-solid fa-paper-plane"></i> Facturas Directas</a>
+            <a href="/admin/auditoria" id="nav-auditoria"><i class="fa-solid fa-tower-cell"></i> Líneas No Facturadas</a>
+            <a href="/admin/consumos" id="nav-consumos"><i class="fa-solid fa-fire-flame-curved"></i> Consumos</a>
+            <a href="/admin/devoluciones" id="nav-devoluciones"><i class="fa-solid fa-rotate-left"></i> Devoluciones SEPA</a>
+            <a href="/admin/visor" id="nav-visor"><i class="fa-solid fa-headset"></i> Visor Clientes</a>
+            <a href="https://clientes.maskfundas.es/apn" id="nav-apn" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-tower-broadcast"></i> Guía APN</a>
+<a href="/admin/propuesta" id="nav-propuesta" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-file-invoice-dollar"></i> Presupuestos</a>
+            <a href="https://sat.maskfundas.es" id="nav-sat" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-screwdriver-wrench"></i> SAT</a>
+            <a href="/admin/seguridad" id="nav-seguridad"><i class="fa-solid fa-lock"></i> Seguridad</a>
+        </div>
+        <div class="global-nav-right">
+            <a href="/admin/logout" class="global-nav-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</a>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container">
+
+<div class="header">
+    <div class="header-title">
+        <div class="icon" style="background: linear-gradient(135deg, var(--blue), #1e3a8a);"><i class="fa-solid fa-chart-line"></i></div>
+        <div>
+            <h1>Centro de Mando Operativo</h1>
+            <div class="meta-info" id="lblSyncInfo">Monitorizando estado del sistema en tiempo real...</div>
+        </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+        <a class="btn-refresh" href="/admin/tickets" style="background:#126f68;text-decoration:none;" aria-label="Abrir tickets y solicitudes de clientes">
+            <i class="fa-solid fa-inbox" aria-hidden="true"></i> Tickets de clientes
+        </a>
+        <button class="btn-refresh" id="btnSyncClientesDowisp" onclick="sincronizarClientesDoWISP()" style="background:#0284c7;color:#fff;border-color:#0284c7;" title="Sincronizar censo de clientes, emails y teléfonos de DoWISP a la base de datos maestra">
+            <i class="fa-solid fa-users" id="iconSyncClientes"></i> Sync Clientes DoWISP
+        </button>
+        <button class="btn-refresh" onclick="cargarDashboard()">
+            <i class="fa-solid fa-arrows-rotate"></i> Recargar
+        </button>
+    </div>
+</div>
+
+<section class="assistant-card" aria-labelledby="assistantTitle">
+    <h2 id="assistantTitle"><i class="fa-solid fa-sparkles" aria-hidden="true"></i> Asistente de MásKFundas</h2>
+    <p>Consulta clientes, consumos, mayoristas, PUK y deudas registradas. Identifica al cliente por nombre, DNI o teléfono. Las respuestas indican la fuente y la fecha disponible.</p>
+    <div class="assistant-prompts" aria-label="Ejemplos de preguntas">
+        <button type="button" data-question="¿Cuántos GB ha consumido el número ">Consumo de una línea</button>
+        <button type="button" data-question="¿Cuánto debe el cliente ">Deuda registrada</button>
+        <button type="button" data-question="¿Cuál es el PUK del número ">PUK de una línea</button>
+        <button type="button" data-question="¿Qué mayorista tiene el número ">Mayorista</button>
+    </div>
+    <form class="assistant-form" id="assistantForm">
+        <textarea id="assistantQuestion" aria-label="Escribe tu pregunta" placeholder="Ejemplo: ¿Cuántos GB ha consumido el número 6XXXXXXXX?" maxlength="500" required></textarea>
+        <button id="assistantSend" type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Preguntar</button>
+    </form>
+    <div id="assistantAnswer" class="assistant-answer" role="status" aria-live="polite" hidden></div>
+</section>
+
+<section class="section" id="secActividadClientes" aria-labelledby="actividadClientesTitle">
+    <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <h3 id="actividadClientesTitle" style="margin:0;font-size:16px;font-weight:600;color:var(--text);">
+            <i class="fa-solid fa-user-clock" style="color:var(--blue);margin-right:6px;"></i> Acceso y actividad del portal <span class="meta-info">· últimas 24 h</span>
+        </h3>
+        <a href="/admin/seguridad?tab=portal" class="btn-action-sm">Ver actividad completa <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+    </div>
+    <div class="dashboard-activity-stats" id="dashboardActivityStats" aria-live="polite">
+        <div class="dashboard-activity-stat"><strong>—</strong><span>Aperturas autenticadas</span></div>
+        <div class="dashboard-activity-stat"><strong>—</strong><span>Inicios correctos</span></div>
+        <div class="dashboard-activity-stat"><strong>—</strong><span>Problemas de acceso</span></div>
+        <div class="dashboard-activity-stat"><strong>—</strong><span>Consultas y gestiones</span></div>
+    </div>
+    <div class="dashboard-activity-list" id="dashboardActivityList">
+        <div class="loading-overlay" style="padding:16px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando actividad reciente…</div>
+    </div>
+</section>
+
+<!-- ── DOWISP LIVE: HUB PRINCIPAL EN PORTADA ── -->
+<div class="dowisp-hero-hub" id="dowispHeroHub">
+    <div class="dowisp-hero-background"></div>
+    <div class="dowisp-hero-content">
+        <div class="dowisp-hero-header">
+            <div class="dowisp-hero-title-group">
+                <div class="dowisp-hero-badge-live">
+                    <span class="live-dot-pulse"></span>
+                    <span>CONSOLA PRINCIPAL EN VIVO</span>
+                </div>
+                <h2 class="dowisp-hero-title">
+                    <i class="fa-solid fa-satellite-dish"></i> DoWISP Live Stealth
+                </h2>
+                <p class="dowisp-hero-desc">
+                    Centro neurálgico de gestión ISP: clientes, contratos, líneas móviles, fibra FTTH y facturación en tiempo real con sesión persistente integrada.
+                </p>
+            </div>
+            
+            <div class="dowisp-hero-cta-group">
+                <a href="/admin/dowisp" class="btn-dowisp-launch" id="btnLaunchDowisp" title="Abrir DoWISP Live Embebido">
+                    <i class="fa-solid fa-satellite-dish"></i>
+                    <span>Abrir DoWISP Live</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+                <div class="dowisp-status-pill" id="heroDowispStatus">
+                    <i class="fa-solid fa-shield-halved" style="color:#10b981;"></i>
+                    <span id="heroDowispStatusText">Sesión Conectada · Sin Logins</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Módulos de Acceso Rápido 1-Click a DoWISP -->
+        <div class="dowisp-modules-strip">
+            <a href="/admin/dowisp?route=/admin/clientes/cliente/" class="dowisp-mod-card" title="Ver catálogo y fichas de clientes en DoWISP">
+                <div class="dowisp-mod-icon" style="background: rgba(2, 132, 199, 0.15); color: #38bdf8;">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div class="dowisp-mod-info">
+                    <div class="dowisp-mod-name">Clientes y Fichas</div>
+                    <div class="dowisp-mod-sub">Contratos y DNI</div>
+                </div>
+            </a>
+
+            <a href="/admin/dowisp?route=/admin/servicios_isp/serviciotelefonomovil/" class="dowisp-mod-card" title="Ver líneas móviles y SIMs en DoWISP">
+                <div class="dowisp-mod-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+                    <i class="fa-solid fa-mobile-screen"></i>
+                </div>
+                <div class="dowisp-mod-info">
+                    <div class="dowisp-mod-name">Líneas Móviles</div>
+                    <div class="dowisp-mod-sub">SIMs, ICCID y Tarifas</div>
+                </div>
+            </a>
+
+            <a href="/admin/dowisp?route=/admin/servicios_isp/serviciofibra/" class="dowisp-mod-card" title="Ver conexiones de Fibra FTTH en DoWISP">
+                <div class="dowisp-mod-icon" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">
+                    <i class="fa-solid fa-network-wired"></i>
+                </div>
+                <div class="dowisp-mod-info">
+                    <div class="dowisp-mod-name">Fibra FTTH</div>
+                    <div class="dowisp-mod-sub">Equipos y ONTs</div>
+                </div>
+            </a>
+
+            <a href="/admin/dowisp?route=/admin/finanzas/facturacliente/" class="dowisp-mod-card" title="Ver facturas y cobros en DoWISP">
+                <div class="dowisp-mod-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+                <div class="dowisp-mod-info">
+                    <div class="dowisp-mod-name">Facturas DoWISP</div>
+                    <div class="dowisp-mod-sub">Cobros y SEPA</div>
+                </div>
+            </a>
+
+            <a href="/admin/dowisp?route=/admin/clientes/cliente/add/" class="dowisp-mod-card" title="Dar de alta un nuevo cliente en DoWISP">
+                <div class="dowisp-mod-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <div class="dowisp-mod-info">
+                    <div class="dowisp-mod-name">Alta de Cliente</div>
+                    <div class="dowisp-mod-sub">Nuevo contrato</div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Buscador Rápido Directo a Ficha en DoWISP + Preferencia de Inicio -->
+        <div class="dowisp-quick-bar">
+            <form class="dowisp-search-form" onsubmit="buscarEnDowisp(event)">
+                <i class="fa-solid fa-magnifying-glass dowisp-search-icon"></i>
+                <input type="text" id="inputDowispQuickSearch" class="dowisp-search-input" placeholder="Buscar cliente por nombre, DNI o teléfono y abrir en DoWISP..." autocomplete="off">
+                <button type="submit" class="dowisp-search-btn">
+                    <span>Buscar en DoWISP</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="dowisp-pref-toggle" title="Si lo activas, al entrar a admin.maskfundas.es abrirá siempre DoWISP Live de forma predeterminada">
+                <label class="switch-pref">
+                    <input type="checkbox" id="chkPreferDowisp" onchange="togglePreferenciaInicioDowisp(this.checked)">
+                    <span class="slider-pref"></span>
+                </label>
+                <span class="pref-label" onclick="document.getElementById('chkPreferDowisp').click()">Iniciar siempre en DoWISP</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MATRIZ DE ESTADO DEL SISTEMA Y CRONS EN VIVO ── -->
+<div class="system-status-grid">
+    <div class="sys-card">
+        <div class="sys-card-left">
+            <div class="sys-card-icon" style="background: rgba(2, 132, 199, 0.1); color: var(--blue);">
+                <i class="fa-solid fa-satellite-dish"></i>
+            </div>
+            <div>
+                <div class="sys-title">CDRs Mayoristas</div>
+                <div class="sys-value" id="sysCdrsTime">—</div>
+                <div class="sys-sub" id="sysCdrsSub">Tráfico consolidado</div>
+                <div class="sys-sub" id="sysCdrsWarnings" hidden style="color:#b45309;font-weight:700"></div>
+            </div>
+        </div>
+        <div id="sysCdrsBadge"><span class="badge badge-blue"><i class="fa-solid fa-spinner fa-spin"></i></span></div>
+    </div>
+
+    <div class="sys-card">
+        <div class="sys-card-left">
+            <div class="sys-card-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--green);">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <div>
+                <div class="sys-title">DoWISP / Morosos</div>
+                <div class="sys-value" id="sysDowispTime">—</div>
+                <div class="sys-sub" id="sysDowispSub">Censo comercial</div>
+            </div>
+        </div>
+        <div id="sysDowispBadge"><span class="badge badge-green"><i class="fa-solid fa-spinner fa-spin"></i></span></div>
+    </div>
+
+    <div class="sys-card">
+        <div class="sys-card-left">
+            <div class="sys-card-icon" style="background: rgba(147, 51, 234, 0.1); color: var(--purple);">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div>
+                <div class="sys-title">Monitor Anti-Fuga</div>
+                <div class="sys-value" id="sysAntiFugaTime">—</div>
+                <div class="sys-sub">Cruce contable semanal</div>
+            </div>
+        </div>
+        <div id="sysAntiFugaBadge"><span class="badge badge-green"><i class="live-dot" style="background:var(--green)"></i> Activo</span></div>
+    </div>
+
+    <div class="sys-card" style="cursor: pointer;" onclick="window.location.href='/admin/dowisp'" title="Abrir DoWISP Live Embebido">
+        <div class="sys-card-left">
+            <div class="sys-card-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--yellow);">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <div>
+                <div class="sys-title">DoWISP Live Sesión</div>
+                <div class="sys-value" id="sysSessionTime">—</div>
+                <div class="sys-sub" id="sysSessionSub">Conector stealth nativo</div>
+            </div>
+        </div>
+        <div id="sysSessionBadge"><span class="badge badge-green"><i class="live-dot" style="background:var(--green)"></i> Conectada</span></div>
+    </div>
+
+    <div class="sys-card" style="cursor: pointer;" onclick="window.location.href='/admin/facturas-directas'" title="Gestionar Facturas Directas y Enlaces Permanentes">
+        <div class="sys-card-left">
+            <div class="sys-card-icon" style="background: rgba(16, 185, 129, 0.1); color: #059669;">
+                <i class="fa-solid fa-paper-plane"></i>
+            </div>
+            <div>
+                <div class="sys-title">Facturas Directas</div>
+                <div class="sys-value" id="sysFacturasDirectasVal">Comprobando…</div>
+                <div class="sys-sub" id="sysFacturasDirectasSub">Estado de envío</div>
+            </div>
+        </div>
+        <div id="sysFacturasDirectasBadge"><span class="badge">Consultando</span></div>
+    </div>
+</div>
+
+<!-- ── FILA DE KPIS PRINCIPALES ── -->
+<div class="stats-row" id="statsRow">
+    <div class="stat-pill red" style="cursor:pointer;" onclick="window.location.href='/admin/morosos'" title="Ir a Gestión de Morosos">
+        <div class="num" id="kpiDeudaTotal">—</div>
+        <div class="lbl" id="kpiMorososTotal">Calculando...</div>
+    </div>
+    <div class="stat-pill yellow" style="cursor:pointer;" onclick="window.location.href='/admin/morosos'" title="Ir a Morosos con Tráfico Activo">
+        <div class="num" id="kpiMorososTrafico">—</div>
+        <div class="lbl">Morosos con Tráfico</div>
+    </div>
+    <div class="stat-pill orange" style="cursor:pointer;" onclick="document.getElementById('secConsumo90').scrollIntoView({behavior: 'smooth'})" title="Ver clientes al 90%+ de su bono">
+        <div class="num" id="kpiConsumo90">—</div>
+        <div class="lbl">Al 90%+ de Bono 🔥</div>
+    </div>
+    <div class="stat-pill purple" style="cursor:pointer;" onclick="window.location.href='/admin/consumos'" title="Ir al Radar Up-Selling">
+        <div class="num" id="kpiUpselling">—</div>
+        <div class="lbl">Radar Up-Selling 🚀</div>
+    </div>
+    <div class="stat-pill blue" style="cursor:pointer;" onclick="window.location.href='/admin/auditoria'" title="Ir a Líneas Fantasma">
+        <div class="num" id="kpiFantasmas">—</div>
+        <div class="lbl">Líneas Fantasma</div>
+    </div>
+    <div class="stat-pill red" style="cursor:pointer;" onclick="window.location.href='/admin/auditoria'" title="Líneas Canceladas o no facturadas en DoWISP pero con consumo">
+        <div class="num" id="kpiNoFacturado">—</div>
+        <div class="lbl">Canceladas c/ Tráfico</div>
+    </div>
+</div>
+
+<section class="section" id="secTicketsPendientes" aria-labelledby="ticketsPendientesTitle">
+    <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <h3 id="ticketsPendientesTitle" style="margin:0;font-size:16px;font-weight:600;color:var(--text);">
+            <i class="fa-solid fa-inbox" style="color:#126f68;margin-right:6px;"></i> Consultas pendientes
+        </h3>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span class="badge badge-orange" id="dashboardTicketsCount">Cargando…</span>
+            <a href="/admin/tickets" class="btn-action-sm">Ver todos <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+        </div>
+    </div>
+    <div class="dashboard-ticket-list" id="dashboardTicketList" aria-live="polite">
+        <div class="loading-overlay" style="padding:18px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando consultas…</div>
+    </div>
+</section>
+
+<!-- ── SECCIÓN: CLIENTES AL 90%+ O EXCEDIDOS DE BONO (ATENCIÓN COMERCIAL MANUAL) ── -->
+<div class="section" id="secConsumo90">
+    <div class="section-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text);">
+            <i class="fa-solid fa-gauge-high text-orange" style="margin-right: 6px;"></i> Clientes al 90%+ o Excedidos de Bono de Datos (Atención Comercial)
+        </h3>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <span class="badge badge-orange" id="badgeTotal90">0 líneas</span>
+            <a href="/admin/consumos" class="btn-action-sm"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver Todo en Consumos</a>
+        </div>
+    </div>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Línea / Titular</th>
+                    <th>Operador / Tarifa</th>
+                    <th>Consumo vs Bono</th>
+                    <th>% Bono</th>
+                    <th>Previsión Cierre 🔮</th>
+                    <th>Sobrecoste Extra</th>
+                    <th>Gestión Manual</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyConsumo90">
+                <tr>
+                    <td colspan="7" class="loading-overlay">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Auditando consumos de datos...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ── SECCIÓN: ALERTAS URGENTES (FUEGOS QUE APAGAR) ── -->
+<div class="section">
+    <div class="section-header">
+        <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text);">
+            <i class="fa-solid fa-fire text-red" style="margin-right: 5px;"></i> Alertas Urgentes (Fuegos que Apagar)
+        </h3>
+    </div>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Origen</th>
+                    <th>Cliente / Teléfono</th>
+                    <th>Motivo de Alerta</th>
+                    <th>Impacto / Consumo</th>
+                    <th>Estado / Diagnóstico</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyAlertas">
+                <tr>
+                    <td colspan="5" class="loading-overlay">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Consolidando alertas críticas...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function formatoTiempoRelativo(fechaStr) {
+        if (!fechaStr) return 'Desconocido';
+        let d;
+        const matchDMY = String(fechaStr).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+        if (matchDMY) {
+            const day = parseInt(matchDMY[1], 10);
+            const month = parseInt(matchDMY[2], 10) - 1;
+            const year = parseInt(matchDMY[3], 10);
+            const hour = matchDMY[4] ? parseInt(matchDMY[4], 10) : 0;
+            const min = matchDMY[5] ? parseInt(matchDMY[5], 10) : 0;
+            const sec = matchDMY[6] ? parseInt(matchDMY[6], 10) : 0;
+            d = new Date(year, month, day, hour, min, sec);
+        } else {
+            d = new Date(fechaStr);
+        }
+        if (isNaN(d.getTime())) return fechaStr;
+
+        const ahora = new Date();
+        const diffMs = ahora.getTime() - d.getTime();
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHoras = Math.floor(diffMin / 60);
+        const diffDias = Math.floor(diffHoras / 24);
+
+        if (diffSec < 45) return 'hace unos segundos';
+        if (diffMin < 60) return diffMin === 1 ? 'hace 1 minuto' : `hace ${diffMin} min`;
+        if (diffHoras < 24) return diffHoras === 1 ? 'hace 1 hora' : `hace ${diffHoras} h`;
+        if (diffDias === 1) return 'ayer';
+        if (diffDias < 7) return `hace ${diffDias} días`;
+        return fechaStr;
+    }
+
+    const safeSetText = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    };
+    const safeSetHtml = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = val;
+    };
+
+    async function cargarDashboard() {
+        cargarTicketsPendientesDashboard();
+        cargarActividadClientesDashboard();
+        safeSetHtml('tbodyAlertas', `
+            <tr><td colspan="5" class="loading-overlay"><i class="fa-solid fa-spinner fa-spin"></i> Analizando datos globales...</td></tr>
+        `);
+        safeSetHtml('tbodyConsumo90', `
+            <tr><td colspan="6" class="loading-overlay"><i class="fa-solid fa-spinner fa-spin"></i> Auditando consumos...</td></tr>
+        `);
+
+        try {
+            // Peticiones en paralelo incluyendo el nuevo endpoint de operador
+            const periodoActual = new Date();
+            const urlMorososActual = `/api/admin/morosos?mes=${periodoActual.getMonth() + 1}&anio=${periodoActual.getFullYear()}`;
+            const [resOperador, resMorosos, resAuditoria, resConsumos] = await Promise.all([
+                fetch('/api/admin/dashboard-operador').catch(() => null),
+                fetch(urlMorososActual).catch(() => null),
+                fetch('/api/admin/auditoria').catch(() => null),
+                fetch('/api/admin/consumos/sobreconsumo').catch(() => null)
+            ]);
+
+            const jsonOperador = resOperador && resOperador.ok ? await resOperador.json() : null;
+            const jsonMorosos = resMorosos && resMorosos.ok ? await resMorosos.json() : null;
+            const jsonAuditoria = resAuditoria && resAuditoria.ok ? await resAuditoria.json() : null;
+            const jsonConsumos = resConsumos && resConsumos.ok ? await resConsumos.json() : null;
+
+            // ── 1. RENDERIZAR ESTADO DE CRONS Y SERVICIOS ──
+            if (jsonOperador && jsonOperador.crons) {
+                const c = jsonOperador.crons;
+                // CDRs Mayoristas
+                if (c.cdrs && c.cdrs.ultima_sync) {
+                    safeSetText('sysCdrsTime', formatoTiempoRelativo(c.cdrs.ultima_sync));
+                    const avisosCdr = c.cdrs.alertas_calidad || [];
+                    safeSetText('sysCdrsSub', `${c.cdrs.total_lineas || 0} líneas monitorizadas · ${avisosCdr.length} anomalías CDR`);
+                    const warnings = document.getElementById('sysCdrsWarnings');
+                    warnings.hidden = avisosCdr.length === 0;
+                    warnings.textContent = avisosCdr.slice(0, 3).map(a => `${a.proveedor}${a.telefono ? ' ' + a.telefono : ''}: ${a.motivo}`).join(' · ');
+                    const cdrAlDia = c.cdrs.estado === 'OK' && avisosCdr.length === 0;
+                    safeSetHtml('sysCdrsBadge', `<span class="badge ${cdrAlDia ? 'badge-green' : 'badge-yellow'}"><i class="live-dot" style="background:${cdrAlDia ? 'var(--green)' : '#d97706'}"></i> ${cdrAlDia ? 'Al día' : 'Revisar datos'}</span>`);
+                } else {
+                    safeSetText('sysCdrsTime', 'Pendiente');
+                    safeSetHtml('sysCdrsBadge', `<span class="badge badge-yellow">Aviso</span>`);
+                }
+
+                // DoWISP / Morosos
+                if (c.dowisp_morosos && c.dowisp_morosos.ultima_sync) {
+                    safeSetText('sysDowispTime', formatoTiempoRelativo(c.dowisp_morosos.ultima_sync));
+                    const mesActualTxt = periodoActual.toLocaleDateString('es-ES', { month: 'long' });
+                    const impagosPeriodo = jsonMorosos ? jsonMorosos.total : c.dowisp_morosos.morosos_count || 0;
+                    safeSetText('sysDowispSub', `${impagosPeriodo} impagos en ${mesActualTxt}`);
+                    const morososAlDia = c.dowisp_morosos.estado === 'OK';
+                    safeSetHtml('sysDowispBadge', `<span class="badge ${morososAlDia ? 'badge-green' : 'badge-yellow'}"><i class="live-dot" style="background:${morososAlDia ? 'var(--green)' : '#d97706'}"></i> ${morososAlDia ? 'Sincronizado' : 'Revisar sync'}</span>`);
+                } else {
+                    safeSetText('sysDowispTime', 'Sin sincronización');
+                    safeSetText('sysDowispSub', 'Última lectura no disponible');
+                    safeSetHtml('sysDowispBadge', `<span class="badge badge-yellow">Revisar</span>`);
+                }
+
+                // Anti-Fuga
+                if (c.anti_fuga && c.anti_fuga.ultima_ejecucion) {
+                    safeSetText('sysAntiFugaTime', c.anti_fuga.ultima_ejecucion);
+                } else {
+                    safeSetText('sysAntiFugaTime', 'Lunes 09:40');
+                }
+
+                // DoWISP Live Sesión
+                if (c.dowisp_session && c.dowisp_session.activa) {
+                    const horas = c.dowisp_session.horas_activa || 0;
+                    safeSetText('sysSessionTime', `Activa (${horas}h)`);
+                    safeSetText('sysSessionSub', 'Django 14 días persistente');
+                    safeSetHtml('sysSessionBadge', `<span class="badge badge-green"><i class="live-dot" style="background:var(--green)"></i> Conectada</span>`);
+                } else {
+                    safeSetText('sysSessionTime', 'Requiere reconexión');
+                    safeSetHtml('sysSessionBadge', `<span class="badge badge-red">Desconectada</span>`);
+                }
+            }
+
+            // Facturas Directas
+            fetch('/api/admin/facturas-directas').then(r => r.json()).then(data => {
+                if (data && data.status === 'ok') {
+                    const totalCli = (data.clientes || []).length;
+                    const activos = (data.clientes || []).filter(cli => cli.activo === 1).length;
+                    safeSetText('sysFacturasDirectasVal', `${activos} Activos`);
+                    safeSetText('sysFacturasDirectasSub', `${totalCli} en lista · ${(data.envios || []).length} envíos`);
+                    safeSetHtml('sysFacturasDirectasBadge', data.envios_cliente_habilitados
+                        ? '<span class="badge badge-green">Envíos habilitados</span>'
+                        : '<span class="badge badge-orange">Envíos pausados</span>');
+                }
+            }).catch(() => {
+                safeSetText('sysFacturasDirectasVal', 'Sin confirmar');
+                safeSetHtml('sysFacturasDirectasBadge', '<span class="badge badge-red">Revisar conexión</span>');
+            });
+
+            // ── 2. RENDERIZAR CLIENTES AL 90%+ DE BONO ──
+            const lista90 = (jsonOperador && jsonOperador.consumo_90_plus && jsonOperador.consumo_90_plus.lineas) ? jsonOperador.consumo_90_plus.lineas : [];
+            safeSetText('kpiConsumo90', (jsonOperador && jsonOperador.consumo_90_plus) ? jsonOperador.consumo_90_plus.total : lista90.length);
+            safeSetText('badgeTotal90', `${lista90.length} líneas en alerta`);
+
+            if (lista90.length === 0) {
+                document.getElementById('tbodyConsumo90').innerHTML = `
+                    <tr><td colspan="7" style="text-align: center; padding: 25px; color: var(--green);">
+                        <i class="fa-solid fa-circle-check fa-2x"></i><br><br>Todos los clientes están dentro de los límites de datos (< 90%).
+                    </td></tr>
+                `;
+            } else {
+                let html90 = '';
+                lista90.forEach(item => {
+                    const esExcedido = item.porcentaje >= 100.0;
+                    const barraClase = esExcedido ? 'prog-red' : 'prog-orange';
+                    const badgeClase = esExcedido ? 'badge-red' : 'badge-orange';
+                    const anchoBarra = Math.min(item.porcentaje, 100);
+                    const telLim = (item.telefono || '').replace(/\D/g, '');
+
+                    let avisoFn = '';
+                    if (item.es_finetwork) {
+                        avisoFn = `<div style="font-size:11px; color:#ea580c; margin-top:2px;" title="FiNetwork permite acumular gigas de meses anteriores"><i class="fa-solid fa-info-circle"></i> Posible acumulación GB</div>`;
+                    }
+
+                    let costeHtml = item.coste_extra > 0 ? `<span class="badge badge-red">+${item.coste_extra} €</span>` : '<span style="color:var(--muted);">0.00 €</span>';
+
+                    // Previsión
+                    const pGb = item.prevision_fin_mes_gb || 0;
+                    const pPct = item.prevision_pct || 0;
+                    const pDiff = item.prevision_diff_gb || 0;
+                    let prevHtml = '';
+                    if (pPct > 100 || pDiff > 0) {
+                        prevHtml = `<div style="font-weight:700; color:var(--red); font-size:12px;">~${pGb} GB <span class="badge badge-red" style="font-size:9.5px; padding:1px 4px;">+${pDiff} GB ⚠️</span></div><div style="font-size:10.5px; color:#b91c1c;">${pPct}% al cierre</div>`;
+                    } else {
+                        prevHtml = `<div style="font-weight:600; color:var(--orange); font-size:12px;">~${pGb} GB <span class="badge badge-orange" style="font-size:9.5px; padding:1px 4px;">${pPct}% ⚡</span></div><div style="font-size:10.5px; color:var(--muted);">Al límite</div>`;
+                    }
+
+                    html90 += `
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; color: var(--text);">${item.nombre}</div>
+                                <div style="font-size: 11.5px; color: var(--muted); margin-top: 2px;">
+                                    <i class="fa-solid fa-phone" style="font-size: 10px;"></i> <strong>${item.telefono}</strong>
+                                    ${item.dni ? ` &bull; ${item.dni}` : ''}
+                                </div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600;">${item.tarifa}</div>
+                                <div style="font-size: 11px; color: var(--muted);">${item.operador}</div>
+                                ${avisoFn}
+                            </td>
+                            <td>
+                                <strong>${item.gigas_consumidos} GB</strong> <span style="color:var(--muted); font-size:12px;">/ ${item.gigas_totales} GB</span>
+                            </td>
+                            <td>
+                                <div class="prog-container">
+                                    <div class="prog-bar ${barraClase}" style="width: ${anchoBarra}%;"></div>
+                                </div>
+                                <span class="badge ${badgeClase}">${item.porcentaje}%</span>
+                            </td>
+                            <td>${prevHtml}</td>
+                            <td>${costeHtml}</td>
+                            <td>
+                                <a href="/admin/visor?tel=${telLim}" class="btn-action-sm" title="Abrir ficha en Visor de Clientes">
+                                    <i class="fa-solid fa-headset"></i> Visor
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                });
+                document.getElementById('tbodyConsumo90').innerHTML = html90;
+            }
+
+            // ── 3. KPIS DE CONSUMOS & UP-SELLING ──
+            if (jsonConsumos) {
+                const totalUpselling = (jsonConsumos.radar_upselling || []).length;
+                const totalSobrecoste = (jsonConsumos.total_sobrecoste_euros || 0).toFixed(2);
+                safeSetText('kpiUpselling', totalUpselling);
+                safeSetText('kpiSobrecosteEuros', `${totalSobrecoste} €`);
+            } else {
+                safeSetText('kpiUpselling', '0');
+                safeSetText('kpiSobrecosteEuros', '0.00 €');
+            }
+
+            // ── 4. ANALIZAR MOROSOS Y AUDITORÍA ──
+            let morosos = jsonMorosos && jsonMorosos.morosos ? jsonMorosos.morosos : [];
+            let auditoria = jsonAuditoria && jsonAuditoria.lineas ? jsonAuditoria.lineas : [];
+
+            let deudaTotal = 0;
+            let totalDeudores = 0;
+            let morososConTrafico = 0;
+            let lineasFantasmas = 0;
+            let lineasNoFacturadas = 0;
+            let alertas = [];
+
+            // Analizar Morosos
+            morosos.forEach(m => {
+                if (m.estado_gestion !== 'REGULARIZADO') {
+                    deudaTotal += (m.deuda_total || 0);
+                    totalDeudores++;
+                    
+                    const tieneTrafico = m.alerta_trafico_activo || (m.consumo_gb > 0.5) || (m.consumo_minutos > 10);
+                    if (tieneTrafico) {
+                        morososConTrafico++;
+                        let consumoMoroso = `${m.consumo_gb || 0} GB`;
+                        if (m.consumo_minutos) consumoMoroso += ` / ${m.consumo_minutos} min`;
+                        alertas.push({
+                            origen: 'Morosos',
+                            clase: 'urgent-row',
+                            identificador: `${m.nombre} (${m.dni})`,
+                            motivo: 'Moroso con tráfico activo de datos o voz',
+                            impacto: `<div><strong>Deuda: ${m.deuda_total}€</strong></div><div style="font-size:11.5px; color:#b91c1c; margin-top:2px;">Consumo: ${consumoMoroso}</div>`,
+                            estado: m.estado_gestion || 'PENDIENTE'
+                        });
+                    } else if (m.estado_gestion === 'PROMESA_DE_PAGO') {
+                        alertas.push({
+                            origen: 'Morosos',
+                            clase: '',
+                            identificador: `${m.nombre} (${m.dni})`,
+                            motivo: 'Promesa de pago activa',
+                            impacto: `<div><strong>Deuda: ${m.deuda_total}€</strong></div>`,
+                            estado: 'PROMESA DE PAGO'
+                        });
+                    }
+                }
+            });
+
+            // Analizar Auditoría
+            auditoria.forEach(a => {
+                const tipoInc = (a.tipo_incidencia || '').toUpperCase();
+                if (tipoInc === 'INTERNA_GERENCIA') return;
+
+                const estadoDowisp = (a.estado_dowisp || '').toUpperCase();
+                const dx = (a.diagnostico || '').toUpperCase();
+
+                let consumoTxt = `${a.consumo_gb || 0} GB`;
+                if (a.consumo_minutos) consumoTxt += ` / ${a.consumo_minutos} min`;
+                let fechaTxt = '';
+                let fUlt = a.fecha_ultimo_cdr && a.fecha_ultimo_cdr !== 'Sin fecha reciente' && a.fecha_ultimo_cdr !== 'Sin fecha registrada' ? a.fecha_ultimo_cdr : (a.fecha_primer_cdr || '');
+                
+                if (fUlt) {
+                    fechaTxt = `<div style="font-size:11px; color:#475569; margin-top:4px;">
+                        <i class="fa-regular fa-clock" style="color:#0284c7;"></i> Última actividad: <strong>${fUlt}</strong>
+                    </div>`;
+                }
+                let impactoHtml = `<div><strong>${consumoTxt}</strong></div>${fechaTxt}`;
+
+                if (estadoDowisp.includes('NO ENCONTRADO') || estadoDowisp.includes('NO EXISTE') || tipoInc === 'FANTASMA') {
+                    lineasFantasmas++;
+                    alertas.push({
+                        origen: 'Auditoría',
+                        clase: 'urgent-row',
+                        identificador: `${a.telefono} (${a.titular_mayorista || 'Sin titular'})`,
+                        motivo: 'Línea Fantasma (En Mayorista pero no en DoWISP)',
+                        impacto: impactoHtml,
+                        estado: a.estado_gestion || 'REVISAR'
+                    });
+                } else if (dx.includes('CANCELADO') || dx.includes('BAJA') || estadoDowisp.includes('BAJA') || tipoInc === 'SIN_FACTURACION') {
+                    lineasNoFacturadas++;
+                    alertas.push({
+                        origen: 'Auditoría',
+                        clase: 'urgent-row',
+                        identificador: `${a.telefono} (${a.titular_dowisp || a.titular_mayorista})`,
+                        motivo: 'Línea Cancelada en DoWISP pero con tráfico',
+                        impacto: impactoHtml,
+                        estado: a.estado_gestion || 'CORTE URGENTE'
+                    });
+                } else if (dx.includes('NO FACTURADO')) {
+                    lineasNoFacturadas++;
+                }
+            });
+
+            // Actualizar KPIs en DOM
+            safeSetText('kpiDeudaTotal', deudaTotal.toLocaleString('es-ES', {minimumFractionDigits: 2}) + ' €');
+            safeSetText('kpiMorososTotal', `${totalDeudores} clientes con deuda`);
+            safeSetText('kpiMorososTrafico', morososConTrafico);
+            safeSetText('kpiFantasmas', lineasFantasmas);
+            safeSetText('kpiNoFacturado', lineasNoFacturadas);
+
+            const uSync = (jsonAuditoria && jsonAuditoria.ultima_sync) || (jsonMorosos && jsonMorosos.ultima_sync_global && jsonMorosos.ultima_sync_global.fecha);
+            if (uSync) {
+                const relSync = formatoTiempoRelativo(uSync);
+                safeSetHtml('lblSyncInfo', `<i class="fa-solid fa-circle-info text-green"></i> Última sincronización administrativa: ${relSync}`);
+            } else {
+                safeSetHtml('lblSyncInfo', `<i class="fa-solid fa-circle-exclamation" style="color:#d97706"></i> No hay una sincronización administrativa registrada`);
+            }
+
+            // ── 5. RENDERIZAR ALERTAS URGENTES ──
+            if (alertas.length === 0) {
+                document.getElementById('tbodyAlertas').innerHTML = `
+                    <tr><td colspan="5" style="text-align: center; padding: 30px; color: var(--green);">
+                        <i class="fa-solid fa-circle-check fa-2x"></i><br><br>Todo en orden. No hay alertas críticas urgentes.
+                    </td></tr>
+                `;
+            } else {
+                let html = '';
+                alertas.sort((a,b) => a.clase === 'urgent-row' ? -1 : 1);
+
+                alertas.forEach(al => {
+                    let badgeOrigen = al.origen === 'Morosos' ? 'badge-yellow' : 'badge-blue';
+                    let link = al.origen === 'Morosos' ? '/admin/morosos' : '/admin/auditoria';
+                    
+                    html += `
+                        <tr class="${al.clase}">
+                            <td><span class="badge ${badgeOrigen}">${al.origen}</span></td>
+                            <td style="font-weight: 600;">${al.identificador}</td>
+                            <td>${al.motivo}</td>
+                            <td>${al.impacto}</td>
+                            <td>
+                                ${al.estado}
+                                <a href="${link}" style="margin-left: 10px; color: var(--blue); text-decoration: none;" title="Ir a revisar">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                });
+                document.getElementById('tbodyAlertas').innerHTML = html;
+            }
+
+        } catch (e) {
+            document.getElementById('tbodyAlertas').innerHTML = `
+                <tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--red);">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Error al cargar datos: ${e.message}
+                </td></tr>
+            `;
+            document.getElementById('lblSyncInfo').innerHTML = `<span style="color: var(--red);">Error de conexión</span>`;
+        }
+    }
+
+    async function cargarTicketsPendientesDashboard() {
+        const list = document.getElementById('dashboardTicketList');
+        const count = document.getElementById('dashboardTicketsCount');
+        if (!list || !count) return;
+        try {
+            const response = await fetch('/api/admin/tickets/pendientes?limit=5', { credentials: 'same-origin' });
+            if (!response.ok) throw new Error('No se pudieron cargar las consultas.');
+            const data = await response.json();
+            const tickets = Array.isArray(data.tickets) ? data.tickets : [];
+            count.textContent = `${tickets.length} ${tickets.length === 1 ? 'pendiente' : 'pendientes'}`;
+            if (!tickets.length) {
+                list.innerHTML = '<div class="loading-overlay" style="padding:18px;">No hay consultas pendientes de atención.</div>';
+                return;
+            }
+            const labels = { RECIBIDA: 'Recibida', EN_CURSO: 'En curso', ESPERANDO_CLIENTE: 'Esperando al cliente' };
+            const badge = { RECIBIDA: 'badge-orange', EN_CURSO: 'badge-blue', ESPERANDO_CLIENTE: 'badge-yellow' };
+            const types = { soporte: 'Consulta de soporte', roaming: 'Gestión de roaming', duplicado_sim: 'Duplicado SIM / eSIM', bono_extra: 'Bono extra de datos', cambio_tarifa: 'Cambio de tarifa' };
+            const escapeTicketText = value => String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
+            list.innerHTML = tickets.map(ticket => {
+                const title = [types[ticket.tipo] || 'Consulta', ticket.telefono || ''].filter(Boolean).join(' · ');
+                const updated = formatoTiempoRelativo(ticket.actualizada_en || ticket.creada_en);
+                const id = encodeURIComponent(ticket.ticket || '');
+                return `<a class="dashboard-ticket-row" href="/admin/tickets?ticket=${id}">
+                    <span class="dashboard-ticket-main"><span class="dashboard-ticket-title">${escapeTicketText(title)}</span>
+                    <span class="dashboard-ticket-meta">${escapeTicketText(ticket.ticket || '')} · Actualizado ${escapeTicketText(updated)}</span></span>
+                    <span class="badge ${badge[ticket.estado] || 'badge-blue'} dashboard-ticket-state">${labels[ticket.estado] || escapeTicketText(ticket.estado || 'Pendiente')}</span>
+                </a>`;
+            }).join('');
+        } catch (error) {
+            count.textContent = 'No disponible';
+            list.innerHTML = '<div class="loading-overlay" style="padding:18px;">No se pudieron cargar las consultas ahora. <a href="/admin/tickets">Abrir sistema de tickets</a></div>';
+        }
+    }
+
+    async function cargarActividadClientesDashboard() {
+        const statsEl = document.getElementById('dashboardActivityStats');
+        const list = document.getElementById('dashboardActivityList');
+        if (!statsEl || !list) return;
+        const esc = value => String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
+        const labels = { APP_ABIERTA:'Abrió la app', LOGOUT_CLIENTE:'Cerró sesión', LOGIN_EXITOSO:'Acceso por correo correcto', PASSKEY_LOGIN_OK:'Acceso con passkey correcto', LOGIN_FALLIDO:'Código incorrecto', PASSKEY_LOGIN_FALLIDO:'Falló el acceso con passkey', OTP_EXPIRADO:'Código caducado', SESION_INVALIDA:'Sesión vencida o no válida', RATE_LIMIT_EXCEDIDO:'Límite de acceso alcanzado', ACCESO_DENEGADO:'Acceso no autorizado', SOLICITUD_OTP_EMAIL:'Solicitó código por correo', SOLICITUD_OTP:'Intento de acceso', CONSULTA_LINEAS:'Consultó sus líneas', CONSULTA_FACTURAS:'Consultó facturas', CONSULTA_LLAMADAS:'Consultó llamadas', CONSULTA_DATOS_CDR:'Consultó consumo', DESCARGA_FACTURA:'Descargó una factura', SOLICITUD_SOPORTE:'Envió una consulta' };
+        try {
+            const response = await fetch('/api/admin/clientes/actividad', { credentials:'same-origin', cache:'no-store' });
+            if (!response.ok) throw new Error('No disponible');
+            const data = await response.json();
+            const s = data.stats || {};
+            const metrics = [[s.accesos_app,'Aperturas autenticadas'],[s.logins_correctos,'Inicios correctos'],[s.problemas_acceso,'Problemas de acceso'],[s.acciones_app,'Consultas y gestiones']];
+            statsEl.innerHTML = metrics.map(([value,label]) => `<div class="dashboard-activity-stat"><strong>${Number(value)||0}</strong><span>${label}</span></div>`).join('');
+            const events = Array.isArray(data.eventos) ? data.eventos.slice(0,6) : [];
+            list.innerHTML = events.length ? events.map(event => {
+                const issue = /FALLIDO|ERROR|RECHAZADO|BLOQUEADO|EXPIRADO|INVALIDA|DENEGADO|NO_AUTORIZADO/.test(event.accion + ' ' + event.estado);
+                const status = issue ? 'badge-red' : 'badge-green';
+                const timeLabel = esc(formatoTiempoRelativo(event.timestamp));
+                return `<div class="dashboard-activity-row"><span class="dashboard-activity-when">${timeLabel}</span><span class="dashboard-activity-event">${esc(labels[event.accion] || event.accion || 'Actividad')} · ${esc(event.detalles || '')}</span><span class="badge ${status}">${esc(event.cliente || 'Sin línea')}</span></div>`;
+            }).join('') : '<div class="loading-overlay" style="padding:16px;">Aún no hay actividad reciente del portal.</div>';
+        } catch (_) {
+            statsEl.innerHTML = '<div class="dashboard-activity-stat" style="grid-column:1/-1;"><strong>—</strong><span>Actividad no disponible</span></div>';
+            list.innerHTML = '<div class="loading-overlay" style="padding:16px;">No se pudo consultar la actividad. <a href="/admin/seguridad?tab=portal">Abrir auditoría del portal</a></div>';
+        }
+    }
+
+    // ── GESTIÓN DE DOWISP EN PORTADA ──
+    function buscarEnDowisp(e) {
+        if (e) e.preventDefault();
+        const input = document.getElementById('inputDowispQuickSearch');
+        const query = (input ? input.value : '').trim();
+        if (!query) {
+            window.location.href = '/admin/dowisp';
+            return;
+        }
+        window.location.href = '/admin/dowisp?route=' + encodeURIComponent('/admin/clientes/cliente/?q=' + encodeURIComponent(query));
+    }
+
+    function togglePreferenciaInicioDowisp(checked) {
+        if (checked) {
+            localStorage.setItem('prefer_dowisp_home', 'true');
+        } else {
+            localStorage.removeItem('prefer_dowisp_home');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const chk = document.getElementById('chkPreferDowisp');
+        if (chk) {
+            chk.checked = localStorage.getItem('prefer_dowisp_home') === 'true';
+        }
+        document.querySelectorAll('.assistant-prompts button').forEach(button => {
+            button.addEventListener('click', () => {
+                const input = document.getElementById('assistantQuestion');
+                input.value = button.dataset.question;
+                input.focus();
+                input.setSelectionRange(input.value.length, input.value.length);
+            });
+        });
+        document.getElementById('assistantQuestion').addEventListener('keydown', event => {
+            if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+                event.preventDefault();
+                if (!document.getElementById('assistantSend').disabled) {
+                    document.getElementById('assistantForm').requestSubmit();
+                }
+            }
+        });
+        document.getElementById('assistantForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const input = document.getElementById('assistantQuestion');
+            const output = document.getElementById('assistantAnswer');
+            const button = document.getElementById('assistantSend');
+            const pregunta = input.value.trim();
+            if (!pregunta || button.disabled) return;
+            output.hidden = false;
+            output.classList.remove('puk-mode');
+            output.textContent = 'Consultando fuentes verificadas…';
+            button.disabled = true;
+            try {
+                const response = await fetch('/api/admin/asistente/consulta', {
+                    method:'POST', credentials:'same-origin',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({pregunta})
+                });
+                if (response.status === 401) throw new Error('La sesión ha caducado. Vuelve a iniciar sesión.');
+                if (!response.ok) throw new Error('No se ha podido completar la consulta.');
+                const data = await response.json();
+                output.replaceChildren();
+                if (data.tipo === 'puk') {
+                    output.classList.add('puk-mode');
+                    const card = document.createElement('div');
+                    card.className = 'assistant-puk';
+                    const label = document.createElement('div');
+                    label.className = 'assistant-puk-label';
+                    label.textContent = 'Código PUK · 8 dígitos';
+                    const code = document.createElement('div');
+                    code.className = 'assistant-puk-code';
+                    code.textContent = data.codigo.replace(/(.{4})/, '$1 ');
+                    const hint = document.createElement('div');
+                    hint.className = 'assistant-puk-hint';
+                    hint.textContent = 'Código para desbloquear la SIM';
+                    const line = document.createElement('div');
+                    line.className = 'assistant-puk-line';
+                    const lineLabel = document.createElement('strong');
+                    lineLabel.textContent = 'Línea móvil';
+                    const lineNumber = document.createElement('span');
+                    lineNumber.textContent = data.telefono.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
+                    line.append(lineLabel, lineNumber);
+                    const meta = document.createElement('div');
+                    meta.className = 'assistant-puk-meta';
+                    meta.textContent = `Fuente: ${data.fuente} · Actualizado: ${data.actualizado}`;
+                    const copy = document.createElement('button');
+                    copy.type = 'button';
+                    copy.className = 'assistant-puk-copy';
+                    copy.textContent = 'Copiar código PUK';
+                    copy.addEventListener('click', async () => {
+                        try {
+                            await navigator.clipboard.writeText(data.codigo);
+                            copy.textContent = 'PUK copiado';
+                            setTimeout(() => { copy.textContent = 'Copiar código PUK'; }, 2500);
+                        } catch (_) { copy.textContent = 'No se pudo copiar'; }
+                    });
+                    card.append(label, code, hint, line, meta, copy);
+                    output.appendChild(card);
+                    return;
+                }
+                const answer = data.respuesta || 'No hay respuesta disponible.';
+                answer.split(/(\*\*[^*]+\*\*)/g).forEach(part => {
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                        const strong = document.createElement('strong');
+                        strong.textContent = part.slice(2, -2);
+                        output.appendChild(strong);
+                    } else {
+                        output.appendChild(document.createTextNode(part));
+                    }
+                });
+            } catch (error) { output.textContent = error.message; }
+            finally { button.disabled = false; }
+        });
+    });
+
+    async function sincronizarClientesDoWISP() {
+        const btn = document.getElementById('btnSyncClientesDowisp');
+        if (!btn || btn.disabled) return;
+        
+        btn.disabled = true;
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sincronizando...';
+        
+        try {
+            const resp = await fetch('/api/admin/clientes/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await resp.json();
+            if (data.status === 'ok' && data.resultado) {
+                const r = data.resultado;
+                alert(`✅ Sincronización completada en ${r.duracion_seg || ''}s:\n\n• Total clientes: ${r.total}\n• Con email verificado: ${r.con_email}\n• Con teléfono de contacto: ${r.con_telefono}\n• Actualizados: ${r.actualizados}\n• Nuevos insertados: ${r.insertados}`);
+                cargarDashboard();
+            } else {
+                alert('⚠️ Error al sincronizar clientes: ' + (data.mensaje || 'Error desconocido'));
+            }
+        } catch (err) {
+            alert('❌ Error de conexión al sincronizar: ' + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    }
+
+    cargarDashboard();
+</script>
+</div>
+</body>
+</html>

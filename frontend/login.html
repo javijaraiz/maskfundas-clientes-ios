@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a tu Área de Clientes | MásKFundas</title>
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#fbf7f0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css?v=19">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            });
+        }
+    </script>
+</head>
+<body class="login-page-body">
+    <main class="login-shell">
+        <div class="login-content">
+            <header class="login-brand-row">
+                <img src="/static/img/logo.png" alt="MásKFundas" class="login-hero-logo">
+                <span>ÁREA DE CLIENTES</span>
+            </header>
+            <section class="login-intro" aria-labelledby="loginHeading">
+                <div class="login-intro-copy">
+                    <p class="login-eyebrow">Tu conexión, siempre a mano</p>
+                    <h1 id="loginHeading">Todo lo tuyo.<br><span>En un mismo lugar.</span></h1>
+                    <p class="login-hero-sub">Consulta tus líneas, consumo y facturas de forma sencilla y segura.</p>
+                </div>
+                <svg class="login-art" viewBox="0 0 360 220" role="img" aria-label="Ilustración de un teléfono conectado a la red MásKFundas">
+                    <path class="art-orbit" d="M41 174c14-61 77-105 148-105s126 35 143 90"/>
+                    <path class="art-orbit art-orbit-inner" d="M72 185c17-42 60-69 111-69s91 24 108 61"/>
+                    <path class="art-tower" d="m286 47-31 116m31-116 31 116m-52-76h42m-52 39h63m-71 37h78m-56-56 35 19m-39-37 48 18m-56 56 43-38"/>
+                    <path class="art-signal" d="M273 39c8-11 20-18 34-20m-39 7c12-17 30-27 50-28m-17 40c6-8 14-12 23-13"/>
+                    <path class="art-ground" d="M14 190c35-11 62 6 93 0s51-15 81-4 49 7 75-1 51-8 83 1"/>
+                    <path class="art-person" d="M91 190c6-26 19-42 43-48 18-4 39-2 56 5 22 9 34 23 42 43"/>
+                    <path class="art-phone" d="M144 109a11 11 0 0 1 11-11h34a11 11 0 0 1 11 11v55a11 11 0 0 1-11 11h-34a11 11 0 0 1-11-11z"/>
+                    <path class="art-phone-detail" d="M159 107h26m-10 59h-5"/>
+                    <path class="art-spark" d="m131 111-10-9m12 26h-14m75-29 9-10"/>
+                    <circle class="art-node" cx="286" cy="47" r="5"/>
+                </svg>
+            </section>
+
+        <div class="login-card-container">
+        <div class="login-main-card">
+            <!-- Step 1: Identificación por teléfono y verificación por correo -->
+            <div id="stepPhone" class="login-step">
+                <div class="step-header">
+                    <div class="step-badge">Paso 1 de 2</div>
+                    <h2 class="step-title">Entra en tu área cliente</h2>
+                    <p class="step-desc">Escribe tu móvil y te enviaremos un código de acceso al correo de tu cuenta.</p>
+                </div>
+
+                <div class="phone-input-wrapper">
+                    <label class="field-label" for="inputPhone">MÓVIL ASOCIADO A TU CUENTA</label>
+                    <div class="phone-control-box">
+                        <div class="phone-field-icon" aria-hidden="true">
+                            <i class="fa-solid fa-mobile-screen-button"></i>
+                        </div>
+                        <input 
+                            type="tel" 
+                            id="inputPhone" 
+                            placeholder="Ej. 600 00 00 00" 
+                            maxlength="12" 
+                            autofocus 
+                            autocomplete="tel"
+                            oninput="formatearInputTelefono(this)"
+                            onkeydown="if(event.key==='Enter') solicitarCodigo()"
+                        >
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: 1.25rem;">
+                    <button class="btn-login-primary" id="btnSendOtpMail" type="button" onclick="solicitarCodigo()">
+                        <span class="btn-icon"><i class="fa-solid fa-envelope"></i></span>
+                        <span>Enviar código al correo</span>
+                        <span class="btn-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                    </button>
+                    <button class="btn-login-secondary" id="btnBiometricLogin" type="button" onclick="iniciarSesionPasskey()" style="display: none;">
+                        <span class="btn-icon"><i class="fa-solid fa-fingerprint"></i></span>
+                        <span>Acceder con huella o Face ID</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Código OTP -->
+            <div id="stepOtp" class="login-step" style="display: none;">
+                <div class="step-header">
+                    <div class="step-badge step-badge-green">Paso 2 de 2</div>
+                    <h2 class="step-title">Código de Verificación</h2>
+                    <p class="step-desc" id="displayStepDesc">Enviado por correo electrónico a <strong id="displayTargetPhone" style="color: var(--text-main);">tu correo registrado</strong></p>
+                </div>
+
+                <div class="otp-input-wrapper">
+                    <label class="field-label">CÓDIGO DE SEGURIDAD (6 DÍGITOS)</label>
+                    <div class="otp-boxes-group otp-single-input">
+                        <input type="text" class="otp-digit" maxlength="6" id="otp1" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" aria-label="Código de seis dígitos" autofocus oninput="otpNext(1)">
+                    </div>
+                    <input type="hidden" id="fullOtp">
+                </div>
+
+                <button class="btn-login-primary btn-login-success" id="btnVerifyOtp" onclick="verificarCodigo()">
+                    <span>Entrar a mi Área de Cliente</span>
+                    <span class="btn-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                </button>
+
+                <div class="otp-footer-actions">
+                    <button class="btn-text-link" onclick="volverPasoTelefono()">
+                        <i class="fa-solid fa-arrow-left" style="font-size: 0.75rem; margin-right: 4px;"></i> Cambiar número de teléfono
+                    </button>
+                    <button class="btn-text-link" id="btnResendOtp" onclick="solicitarCodigo('email', true)">
+                        Reenviar código
+                    </button>
+                </div>
+            </div>
+
+            <div id="stepPasskeyChoice" class="login-step" style="display: none;">
+                <div class="step-header">
+                    <div class="step-badge step-badge-green">Acceso rápido</div>
+                    <h2 class="step-title">¿Guardar acceso en este dispositivo?</h2>
+                    <p class="step-desc">Activa una passkey para entrar después con huella, Face ID o el método de desbloqueo de tu teléfono. El correo seguirá disponible.</p>
+                </div>
+                <button class="btn-login-primary" id="btnRegisterPasskey" type="button" onclick="registrarPasskeyDesdeLogin()">
+                    <span class="btn-icon"><i class="fa-solid fa-fingerprint"></i></span>
+                    <span>Activar acceso con passkey</span>
+                    <span class="btn-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                </button>
+                <button class="btn-text-link" type="button" style="display:block;margin:1rem auto 0;" onclick="omitirRegistroPasskey()">Ahora no, ir a mi área</button>
+            </div>
+
+            <!-- Security Footer Inside Card -->
+            <div class="card-security-footer">
+                <span class="sec-icon"><i class="fa-solid fa-lock"></i></span>
+                <span>Conexión segura • Acceso protegido</span>
+            </div>
+        </div>
+
+        </div>
+        <div class="login-help-line"><i class="fa-regular fa-circle-question" aria-hidden="true"></i><span>¿Necesitas ayuda?</span> <a href="https://wa.me/34666677773" target="_blank" rel="noopener noreferrer">Contacta con Atención al Cliente</a></div>
+        <p class="login-legal-copy">MásKFundas · Telefonía Plasencia · C/ Sol, 60</p>
+        </div>
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="loginToast" class="app-toast" role="status" aria-live="polite">Notificación</div>
+
+    <script src="/static/js/passkeys.js?v=1"></script>
+    <script>
+        function formatearInputTelefono(input) {
+            let v = input.value.replace(/\D/g, '');
+            if (v.length > 9) v = v.substring(0, 9);
+            
+            // Formatear en bloques 3-2-2-2
+            let formatted = '';
+            if (v.length > 0) formatted += v.substring(0, 3);
+            if (v.length > 3) formatted += ' ' + v.substring(3, 5);
+            if (v.length > 5) formatted += ' ' + v.substring(5, 7);
+            if (v.length > 7) formatted += ' ' + v.substring(7, 9);
+            
+            input.value = formatted;
+        }
+
+        function otpNext() {
+            const input = document.getElementById('otp1');
+            const code = (input.value.match(/\d/g) || []).join('').slice(0, 6);
+            input.value = code;
+            document.getElementById('fullOtp').value = code;
+            if (code.length === 6 && !verificacionEnCurso) setTimeout(verificarCodigo, 120);
+        }
+
+        let toastTimeout = null;
+        function mostrarToast(msg, duration = 3500) {
+            const t = document.getElementById('loginToast');
+            if (t) {
+                if (toastTimeout) clearTimeout(toastTimeout);
+                t.textContent = msg;
+                t.classList.add('show');
+                toastTimeout = setTimeout(() => {
+                    t.classList.remove('show');
+                    toastTimeout = null;
+                }, duration);
+            }
+        }
+
+        let canalSeleccionado = 'email';
+        let verificacionEnCurso = false;
+
+        function solicitarCodigo(canal = 'email', esReenvio = false) {
+            const raw = document.getElementById('inputPhone').value.replace(/\s+/g, '').trim();
+            if (raw.length < 9) {
+                mostrarToast('Introduce un número de teléfono de 9 dígitos');
+                return;
+            }
+
+            if (!esReenvio) {
+                canalSeleccionado = 'email';
+            }
+
+            const btnMail = document.getElementById('btnSendOtpMail');
+            const btnResend = document.getElementById('btnResendOtp');
+            if (btnMail) {
+                btnMail.disabled = true;
+                btnMail.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i><span>Enviando código...</span>';
+            }
+            if (btnResend) {
+                btnResend.disabled = true;
+                btnResend.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i>Reenviando...';
+            }
+
+            mostrarToast('Enviando código al correo registrado...', 6000);
+
+            fetch('/api/auth/send-otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({telefono: raw, canal: canalSeleccionado})
+            }).then(r => r.json()).then(res => {
+                if (res.status === 'ok') {
+                    const descContainer = document.getElementById('displayStepDesc');
+                    if (canalSeleccionado === 'email' && res.email_enmascarado) {
+                        descContainer.textContent = 'Enviado por correo electrónico a ';
+                        const destination = document.createElement('strong');
+                        destination.id = 'displayTargetPhone';
+                        destination.style.color = '#0284C7';
+                        destination.textContent = res.email_enmascarado;
+                        descContainer.appendChild(destination);
+                        mostrarToast(`¡Código enviado a ${res.email_enmascarado}!`);
+                    } else {
+                        mostrarToast('Código enviado al correo registrado.');
+                    }
+                    document.getElementById('stepPhone').style.display = 'none';
+                    document.getElementById('stepOtp').style.display = 'block';
+                    document.getElementById('otp1').value = '';
+                    document.getElementById('otp1').focus();
+                } else {
+                    mostrarToast(res.detail || 'No se pudo enviar el código al correo.');
+                }
+            }).catch(err => {
+                mostrarToast('Error de conexión con el servidor');
+            }).finally(() => {
+                if (btnMail) {
+                    btnMail.disabled = false;
+                    btnMail.innerHTML = '<span class="btn-icon"><i class="fa-solid fa-envelope"></i></span><span>Enviar código al correo</span><span class="btn-arrow"><i class="fa-solid fa-arrow-right"></i></span>';
+                }
+                if (btnResend) {
+                    btnResend.disabled = false;
+                    btnResend.innerHTML = 'Reenviar código';
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mensaje = urlParams.get('mensaje');
+            if (mensaje) mostrarToast(mensaje);
+            if (urlParams.get('logout') === '1') {
+                sessionStorage.removeItem('mg_token');
+                sessionStorage.removeItem('mg_user_phone');
+                localStorage.removeItem('mg_token');
+                localStorage.removeItem('mg_user_phone');
+            }
+            // Credenciales de versiones anteriores: la sesión ahora es HttpOnly.
+            sessionStorage.removeItem('mg_token');
+            sessionStorage.removeItem('mg_user_phone');
+            localStorage.removeItem('mg_token');
+            localStorage.removeItem('mg_user_phone');
+            localStorage.removeItem('mg_bio_token');
+            comprobarSoportePasskey();
+        });
+
+        async function comprobarSoportePasskey() {
+            const btnBio = document.getElementById('btnBiometricLogin');
+            if (!btnBio || !window.MFPasskeys?.supported()) return;
+            try {
+                const response = await fetch('/api/auth/passkeys/availability', { cache: 'no-store' });
+                const data = await response.json();
+                if (data.available) btnBio.style.display = 'flex';
+            } catch (_) { /* El acceso por correo sigue disponible. */ }
+        }
+
+        async function iniciarSesionPasskey() {
+            const btn = document.getElementById('btnBiometricLogin');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Verificando en este dispositivo…</span>'; }
+            try {
+                await window.MFPasskeys.login();
+                mostrarToast('Acceso verificado. Bienvenido.');
+                setTimeout(() => window.location.assign('/app'), 350);
+            } catch (error) {
+                mostrarToast(error.message || 'No se pudo acceder con passkey.');
+                if (btn) { btn.disabled = false; btn.innerHTML = '<span class="btn-icon"><i class="fa-solid fa-fingerprint"></i></span><span>Acceder con huella o Face ID</span>'; }
+            }
+        }
+
+        function verificarCodigo() {
+            if (verificacionEnCurso) return;
+            const raw = document.getElementById('inputPhone').value.replace(/\D/g, '');
+            const otp = (document.getElementById('otp1').value.match(/\d/g) || []).join('').slice(0, 6);
+            if (otp.length !== 6) {
+                mostrarToast('Introduce el código completo de 6 dígitos');
+                return;
+            }
+
+            verificacionEnCurso = true;
+            const btn = document.getElementById('btnVerifyOtp');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i><span>Verificando...</span>'; }
+
+            fetch('/api/auth/verify-otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({telefono: raw, codigo: otp})
+            }).then(async r => {
+                const res = await r.json();
+                if (!r.ok) {
+                    mostrarToast(res.detail || 'Código de seguridad incorrecto o caducado');
+                    verificacionEnCurso = false;
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<span>Entrar a mi Área de Cliente</span><span class="btn-arrow"><i class="fa-solid fa-arrow-right"></i></span>'; }
+                    return;
+                }
+                sessionStorage.removeItem('mg_token');
+                sessionStorage.removeItem('mg_user_phone');
+                localStorage.removeItem('mg_token');
+                localStorage.removeItem('mg_user_phone');
+                
+                mostrarToast('¡Acceso verificado con éxito!');
+                if (window.MFPasskeys?.supported()) {
+                    ofrecerActivacionPasskey();
+                } else {
+                    window.location.assign('/app');
+                }
+            }).catch(err => {
+                mostrarToast('Error de conexión al verificar el código');
+                verificacionEnCurso = false;
+                if (btn) { btn.disabled = false; btn.innerHTML = '<span>Entrar a mi Área de Cliente</span><span class="btn-arrow"><i class="fa-solid fa-arrow-right"></i></span>'; }
+            });
+        }
+
+        async function ofrecerActivacionPasskey() {
+            try {
+                const response = await fetch('/api/auth/passkeys', { credentials: 'same-origin', cache: 'no-store' });
+                const data = await response.json();
+                if (response.ok && (data.passkeys || []).length) { window.location.assign('/app'); return; }
+            } catch (_) { /* La sesión ya está iniciada; el cliente puede activarla desde Más. */ }
+            document.getElementById('stepOtp').style.display = 'none';
+            document.getElementById('stepPasskeyChoice').style.display = 'block';
+        }
+
+        async function registrarPasskeyDesdeLogin() {
+            const button = document.getElementById('btnRegisterPasskey');
+            if (button) { button.disabled = true; button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Preparando acceso seguro…</span>'; }
+            try {
+                const result = await window.MFPasskeys.register();
+                mostrarToast(result.message || 'Acceso con passkey activado.');
+                window.location.assign('/app');
+            } catch (error) {
+                mostrarToast(error.message || 'No se pudo activar la passkey. Puedes intentarlo desde Más.');
+                if (button) { button.disabled = false; button.innerHTML = '<span class="btn-icon"><i class="fa-solid fa-fingerprint"></i></span><span>Activar acceso con passkey</span><span class="btn-arrow"><i class="fa-solid fa-arrow-right"></i></span>'; }
+            }
+        }
+
+        function omitirRegistroPasskey() { window.location.assign('/app'); }
+
+        function volverPasoTelefono() {
+            document.getElementById('stepOtp').style.display = 'none';
+            document.getElementById('stepPhone').style.display = 'block';
+            document.getElementById('otp1').value = '';
+            document.getElementById('inputPhone').focus();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "name": "MásKFundas Clientes",
+  "short_name": "MásKFundas",
+  "description": "Portal oficial de clientes MásKFundas / MásGigas. Consulta tus gigas, consumos CDR, facturas y PUK.",
+  "id": "/app",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0b1938",
+  "orientation": "portrait-primary",
+  "categories": ["utilities", "communication"],
+  "icons": [
+    {
+      "src": "/static/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/pwa/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

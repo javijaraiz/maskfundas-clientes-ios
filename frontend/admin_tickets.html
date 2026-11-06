@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <script>if (window.top !== window.self) window.top.location.href = window.location.href;</script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light"><title>Atención al cliente — MásKFundas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="/css/admin_modern.css?v=3.8" rel="stylesheet">
+  <script src="/js/command_palette.js?v=3.5" defer></script>
+  <style>
+    .ticket-summary { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:13px; }
+    .ticket-summary strong { color:var(--text); font:800 22px 'Space Grotesk',sans-serif; }
+    .ticket-toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:10px 10px 0 0; padding:12px 14px; }
+    .ticket-search { flex:1; min-width:220px; display:flex; align-items:center; gap:9px; border:1px solid var(--border); border-radius:7px; padding:0 11px; color:var(--muted); background:#fff; }
+    .ticket-search input { width:100%; min-width:0; border:0; outline:0; padding:10px 0; background:transparent; color:var(--text); }
+    .ticket-toolbar select { min-height:38px; border:1px solid var(--border); border-radius:7px; background:#fff; padding:0 10px; color:var(--text); }
+    .ticket-action { min-height:38px; border:1px solid var(--border); border-radius:7px; background:#fff; color:var(--text); padding:0 13px; font-weight:650; }
+    .ticket-action:hover,.ticket-action:focus-visible { border-color:var(--blue); color:var(--blue); }
+    .ticket-action-primary { background:var(--blue); border-color:var(--blue); color:white; }
+    .ticket-action-primary:hover,.ticket-action-primary:focus-visible { background:#0369a1; color:white; }
+    .ticket-action-warning { border-color:#fbbf24; color:#92400e; background:#fffbeb; }
+    .ticket-workspace { display:grid; grid-template-columns:minmax(310px,.82fr) minmax(0,1.55fr); min-height:580px; background:#fff; border:1px solid var(--border); border-top:0; border-radius:0 0 10px 10px; overflow:hidden; }
+    .ticket-queue { min-width:0; border-right:1px solid var(--border); }
+    .ticket-queue-head { display:flex; justify-content:space-between; align-items:center; min-height:49px; padding:0 15px; border-bottom:1px solid var(--border); background:#f8fafc; }
+    .ticket-queue-head strong { color:var(--text); font-size:12px; text-transform:uppercase; letter-spacing:.055em; }
+    .ticket-row { display:block; width:100%; text-align:left; border:0; border-bottom:1px solid var(--border); padding:14px 15px; background:#fff; color:var(--text); cursor:pointer; }
+    .ticket-row:hover,.ticket-row:focus-visible { background:#f8fafc; outline:2px solid var(--blue); outline-offset:-2px; }
+    .ticket-row[aria-current=true] { background:#eff6ff; box-shadow:inset 3px 0 var(--blue); }
+    .row-top,.row-meta { display:flex; justify-content:space-between; gap:10px; align-items:center; }
+    .row-title { font-size:13px; font-weight:700; }
+    .ticket-id,.row-date { color:var(--muted); font-size:11px; }
+    .ticket-id { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
+    .row-snippet { color:var(--muted); margin-top:7px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; }
+    .row-meta { margin-top:9px; }
+    .state { font-size:10px; font-weight:700; color:#92400e; }
+    .state[data-state=EN_CURSO] { color:#1d4ed8; }
+    .state[data-state=ESPERANDO_CLIENTE] { color:#a16207; }
+    .state[data-state=RESUELTA],.state[data-state=CERRADA] { color:var(--muted); }
+    .ticket-detail { min-width:0; display:flex; flex-direction:column; }
+    .detail-empty { margin:auto; text-align:center; color:var(--muted); padding:30px; max-width:370px; line-height:1.65; }
+    .detail-head { padding:15px 18px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:14px; background:#fff; }
+    .detail-title { color:var(--text); font:700 18px 'Space Grotesk',sans-serif; margin:0; }
+    .detail-sub { color:var(--muted); font-size:11px; margin-top:5px; }
+    .controls { display:flex; gap:7px; flex-wrap:wrap; }
+    .controls select,.controls input { min-height:34px; min-width:100px; border:1px solid var(--border); border-radius:6px; background:white; color:var(--text); padding:6px 8px; }
+    .controls button,.send { min-height:34px; border:0; border-radius:6px; background:var(--blue); color:white; padding:7px 12px; font-weight:700; }
+    .controls button:hover,.send:hover { background:#0369a1; }
+    .conversation { padding:20px; flex:1; min-height:260px; max-height:500px; overflow:auto; background:#f8fafc; }
+    .origin { border-left:3px solid var(--blue); padding:0 0 2px 14px; margin:0 0 22px; line-height:1.6; white-space:pre-wrap; color:var(--text); }
+    .origin-label { color:var(--muted); font-size:10px; font-weight:700; letter-spacing:.055em; text-transform:uppercase; margin-bottom:7px; }
+    .message { max-width:82%; margin:0 0 16px auto; padding:11px 13px; border:1px solid #bfdbfe; border-radius:8px 8px 2px 8px; background:#eff6ff; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .message.agent { margin:0 auto 16px 0; border-color:var(--border); border-radius:8px 8px 8px 2px; background:white; }
+    .message.internal { background:#fffbeb; border-color:#fcd34d; }
+    .message-meta { display:block; color:var(--muted); font-size:10px; margin-bottom:5px; }
+    .reply { border-top:1px solid var(--border); padding:14px 18px 18px; background:#fff; }
+    .reply textarea { display:block; width:100%; min-height:88px; padding:11px; border:1px solid var(--border); border-radius:7px; background:white; resize:vertical; outline-color:var(--blue); }
+    .reply-bottom { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:10px; }
+    .internal-toggle { color:#92400e; font-size:12px; }
+    .state-pill { display:inline-flex; margin-top:9px; padding:4px 9px; border:1px solid #bfdbfe; border-radius:999px; background:#eff6ff; color:#1d4ed8; font-size:11px; font-weight:750; }
+    .state-pill[data-state=RECIBIDA] { border-color:#fed7aa; background:#fff7ed; color:#9a3412; }
+    .state-pill[data-state=ESPERANDO_CLIENTE] { border-color:#fde68a; background:#fffbeb; color:#a16207; }
+    .state-pill[data-state=RESUELTA],.state-pill[data-state=CERRADA] { border-color:var(--border); background:#f8fafc; color:var(--muted); }
+    .customer-context { padding:13px 18px; border-bottom:1px solid var(--border); background:#fbfdff; }
+    .customer-context-head { display:flex; justify-content:space-between; align-items:center; gap:14px; }
+    .customer-context-head > div:first-child { display:grid; gap:4px; min-width:0; }
+    .customer-context-head strong { color:var(--text); font-size:14px; }
+    .customer-line-main { color:var(--muted); font-size:12px; }
+    .customer-links { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:7px; }
+    .customer-link { display:inline-flex; align-items:center; gap:7px; min-height:35px; padding:7px 10px; border:1px solid #bfdbfe; border-radius:6px; background:#eff6ff; color:#075985; font-size:12px; font-weight:700; text-decoration:none; white-space:nowrap; }
+    .customer-link:hover,.customer-link:focus-visible { border-color:#0284c7; background:#dbeafe; }
+    .customer-link-secondary { border-color:var(--border); background:#fff; color:var(--text); }
+    .service-summary { display:flex; flex-wrap:wrap; gap:22px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border); }
+    .service-summary span { display:grid; gap:3px; }
+    .service-summary small,.linked-lines li small { color:var(--muted); font-size:10px; }
+    .service-summary strong { color:var(--text); font-size:12px; }
+    .customer-context-empty { margin:10px 0 0; color:var(--muted); font-size:12px; }
+    .linked-lines { margin-top:10px; color:var(--text); font-size:12px; }
+    .linked-lines summary { width:max-content; max-width:100%; color:#0369a1; cursor:pointer; font-weight:650; }
+    .linked-lines ul { display:grid; gap:0; margin:8px 0 0; padding:0; list-style:none; border:1px solid var(--border); border-radius:6px; background:#fff; }
+    .linked-lines li { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:8px 10px; border-bottom:1px solid var(--border); }
+    .linked-lines li:last-child { border-bottom:0; }
+    .linked-lines li span { display:grid; gap:3px; }
+    .linked-lines li a { color:#0369a1; font-size:11px; font-weight:650; white-space:nowrap; }
+    .reply-state-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:13px; padding-top:12px; border-top:1px solid var(--border); color:var(--muted); font-size:12px; }
+    .reply-state-row select { min-height:36px; min-width:190px; border:1px solid var(--border); border-radius:6px; background:white; color:var(--text); padding:6px 9px; }
+    .reply-actions { display:flex; align-items:center; gap:8px; margin-top:10px; }
+    .reply-actions button { min-height:40px; border-radius:6px; padding:8px 13px; font-weight:700; }
+    .reply-actions .send { flex:1; }
+    .quick-pending { border:1px solid #cbd5e1; background:white; color:#334155; }
+    .quick-pending:hover { border-color:#64748b; background:#f8fafc; }
+    .quick-close { border:1px solid #a7f3d0; background:#ecfdf5; color:#047857; }
+    .quick-close:hover { border-color:#34d399; background:#d1fae5; }
+    .reply-actions button:disabled { opacity:.55; cursor:wait; }
+    .notice,.empty { padding:24px 16px; color:var(--muted); line-height:1.55; }
+    @media(max-width:850px){ .ticket-workspace{grid-template-columns:1fr}.ticket-queue{border-right:0}.ticket-detail{border-top:2px solid var(--border);min-height:420px}.detail-head{align-items:flex-start;flex-direction:column}.controls{width:100%}.controls select{flex:1;min-width:110px}.customer-context-head{align-items:flex-start;flex-direction:column}.customer-links{justify-content:flex-start}.conversation{padding:16px}.message{max-width:94%} }
+    @media(max-width:520px){ .admin-container{padding:16px 12px 28px}.ticket-summary{width:100%;justify-content:flex-start}.ticket-search{flex-basis:100%;min-width:0}.ticket-toolbar select{flex:1;min-width:110px}.ticket-toolbar .ticket-action{flex:1}.row-top{align-items:flex-start}.row-meta{align-items:flex-start;flex-direction:column;gap:4px}.reply-bottom{align-items:flex-start;flex-direction:column}.reply-state-row{align-items:flex-start;flex-direction:column;gap:7px}.reply-state-row select{width:100%;min-width:0}.reply-actions{display:grid;grid-template-columns:1fr 1fr}.reply-actions .send{grid-column:1/-1;width:100%;min-height:42px}.reply-actions button{width:100%;padding:8px 9px}.customer-context{padding:12px}.customer-links{display:grid;width:100%;grid-template-columns:1fr}.customer-link{justify-content:center;white-space:normal}.service-summary{gap:12px 18px}.linked-lines li{align-items:flex-start} }
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+<nav class="global-nav" aria-label="Navegación principal">
+  <div class="global-nav-inner"><div class="global-nav-brand"><i class="fa-solid fa-shield-halved"></i><span>MásKFundas Admin</span></div>
+    <div class="global-nav-links" id="globalNavLinks">
+      <a href="/admin" id="nav-dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+      <a href="/admin/tickets" id="nav-tickets" class="active" aria-current="page"><i class="fa-solid fa-inbox"></i> Atención al cliente</a>
+      <a href="/admin/seguridad?tab=portal" id="nav-seguridad"><i class="fa-solid fa-user-clock"></i> Accesos portal</a>
+      <a href="/admin/dowisp" id="nav-dowisp"><i class="fa-solid fa-satellite-dish"></i> DoWISP Live</a>
+    </div>
+    <div class="global-nav-right"><a href="/admin/logout" class="global-nav-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</a></div>
+  </div>
+</nav>
+<main class="admin-container">
+  <header class="header">
+    <div class="header-title"><div class="icon"><i class="fa-solid fa-inbox"></i></div><div><h1>Atención al cliente</h1><div class="meta-info">Seguimiento, respuesta y resolución de consultas</div></div></div>
+    <div class="ticket-summary"><strong id="openCount">—</strong><span>pendientes de atención</span><span class="meta-info" id="refreshTime">Actualizando bandeja…</span></div>
+  </header>
+  <section class="section" aria-label="Bandeja de tickets">
+    <div class="ticket-toolbar" aria-label="Filtros de tickets">
+      <label class="ticket-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="search" type="search" placeholder="Buscar por referencia, línea o responsable" aria-label="Buscar tickets"></label>
+      <select id="filterStatus" aria-label="Filtrar por estado"><option value="">Todos los estados</option><option value="RECIBIDA">Recibida</option><option value="EN_CURSO">En curso</option><option value="ESPERANDO_CLIENTE">Esperando al cliente</option><option value="RESUELTA">Resuelta</option><option value="CERRADA">Cerrada</option></select>
+      <button class="ticket-action ticket-action-warning" id="retryNotices" hidden><i class="fa-solid fa-rotate"></i> Reintentar avisos</button>
+      <button class="ticket-action ticket-action-primary" id="refresh"><i class="fa-solid fa-arrows-rotate"></i> Actualizar</button>
+    </div>
+    <div class="ticket-workspace">
+      <section class="ticket-queue" aria-label="Cola de atención"><div class="ticket-queue-head"><strong>Cola de atención</strong><span class="badge badge-blue" id="queueCount">0 tickets</span></div><div id="ticketList"><div class="empty">Cargando solicitudes…</div></div></section>
+      <section class="ticket-detail" id="ticketDetail" aria-label="Detalle de la consulta"><div class="detail-empty">Selecciona una consulta para revisar su contexto, actualizar el seguimiento y responder al cliente.</div></section>
+    </div>
+  </section>
+</main>
+  <script src="/js/admin_tickets.js?v=5" defer></script>
+</body>
+</html>

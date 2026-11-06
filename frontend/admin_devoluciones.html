@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devoluciones SEPA — MásKFundas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin_modern.css?v=3.8">
+    <script src="/js/command_palette.js?v=3.5" defer></script>
+    <script src="/js/admin_compact_tables.js?v=5" defer></script>
+    <style>
+        :root {
+            --purple: #7c3aed;
+            --purple-bg: rgba(124, 58, 237, 0.08);
+        }
+
+        /* Upload zone */
+        .upload-zone {
+            background: var(--card); border: 2px dashed #cbd5e1; border-radius: 14px;
+            padding: 40px 30px; text-align: center; cursor: pointer;
+            transition: all 0.2s ease; margin-bottom: 20px;
+        }
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: var(--purple); background: rgba(124, 58, 237, 0.04);
+        }
+        .upload-zone i { font-size: 42px; color: #94a3b8; margin-bottom: 14px; display: block; }
+        .upload-zone h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .upload-zone p { font-size: 13px; color: var(--muted); }
+        .upload-zone .formats { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+        .format-tag { background: #f1f5f9; border: 1px solid var(--border); padding: 3px 10px;
+            border-radius: 20px; font-size: 11px; font-weight: 600; color: var(--muted); }
+        #fileInput { display: none; }
+
+        .btn { padding: 9px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+            cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 7px;
+            transition: opacity 0.2s; }
+        .btn-purple { background: var(--purple); color: #fff; }
+        .btn-purple:hover { opacity: 0.9; }
+        .btn-success { background: var(--green); color: #fff; }
+        .btn-success:hover { opacity: 0.9; }
+
+        /* File preview */
+        .file-preview { background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+            padding: 14px 18px; display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+            justify-content: space-between; flex-wrap: wrap; }
+        .file-preview .file-info { display: flex; align-items: center; gap: 10px; }
+        .file-preview .file-icon { font-size: 22px; color: var(--purple); }
+        .file-preview .file-name { font-weight: 600; font-size: 14px; }
+        .file-preview .file-size { font-size: 12px; color: var(--muted); }
+        .file-actions { display: flex; gap: 8px; }
+
+        .motivo-chip { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 11px;
+            font-weight: 700; background: rgba(245,158,11,0.12); color: #b45309; max-width: 200px; }
+        .tel-link { color: var(--blue); text-decoration: none; font-weight: 700; }
+        .tel-link:hover { text-decoration: underline; }
+        .op-chip { background: #f1f5f9; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; color: #475569; }
+        .importe { font-weight: 700; font-size: 14px; color: var(--red); }
+        .no-ident { background: rgba(245,158,11,0.08); }
+
+        .empty-state { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; }
+        .empty-state i { font-size: 36px; margin-bottom: 10px; display: block; }
+
+        .info-box { background: rgba(2,132,199,0.08); border: 1px solid rgba(2,132,199,0.3);
+            border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #0369a1; margin-bottom: 16px;
+            line-height: 1.5; }
+        .info-box strong { font-weight: 700; }
+
+        #processingSpinner { display: none; text-align: center; padding: 30px; color: var(--muted); }
+        #errorBox { display: none; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+            border-radius: 10px; padding: 12px 16px; color: var(--red); margin-bottom: 16px; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<nav class="global-nav" aria-label="Navegación principal">
+    <div class="global-nav-inner">
+        <div class="global-nav-brand"><i class="fa-solid fa-shield-halved"></i><span>MásKFundas Admin</span></div>
+        <div class="global-nav-links" id="globalNavLinks">
+            <a href="/admin" id="nav-dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="/admin/dowisp" id="nav-dowisp" class="nav-dowisp-highlight"><i class="fa-solid fa-satellite-dish"></i> DoWISP Live <span class="nav-live-pill">LIVE</span></a>
+            <a href="/admin/morosos" id="nav-morosos"><i class="fa-solid fa-file-invoice-dollar"></i> Morosos</a>
+            <a href="/admin/facturas-directas" id="nav-facturas-directas"><i class="fa-solid fa-paper-plane"></i> Facturas Directas</a>
+            <a href="/admin/auditoria" id="nav-auditoria"><i class="fa-solid fa-tower-cell"></i> Líneas No Facturadas</a>
+            <a href="/admin/consumos" id="nav-consumos"><i class="fa-solid fa-fire-flame-curved"></i> Consumos</a>
+            <a href="/admin/devoluciones" id="nav-devoluciones" class="active" aria-current="page"><i class="fa-solid fa-rotate-left"></i> Devoluciones SEPA</a>
+            <a href="/admin/visor" id="nav-visor"><i class="fa-solid fa-headset"></i> Visor Clientes</a>
+            <a href="https://clientes.maskfundas.es/apn" id="nav-apn" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-tower-broadcast"></i> Guía APN</a>
+<a href="/admin/propuesta" id="nav-propuesta" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-file-invoice-dollar"></i> Presupuestos</a>
+            <a href="https://sat.maskfundas.es" id="nav-sat" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-screwdriver-wrench"></i> SAT</a>
+            <a href="/admin/seguridad" id="nav-seguridad"><i class="fa-solid fa-lock"></i> Seguridad</a>
+        </div>
+        <div class="global-nav-right">
+            <a href="/admin/logout" class="global-nav-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</a>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container">
+
+<div class="header">
+    <div class="header-title">
+        <div class="icon" style="background: linear-gradient(135deg, #7c3aed, #4f46e5);"><i class="fa-solid fa-rotate-left"></i></div>
+        <div>
+            <h1>Devoluciones SEPA</h1>
+            <div class="meta-info">Conciliación de recibos devueltos por el banco · Cruce automático contra clientes</div>
+        </div>
+    </div>
+</div>
+
+<div class="info-box">
+    <strong>¿Cómo funciona?</strong> Sube el fichero de devoluciones que te envía el banco al principio de mes.
+    Aceptamos <strong>XML SEPA pain.002</strong> (el más habitual en banca online) y ficheros de texto <strong>AEB Norma-19</strong> (Cuaderno 19).
+    El sistema identifica automáticamente a cada cliente y muestra el motivo exacto de la devolución.
+</div>
+
+<!-- Upload zone -->
+<div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()"
+    ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+    <i class="fa-solid fa-cloud-arrow-up"></i>
+    <h3>Arrastra el fichero aquí o haz clic para seleccionar</h3>
+    <p>Fichero de devoluciones generado por tu banco (Caja Rural, BBVA, Santander...)</p>
+    <div class="formats">
+        <span class="format-tag"><i class="fa-solid fa-code"></i> XML pain.002</span>
+        <span class="format-tag"><i class="fa-solid fa-file-lines"></i> AEB Norma-19</span>
+        <span class="format-tag"><i class="fa-solid fa-file-code"></i> camt.054</span>
+    </div>
+</div>
+<input type="file" id="fileInput" accept=".xml,.txt,.pain,.dat" onchange="onFileSelected(event)">
+
+<!-- File preview (hidden initially) -->
+<div class="file-preview" id="filePreview" style="display:none;">
+    <div class="file-info">
+        <i class="fa-solid fa-file-code file-icon"></i>
+        <div>
+            <div class="file-name" id="fileName">-</div>
+            <div class="file-size" id="fileSize">-</div>
+        </div>
+    </div>
+    <div class="file-actions">
+        <button class="btn btn-purple" id="btnProcesar" onclick="procesarFichero()">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Procesar devoluciones
+        </button>
+        <button class="btn btn-primary" onclick="resetUpload()" style="background:#64748b;">
+            <i class="fa-solid fa-xmark"></i> Cambiar fichero
+        </button>
+    </div>
+</div>
+
+<div id="processingSpinner">
+    <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+    <p style="margin-top:12px;">Analizando fichero y cruzando con clientes de DoWISP...</p>
+</div>
+
+<div id="errorBox"></div>
+
+<!-- Results (hidden initially) -->
+<div id="resultsSection" style="display:none;">
+
+    <div class="stats-row" id="statsRow"></div>
+
+    <!-- Identified -->
+    <div class="section">
+        <div class="section-header">
+            <i class="fa-solid fa-user-check" style="color:var(--red)"></i>
+            <h2>Clientes identificados</h2>
+            <span class="badge badge-red" id="badgeIdent">0</span>
+            <button class="btn btn-success" style="margin-left:auto;font-size:12px;padding:6px 12px;" onclick="exportExcel()">
+                <i class="fa-solid fa-file-excel"></i> Exportar Excel
+            </button>
+        </div>
+        <div id="tableIdent">
+            <div class="empty-state"><i class="fa-solid fa-check"></i>Sin clientes identificados</div>
+        </div>
+    </div>
+
+    <!-- Not identified -->
+    <div class="section" id="secNoIdent" style="display:none;">
+        <div class="section-header">
+            <i class="fa-solid fa-question-circle" style="color:var(--yellow)"></i>
+            <h2>No identificados en cache</h2>
+            <span class="badge badge-yellow" id="badgeNoIdent">0</span>
+            <span style="font-size:11px;color:var(--muted);margin-left:8px;">IBAN no encontrado en líneas activas. Puede ser cliente de fibra o dato sin actualizar.</span>
+        </div>
+        <div id="tableNoIdent"></div>
+    </div>
+
+</div>
+
+<script>
+let selectedFile = null;
+let resultData = null;
+
+function onDragOver(e) { e.preventDefault(); document.getElementById('dropZone').classList.add('drag-over'); }
+function onDragLeave() { document.getElementById('dropZone').classList.remove('drag-over'); }
+function onDrop(e) {
+    e.preventDefault();
+    document.getElementById('dropZone').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) setFile(file);
+}
+function onFileSelected(e) { if (e.target.files[0]) setFile(e.target.files[0]); }
+
+function setFile(file) {
+    selectedFile = file;
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+    document.getElementById('filePreview').style.display = 'flex';
+    document.getElementById('dropZone').style.display = 'none';
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('errorBox').style.display = 'none';
+}
+
+function resetUpload() {
+    selectedFile = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('filePreview').style.display = 'none';
+    document.getElementById('dropZone').style.display = 'block';
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('errorBox').style.display = 'none';
+}
+
+async function procesarFichero() {
+    if (!selectedFile) return;
+    const btn = document.getElementById('btnProcesar');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando...';
+    document.getElementById('processingSpinner').style.display = 'block';
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('errorBox').style.display = 'none';
+
+    try {
+        const text = await selectedFile.text();
+        const r = await fetch('/api/admin/sepa/parse-devoluciones', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({xml_content: text})
+        });
+        if (!r.ok) {
+            if (r.status === 401) { window.location.href = '/admin/login'; return; }
+            throw new Error('Error ' + r.status);
+        }
+        resultData = await r.json();
+
+        if (resultData.error && resultData.total_devoluciones === 0) {
+            const eb = document.getElementById('errorBox');
+            eb.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${resultData.error}`;
+            eb.style.display = 'block';
+        } else {
+            renderResults(resultData);
+        }
+    } catch(e) {
+        const eb = document.getElementById('errorBox');
+        eb.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Error al procesar: ${e.message}`;
+        eb.style.display = 'block';
+    } finally {
+        document.getElementById('processingSpinner').style.display = 'none';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Procesar devoluciones';
+    }
+}
+
+function renderResults(data) {
+    document.getElementById('resultsSection').style.display = 'block';
+
+    // Stats
+    document.getElementById('statsRow').innerHTML = `
+        <div class="stat-pill p-red"><div class="num">${data.total_devoluciones}</div><div class="lbl">Total devoluciones</div></div>
+        <div class="stat-pill p-green"><div class="num">${data.total_identificados}</div><div class="lbl">Clientes identificados</div></div>
+        <div class="stat-pill p-yellow"><div class="num">${data.total_no_identificados}</div><div class="lbl">Sin identificar</div></div>
+        <div class="stat-pill p-red"><div class="num">${calcTotal(data.devoluciones)} €</div><div class="lbl">Importe total devuelto</div></div>
+    `;
+
+    document.getElementById('badgeIdent').textContent = data.devoluciones.length;
+    renderIdentTable(data.devoluciones);
+
+    if (data.no_identificados && data.no_identificados.length > 0) {
+        document.getElementById('badgeNoIdent').textContent = data.no_identificados.length;
+        document.getElementById('secNoIdent').style.display = 'block';
+        renderNoIdentTable(data.no_identificados);
+    }
+}
+
+function calcTotal(rows) {
+    let total = 0;
+    for (const r of rows) {
+        const v = parseFloat((r.importe || '0').replace(',', '.'));
+        if (!isNaN(v)) total += v;
+    }
+    return total.toFixed(2);
+}
+
+function renderIdentTable(rows) {
+    const c = document.getElementById('tableIdent');
+    if (!rows.length) { c.innerHTML = '<div class="empty-state"><i class="fa-solid fa-check"></i>Sin clientes identificados</div>'; return; }
+    let html = `<table><thead><tr>
+        <th>Cliente</th><th>Teléfono</th><th>IBAN</th><th>Importe</th><th>Motivo</th><th>Operador / Tarifa</th>
+    </tr></thead><tbody>`;
+    for (const r of rows) {
+        html += `<tr>
+            <td><strong>${r.nombre || '-'}</strong><br><span style="font-size:11px;color:var(--muted)">${r.dni || ''}</span></td>
+            <td><a class="tel-link" href="tel:${r.telefono}">${r.telefono || '-'}</a></td>
+            <td style="font-family:monospace;font-size:12px">${maskIban(r.iban)}</td>
+            <td class="importe">${r.importe || '-'} €</td>
+            <td><span class="motivo-chip" title="${r.motivo_descripcion}">${r.motivo_codigo} · ${r.motivo_descripcion}</span></td>
+            <td><span class="op-chip">${r.operador || '-'}</span><br><span style="font-size:11px;color:var(--muted)">${r.tarifa || ''}</span></td>
+        </tr>`;
+    }
+    html += '</tbody></table>';
+    c.innerHTML = html;
+}
+
+function renderNoIdentTable(rows) {
+    const c = document.getElementById('tableNoIdent');
+    let html = `<table><thead><tr><th>Nombre (banco)</th><th>IBAN</th><th>Importe</th><th>Motivo</th><th>Referencia</th></tr></thead><tbody>`;
+    for (const r of rows) {
+        html += `<tr class="no-ident">
+            <td>${r.nombre || '-'}</td>
+            <td style="font-family:monospace;font-size:12px">${maskIban(r.iban)}</td>
+            <td class="importe">${r.importe || '-'} €</td>
+            <td><span class="motivo-chip">${r.motivo_codigo} · ${r.motivo_descripcion}</span></td>
+            <td style="font-size:11px;color:var(--muted)">${r.referencia || '-'}</td>
+        </tr>`;
+    }
+    html += '</tbody></table>';
+    c.innerHTML = html;
+}
+
+function maskIban(iban) {
+    if (!iban || iban.length < 10) return iban || '-';
+    return iban.slice(0, 4) + ' ****' + ' ****' + ' ' + iban.slice(-4);
+}
+
+function exportExcel() {
+    if (!resultData || !resultData.devoluciones.length) return;
+    const rows = [['Cliente', 'DNI', 'Teléfono', 'IBAN', 'Importe', 'Motivo Código', 'Motivo', 'Operador', 'Tarifa']];
+    for (const r of resultData.devoluciones) {
+        rows.push([r.nombre, r.dni, r.telefono, r.iban, r.importe, r.motivo_codigo, r.motivo_descripcion, r.operador, r.tarifa]);
+    }
+    for (const r of (resultData.no_identificados || [])) {
+        rows.push([r.nombre, '', '', r.iban, r.importe, r.motivo_codigo, r.motivo_descripcion, '', '']);
+    }
+
+    const csvContent = rows.map(row => row.map(v => `"${(v||'').toString().replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], {type: 'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `devoluciones_sepa_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>
+</div>
+</body>
+</html>
