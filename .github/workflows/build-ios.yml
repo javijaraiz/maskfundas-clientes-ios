@@ -8,7 +8,7 @@ on:
 jobs:
   build-and-upload:
     name: Build & Upload iOS App
-    runs-on: macos-14 # Apple Silicon M2 with Xcode 15/16 pre-installed
+    runs-on: macos-latest # Standard Apple Silicon runner with latest Xcode
 
     steps:
       - name: Checkout Code
