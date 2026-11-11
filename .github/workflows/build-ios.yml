@@ -79,16 +79,18 @@ jobs:
             DEVELOPMENT_TEAM="UNAJ7R44N2" \
             CODE_SIGN_STYLE="Manual" \
             CODE_SIGN_IDENTITY="Apple Distribution" > build.log 2>&1 || {
-              echo "=== PUSHING BUILD LOG TO GIT FOR INSTANT ACCESS ==="
-              git config user.name "GitHub Actions"
-              git config user.email "actions@github.com"
-              git checkout -B debug-logs
-              git add -f build.log
-              git commit -m "xcodebuild failure log"
-              git push -f origin debug-logs
-              echo "=== BUILD FAILED ==="
+              echo "=== XCODEBUILD FAILED ==="
+              cat build.log | grep -E -i -C 3 "error:|failed|provisioning|signing" | head -n 100
+              echo "=== END OF FILTERED LOG ==="
               exit 1
             }
+
+      - name: Upload Build Log on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: ios/App/build.log
 
       - name: Export App Store IPA
         run: |
