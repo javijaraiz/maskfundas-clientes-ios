@@ -52,7 +52,7 @@ jobs:
           # Install Provisioning Profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp ios/App/MasKFundas_com_dowisp_com_App_Store_Profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
-          cp ios/App/MasKFundas_com_dowisp_com_App_Store_Profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/b8ee8fce-05f4-484e-a39e-465b04aefa57.mobileprovision
+          cp ios/App/MasKFundas_com_dowisp_com_App_Store_Profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/1f53b3bd-aab2-42f2-9215-710e33d351a5.mobileprovision
           echo "Provisioning profile installed to ~/Library/MobileDevice/Provisioning Profiles/"
           ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
 
@@ -69,7 +69,6 @@ jobs:
       - name: Build Xcode Archive
         run: |
           cd ios/App
-          echo "=== RUNNING XCODEBUILD ==="
           xcodebuild -workspace App.xcworkspace \
             -scheme App \
             -configuration Release \
@@ -78,19 +77,7 @@ jobs:
             archive \
             DEVELOPMENT_TEAM="UNAJ7R44N2" \
             CODE_SIGN_STYLE="Manual" \
-            CODE_SIGN_IDENTITY="Apple Distribution" > build.log 2>&1 || {
-              echo "=== XCODEBUILD FAILED ==="
-              cat build.log | grep -E -i -C 3 "error:|failed|provisioning|signing" | head -n 100
-              echo "=== END OF FILTERED LOG ==="
-              exit 1
-            }
-
-      - name: Upload Build Log on Failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: xcodebuild-log
-          path: ios/App/build.log
+            CODE_SIGN_IDENTITY="Apple Distribution"
 
       - name: Export App Store IPA
         run: |
