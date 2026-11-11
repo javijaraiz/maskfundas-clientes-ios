@@ -77,7 +77,9 @@ jobs:
             archive \
             DEVELOPMENT_TEAM="UNAJ7R44N2" \
             CODE_SIGN_STYLE="Manual" \
-            CODE_SIGN_IDENTITY="Apple Distribution"
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE="b8ee8fce-05f4-484e-a39e-465b04aefa57" \
+            PROVISIONING_PROFILE_SPECIFIER="MasKFundas com.dowisp.com App Store Profile"
 
       - name: Export App Store IPA
         run: |
