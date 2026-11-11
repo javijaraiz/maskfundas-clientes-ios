@@ -69,6 +69,7 @@ jobs:
       - name: Build Xcode Archive
         run: |
           cd ios/App
+          set -o pipefail
           xcodebuild -workspace App.xcworkspace \
             -scheme App \
             -configuration Release \
@@ -79,7 +80,11 @@ jobs:
             CODE_SIGN_STYLE="Manual" \
             CODE_SIGN_IDENTITY="Apple Distribution" \
             PROVISIONING_PROFILE="b8ee8fce-05f4-484e-a39e-465b04aefa57" \
-            PROVISIONING_PROFILE_SPECIFIER="MasKFundas com.dowisp.com App Store Profile"
+            PROVISIONING_PROFILE_SPECIFIER="MasKFundas com.dowisp.com App Store Profile" 2>&1 | tee xcodebuild.log || {
+              echo "=== XCODEBUILD FAILED: LAST 150 LINES ==="
+              tail -n 150 xcodebuild.log
+              exit 1
+            }
 
       - name: Export App Store IPA
         run: |
