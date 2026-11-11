@@ -1,3 +1,116 @@
+## [2026-11-08] - Resubmission iOS App Store (Guideline 2.1 Resolution)
+- **Causa:** Requerimiento de informacin de Apple (Guideline 2.1 - Performance: App Completeness) solicitando vdeo demostrativo en dispositivo fsico y descripcin de los 6 puntos de negocio/operador.
+- **Acciones Realizadas:**
+  1. Grabacin automatizada de flujo de usuario completo en iPhone (Login -> OTP demo 123456 -> Dashboard -> Consumo subtab llamadas/datos -> Facturas -> Soporte).
+  2. Codificacin de vdeo nativo H.264 maskfundas_ios_demo.mp4 va ffmpeg.
+  3. Subida del vdeo a los servidores S3 de Apple va App Store Connect API (ppStoreReviewAttachments).
+  4. Actualizacin de las notas para el revisor con los 6 puntos completos en ingls (Propsito OMV, credenciales 600000000 / 123456, integracin DoWISP, regulacin CNMC).
+  5. Cancelacin de la sumisin con problemas y creacin de nueva sumisin formal WAITING_FOR_REVIEW.
+- **Estado Actual:** Version 1.0 (Build 2) en estado WAITING_FOR_REVIEW (En espera de revisin por Apple).
+
+## [2026-11-10 21:55] - Corrección de Notas de Revisión Apple (Eliminación de Mención CNMC)
+- **Motivo:** Ajustar con total veracidad el modelo operativo de MásKFundas en las notas para el revisor de Apple, eliminando cualquier mención a registros o licencias de la CNMC (modelo de distribuidor/revendedor minorista bajo acuerdos con mayoristas host de red).
+- **Acción Realizada:**
+  - Se modificó la nota en la API de App Store Connect (`appStoreReviewDetails`).
+  - La sección 6 ahora define con precisión el modelo de distribución mayorista:
+    `6. SERVICE MODEL: MásKFundas operates as an authorized telecommunications reseller and retailer distributing wholesale connectivity packages under agreements with licensed wholesale network host operators in Spain.`
+- **Estado de Versión:** Conservado intacto en **`WAITING_FOR_REVIEW`** sin retrasar la cola de revisión.
+
+## [2026-11-09 13:58] - Cancelación de Portabilidades y Estado Rechazado en DoWISP para Demetrio Caballo
+- **Contexto:**
+  - Cliente: `DEMETRIO CABALLO RODRIGUEZ` (DNI `07752051Q`, DoWISP `#984`).
+  - Líneas: `619 51 22 40` (Pedido FiNetwork `#3712086`) y `673 75 72 74` (Pedido FiNetwork `#3712088`).
+- **Verificación en API Oficial de FiNetwork (`gateway-operators.finetwork.com`):**
+  - Estado confirmado: `currentStatus: CANCELADO` (ID 34) / `ACAN CANC_ABONA` (Aceptación de cancelación por el abonado en operador donante Vodafone el 05/11/2026 17:11 h).
+  - Los CDRs de la red Vodafone no registraron ningún tráfico local.
+- **Acciones Ejecutadas en DoWISP:**
+  1. Cambiadas las subscripciones `#2521` y `#2522` de `Pendiente de activación` a **`Rechazado`** (estado 8) con fecha efectiva `05/11/2026`.
+  2. Registrada nota forense en las observaciones de los servicios móviles `#2518` y `#2519`: *"PORTABILIDAD CANCELADA POR EL CLIENTE (ACAN CANC_ABONA en Vodafone el 05/11/2026). Pedido FiNetwork cancelado."*
+- **Resultado Operativo:** Las líneas quedan completamente neutralizadas en DoWISP, excluidas de la facturación y sin emitir cobros ni cuotas al cliente.
+
+## [2026-11-07 10:38] - Actualización de Contacto Oficial de Revisión en App Store Connect
+- **Datos Actualizados:**
+  - Teléfono de contacto oficial: `+34666677773` (666 677 773)
+  - Correo electrónico oficial: `info@maskfundas.es` (reemplaza a maskfundas@gmail.com en la ficha del revisor de Apple)
+- **Ejecución:** Actualizado mediante PATCH a la API de App Store Connect (`appStoreReviewDetails`).
+- **Estado de Versión:** Mantiene intacto el estado **`WAITING_FOR_REVIEW`**.
+
+## [2026-11-07 10:20] - Sustitución de Capturas y Reenvío de Versión 1.0 a Revisión Apple
+- **Motivo:** Las capturas previas de la App Store presentaban deformaciones por redimensionamiento y faltaban pantallas de la suite completa.
+- **Acciones Realizadas:**
+  1. Se canceló ordenadamente la revisión en curso (`WAITING_FOR_REVIEW` -> `DEVELOPER_REJECTED`) mediante llamada a la API REST de App Store Connect con API Key JWT (`7L686P7NG7`).
+  2. Se eliminaron las capturas obsoletas/deformadas y el set de tamaño no estándar.
+  3. Se crearon y subieron los sets oficiales completos de 4 capturas en alta resolución nativa:
+     - **iPhone 6.7" (`APP_IPHONE_67`):** 4 capturas a `1290x2796` (Inicio, Consumo, Facturas, Gestiones). Estado: `COMPLETE`.
+     - **iPad Pro 13" (`APP_IPAD_PRO_3GEN_129`):** 4 capturas a `2048x2732` nativas 3:4 sin distorsión. Estado: `COMPLETE`.
+  4. Se creó una nueva `reviewSubmission` vinculada a la versión 1.0 (Build #2) y se ejecutó la acción de envío.
+- **Resultado:** La versión 1.0 se encuentra oficialmente re-enviada y en estado **`WAITING_FOR_REVIEW`** en Apple App Store Connect con el set completo de capturas impecable.
+
+## [2026-11-07 10:59] - Actualización de Cuota en DoWISP para 618754148 (Antonio Gutiérrez)
+- **Cliente:** Antonio Manuel Gutiérrez Rodríguez (`75431171A`, DoWISP #370).
+- **Subscripción Modificada:** Contrato `#2463` (Línea móvil `618754148` AireNetworks).
+- **Cambio Aplicado:**
+  - Cuota anterior en DoWISP: `6.5289 €` (7,90 € con IVA).
+  - Nueva cuota establecida: **`5.7851 €`** (exactamente **7,00 € con IVA al 21%**, igual que su mujer).
+  - Efectividad en facturación: Al estar configurado en DoWISP a **Mes vencido** con facturación el día 1 (`dia_efectivo_facturacion = 1`), este importe de 7,00 € aplica al ciclo completo del mes en curso (noviembre), reflejándose íntegro en la factura que se emita a principios de diciembre.
+  - Estado: Confirmado y guardado en DoWISP (`El Subscripción #2463 se cambió correctamente`).
+
+## [2026-11-07 10:42] - Verificación de Tarifa en AireNetworks para 618754148 (Antonio Gutiérrez)
+- **Cliente:** Antonio Manuel Gutiérrez Rodríguez (`75431171A`, DoWISP #370).
+- **Línea:** `618754148` (AireNetworks / Movistar).
+- **Comprobación en API SOAP:**
+  - Al ejecutar `setTarifa`, la API devolvió código `0012` (*"La línea ya tiene un cambio de tarifa programado"*).
+  - Al consultar el estado y consumos en vivo (`consumosLinea`), el bono activo ya refleja:
+    - **`nombre_bono`:** **`MOVIL ilimitada_25GB`**
+    - **Contratado:** 5.000 min + 25 GB.
+    - **Coste mayorista AireNetworks:** 4,42 € – 4,92 € / mes.
+- **Resultado:** La línea ya está operando oficialmente en la tarifa reducida de 25 GB en el mayorista. En DoWISP mantiene su cuota de 7,90 € (Contrato #2463), asegurando un margen neto limpio de ~+2,98 €/mes para MásKFundas.
+
+## [2026-11-07 10:29] - Actualización de Cuota en DoWISP para 680311118 (Montserrat Bermejo)
+- **Cliente:** María Montserrat Bermejo Rodríguez (`11768897G`, DoWISP #408).
+- **Subscripción Modificada:** Contrato `#2462` (Línea móvil `680311118`, vinculada a servicio `#2459`).
+- **Cambio Aplicado:**
+  - Cuota anterior en DoWISP: `13.0165 €` (15,75 € con IVA).
+  - Nueva cuota establecida: **`5.7851 €`** (exactamente **7,00 € con IVA al 21%**).
+  - Estado: Confirmado y guardado en DoWISP (`El Subscripción #2462 se cambió correctamente`).
+- **Resumen Financiero Consolidado:**
+  - Coste mayorista AireNetworks (cambiado a `TMBI25GB`): 4,42 € – 4,92 €.
+  - Precio cobro cliente: 7,00 € IVA incl. (5,79 € base).
+  - Margen neto positivo para MásKFundas en el móvil: ~+1,37 €/mes.
+
+## [2026-11-07 10:13] - Cambio de Tarifa en AireNetworks para 680311118 (Montserrat Bermejo)
+- **Motivo:** Petición de reducción de cuota por parte de la clienta María Montserrat Bermejo Rodríguez (`11768897G`, DoWISP #408).
+- **Acción en Mayorista (AireNetworks):**
+  - Se conectó vía API SOAP oficial (`gestMOVIL_2.php`) ejecutando `setTarifa` inmediato sobre la línea `680311118`.
+  - Tarifa anterior: `MOVIL ilimitada 70GB` (`TMBI70GB` / ~9,50 €).
+  - Nueva tarifa aplicada: `MOVIL ilimitada_25GB` (`TMBI25GB`, 6.000 min + 25 GB, coste mayorista: 4,92 €).
+  - Respuesta API: `{"resultado": "0001"}` (Tramitación confirmada con éxito).
+- **Impacto Económico:** Reducción de coste mayorista de ~4,58 €/mes en la línea móvil, preservando la calidad de servicio (consumo máximo histórico en 12 meses: 2,55 GB).
+
+## [2026-11-07 10:05] - Regeneración de Capturas Oficiales para App Store y Google Play
+- **Problema Detectado:** Las capturas de iPad (`ipad_1_inicio.png` a `ipad_4_gestiones.png`) se veían severamente deformadas y aplastadas (estiradas un +62.5% horizontalmente) porque se habían generado redimensionando las capturas de iPhone (`1179x2556`, ratio 9:19.5) directamente a resolución de iPad (`2048x2732`, ratio 3:4).
+- **Acciones Realizadas:**
+  1. Se implementó el generador unificado `scripts/generar_capturas_tienda.py` con Playwright.
+  2. Se configuró un viewport nativo de iPad Pro 13" (`1024x1366` @ 2x = `2048x2732`), capturando la aplicación en su proporción original de tablet sin forzar estiramientos.
+  3. Se adaptó la regla CSS en `frontend/css/styles.css` (`--app-max-width: 780px` en pantallas `>= 760px`) para que el contenido en tablets aproveche el espacio disponible de forma armónica y legible.
+  4. Se desplegó la actualización al VPS con `python vps.py sync` y se regeneraron las 4 capturas clave para iPhone (`1179x2556`), iPad Pro (`2048x2732`) y Android (`1080x2400`), cubriendo:
+     - Pantalla 1: Líneas y Fibra en directo (Inicio)
+     - Pantalla 2: Consumo de Gigas y Llamadas (Consumo)
+     - Pantalla 3: Histórico y descarga de facturas oficiales (Facturas)
+     - Pantalla 4: Gestiones, PIN/PUK y Roaming (Más)
+- **Resultado:** Capturas nítidas, proporcionales y 100% conformes con las especificaciones técnicas requeridas por Apple App Store Connect y Google Play Console.
+
+## [2026-11-06 22:33] - Corrección de Permisos Dinámicos Multi-Línea para Titulares (Línea 636771864)
+- **Problema Detectado:** Al consultar el detalle de consumo de voz de la línea secundaria `636771864`, la app mostraba *"No se pudo cargar el detalle. Comprueba tu conexión e inténtalo de nuevo."* porque el backend devolvía HTTP 403 Forbidden. Las sesiones activas de los clientes mantenían en caché los teléfonos permitidos congelados al momento del login inicial (`602320320`, `659982383`), impidiendo consultar líneas añadidas o vinculadas posteriormente a su DNI titular.
+- **Causa Raíz:** En `backend/server.py`, la función `_client_permissions(session)` evaluaba `session.get("telefonos_permitidos")` estático sin re-sincronizar contra `_resolve_client_identity()` para titulares (`owner=True`).
+- **Solución Implementada:** Se modificó `_client_permissions` en `backend/server.py` para que, cuando el usuario sea titular verificado por correo (`is_owner`), resuelva dinámicamente sus líneas vinculadas mediante `_resolve_client_identity()` y amplíe automáticamente `telefonos_permitidos` en la sesión activa y persistida.
+- **Despliegue y Verificación:** Desplegado con `python vps.py sync` en el VPS. Verificado en sesión real que `636771864` se incorpora a los permisos autorizados y las peticiones a `/api/cliente/llamadas?telefono=636771864` y `/api/cliente/datos?telefono=636771864` se completan sin errores de autorización.
+
+## [2026-11-06] Implementación de Acceso Directo por Huella / Face ID y Auto-login en Home
+- **Auto-login si ya existe sesión**: En / y /login de ackend/server.py, si el usuario ya cuenta con cookie de sesión client_session activa y válida, se redirige automáticamente con 302 a /app (como en Red Mercantil), evitando volver a solicitar autenticación.
+- **Botón destacado en Home de Login**: Se colocó en primer plano el botón directo Iniciar con Huella o Face ID (.btn-login-bio) en rontend/login.html y estilos visuales en rontend/css/styles.css.
+- **Despliegue verificado en VPS**: Desplegado en producción con python vps.py sync y verificado en https://clientes.maskfundas.es/.
+
 ### [2026-11-06 16:30] - Generación de Credenciales de Firma Apple y Configuración CI/CD Cloud
 * **Objetivo:** Generar certificados oficiales de distribución Apple, perfiles de aprovisionamiento, claves de API de App Store Connect y automatización de compilación/subida en la nube con GitHub Actions.
 * **Contexto:** Se requiere compilar y publicar la app nativa iOS sin disponer de un ordenador Mac físico.
@@ -42,7 +155,24 @@
 * **Acciones realizadas:** Al responder soporte a un ticket público se envía un aviso Web Push genérico al DNI titular con suscripción activa; no se incluyen datos de línea ni contenido del ticket. Preparada ruta pública de Digital Asset Links y ficha de tienda en borrador. Desplegado con `python vps.py sync`.
 * **Verificación:** `pytest tests/test_client_push.py` pasó; `compileall` y `node --check` pasaron; `/health` sigue devolviendo 200. Publicación aún bloqueada por permiso de Play Console, revisión de políticas y datos de acceso de prueba.
 
-### [2026-11-06 14:35] - Push del portal y AAB firmado
+### [2026-11-06 22:27] - Simplificación de Acceso Demo para Revisores
+- **Supresión de Diálogo de Passkey / Huella en Demo:** Al introducir el teléfono demo `600000000` y código `123456`, se omite cualquier pantalla intermedia de activación de huella o Face ID. El revisor entra directamente a la ficha del cliente en `/app`.
+- **Ocultación en Menú:** En modo demo, la opción de menú "Acceso con huella o Face ID" se oculta dinámicamente para evitar confusiones.
+- **Alias de Login:** Enrutado `/login.html` como alias directo de `/login` para blindar cualquier acceso con extensión.
+- **Despliegue Producción:** Sincronizado en VPS con Zero-Downtime (`python vps.py sync`).
+
+---
+- **Descarga de Facturas Demo:** Corregida la propagación del flag `demo=True` en MySQL `auth_sessions` (`emitir_sesion_cliente`). Ahora, el revisor al pulsar "Descargar Factura" obtiene instantáneamente el PDF simulado `factura_DEMO-2026-001.pdf` (código `200 OK`) sin bloquearse contra DoWISP.
+- **Tramitación de Solicitudes Demo:** El endpoint `/api/cliente/solicitud` ahora responde con éxito simulado (`DEMO-XXXXXX`, código `200 OK`) ante peticiones de bonos, Roaming o soporte en la cuenta `600000000`, evitando el error 403 anterior.
+- **Despliegue Producción:** Sincronizado en VPS con Zero-Downtime (`python vps.py sync`).
+
+---
+- **Haptic Feedback Nativo:** Implementada la función `triggerHaptic()` en `frontend/js/app.js` con soporte dual: Capacitor Haptics (`Haptics.impact` / `Haptics.notification`) y fallback en `navigator.vibrate`. Vibración suave al alternar pestañas del Bottom Navigation y vibración de confirmación (`success`) al copiar códigos PIN/PUK.
+- **Resiliencia y Modo Offline:** Añadida persistencia local `mg_offline_lineas` en `localStorage`. Si el revisor o cliente activa el Modo Avión o pierde cobertura, la app recupera las líneas y muestra los códigos PIN/PUK guardados junto a un banner superior elegante en lugar de un error de carga.
+- **Micro-animaciones:** Optimizado el gauge radial del consumo de datos con interpolación Bézier (`cubic-bezier(0.16, 1, 0.3, 1)`) y versión de scripts actualizada a `v21`.
+- **Despliegue Producción:** Sincronizado en VPS con Zero-Downtime (`python vps.py sync`).
+
+---
 * **Objetivo:** Preparar notificaciones reales y un paquete de subida para Android.
 * **Contexto:** La TWA ya compilaba, pero faltaban suscripciones Web Push y firma.
 * **Acciones realizadas:** Añadidos `backend/client_push.py`, `scripts/setup_client_push.py`, control de notificaciones en `frontend/`, dependencia `pywebpush` y prueba de registro/revocación. Generada clave de subida local con contraseña DPAPI; AAB firmado. Desplegada la infraestructura push mediante `vps.py sync` y reconstrucción del contenedor; generada clave VAPID persistente en el VPS. Añadida la ruta `/.well-known/assetlinks.json` con huella de subida provisional.
@@ -2631,4 +2761,15 @@ Se actualiza de forma continua siguiendo la directriz de la skill [auto-document
 
 
 
+
+### [2026-11-06 17:13] - Preparación de privacidad y revisión de Google Play
+* **Objetivo:** Continuar la preparación de MásKFundas Clientes para publicación Android y revisión de tiendas.
+* **Causa Raíz / Contexto:** La cuenta de revisión mostraba datos ficticios sin aviso visible, podía registrar gestiones y el acceso de privacidad del portal enviaba un tipo rechazado por la API. Faltaba una política pública enlazada desde la app.
+* **Acciones Realizadas:**
+  - Añadidos límites de solicitudes y verificaciones OTP para la cuenta de revisión; se marcó como demo y se bloqueó para solicitudes, respuestas, passkeys y notificaciones push.
+  - Etiquetados los datos ficticios, sustituido domicilio/titular de ejemplo y restringida la descarga PDF demo a la sesión de revisión.
+  - Creada `frontend/privacy.html` con política y procedimiento para solicitar eliminación; enlazada desde login y menú Más. Añadidas rutas `/privacidad` y `/eliminar-cuenta`.
+  - Permitido `baja_cuenta` en el endpoint de solicitudes y actualizado el formulario para diferenciar la eliminación del portal de la baja de telecomunicaciones.
+  - Actualizada la documentación `android/PLAY_RELEASE.md` y `android/store_listing_es.md` con el AAB, cuenta de revisión y bloqueos que requieren Play Console.
+* **Verificación:** `py_compile` de `backend/server.py` y `backend/client_push.py`; `node --check frontend/js/app.js`; `jarsigner -verify` confirma el AAB firmado. Desplegados solo siete archivos previstos con `python vps.py sync --only ...`; producción devuelve `200` para `/privacidad` y `/login`, y `302` para `/eliminar-cuenta`. Play Console aún no confirma carga ni publicación.
 

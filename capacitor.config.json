@@ -1,6 +1,6 @@
 {
-  "appId": "es.maskfundas.clientes",
-  "appName": "MásKFundas Clientes",
+  "appId": "com.dowisp.com",
+  "appName": "MasKFundas",
   "webDir": "frontend",
   "server": {
     "url": "https://clientes.maskfundas.es/app",

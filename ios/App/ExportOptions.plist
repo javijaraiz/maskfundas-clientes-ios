@@ -12,8 +12,8 @@
 	<string>Apple Distribution</string>
 	<key>provisioningProfiles</key>
 	<dict>
-		<key>es.maskfundas.clientes</key>
-		<string>MasKFundas Clientes App Store Profile</string>
+		<key>com.dowisp.com</key>
+		<string>MasKFundas com.dowisp.com App Store Profile</string>
 	</dict>
 	<key>uploadSymbols</key>
 	<true/>
