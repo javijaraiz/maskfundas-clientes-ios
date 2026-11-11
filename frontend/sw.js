@@ -46,7 +46,6 @@ self.addEventListener('push', (event) => {
     icon: '/static/pwa/icon-192.png',
     badge: '/static/pwa/icon-192.png',
     data: { url },
-    tag: 'maskfundas-client',
   }));
 });
 

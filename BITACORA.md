@@ -8,6 +8,17 @@
   5. Cancelacin de la sumisin con problemas y creacin de nueva sumisin formal WAITING_FOR_REVIEW.
 - **Estado Actual:** Version 1.0 (Build 2) en estado WAITING_FOR_REVIEW (En espera de revisin por Apple).
 
+## [2026-11-11 10:06] - Transición Estratégica a MasKFundas Versión 2.0 (Bundle com.dowisp.com)
+- **Motivo:** Evitar bloqueos y demoras burocráticas por la directriz Guideline 5.2.1 de Apple respecto a la titularidad de marca en cuentas individuales.
+- **Acciones Realizadas:**
+  1. Se generó en Apple Developer el perfil de aprovisionamiento de distribución para `com.dowisp.com` (`MasKFundas com.dowisp.com App Store Profile`, UUID `b8ee8fce-05f4-484e-a39e-465b04aefa57`).
+  2. Se creó la **Versión 2.0** en App Store Connect para la app oficial existente `MasKFundas` (ID `6447867161`).
+  3. Se subieron a la Versión 2.0 las 8 capturas de pantalla de alta resolución (4 para iPhone 6.7" `1290x2796` y 4 para iPad Pro `2048x2732`), eliminando las capturas obsoletas.
+  4. Se actualizaron los textos de la ficha (descripción, novedades de versión, URLs de soporte y privacidad) y se configuraron las notas de revisión con el usuario demo `600000000` / `123456`.
+  5. Se actualizaron `capacitor.config.json`, `ExportOptions.plist`, `project.pbxproj` (versión 2.0, Build 3) y el pipeline de CI/CD `.github/workflows/build-ios.yml`.
+  6. Se realizó commit y push a `main`, disparando la compilación en la nube en macOS runner de GitHub Actions (Run ID `42992331818`).
+- **Estado:** Compilación en curso en GitHub Actions para subida directa de la IPA a App Store Connect.
+
 ## [2026-11-10 21:55] - Corrección de Notas de Revisión Apple (Eliminación de Mención CNMC)
 - **Motivo:** Ajustar con total veracidad el modelo operativo de MásKFundas en las notas para el revisor de Apple, eliminando cualquier mención a registros o licencias de la CNMC (modelo de distribuidor/revendedor minorista bajo acuerdos con mayoristas host de red).
 - **Acción Realizada:**
@@ -108,7 +119,9 @@
 
 ## [2026-11-06] Implementación de Acceso Directo por Huella / Face ID y Auto-login en Home
 - **Auto-login si ya existe sesión**: En / y /login de ackend/server.py, si el usuario ya cuenta con cookie de sesión client_session activa y válida, se redirige automáticamente con 302 a /app (como en Red Mercantil), evitando volver a solicitar autenticación.
-- **Botón destacado en Home de Login**: Se colocó en primer plano el botón directo Iniciar con Huella o Face ID (.btn-login-bio) en rontend/login.html y estilos visuales en rontend/css/styles.css.
+- **Botón destacado en Home de Login**: Se colocó en primer plano el botón directo Iniciar con Huella o Face ID (.btn-login-bio) en 
+rontend/login.html y estilos visuales en 
+rontend/css/styles.css.
 - **Despliegue verificado en VPS**: Desplegado en producción con python vps.py sync y verificado en https://clientes.maskfundas.es/.
 
 ### [2026-11-06 16:30] - Generación de Credenciales de Firma Apple y Configuración CI/CD Cloud
@@ -676,21 +689,26 @@
 * **Objetivo:** Hacer identificables las facturas oficiales y sus acciones de descarga en escritorio y móvil.
 * **Causa Raíz / Contexto:** La compactación genérica ocultaba el período, importe, estado y descarga detrás de “Ver más”.
 * **Acciones Realizadas:**
-  - rontend/js/admin_compact_tables.js: excluida la tabla de facturas de la compactación genérica.
-  - rontend/admin_visor.html: tabla completa en escritorio; en móvil, cada factura muestra número, fecha, período, importe, estado y un control de descarga amplio. Se escapan los datos y se limitan los enlaces PDF a HTTPS del mismo sitio o de DoWISP.
+  - 
+rontend/js/admin_compact_tables.js: excluida la tabla de facturas de la compactación genérica.
+  - 
+rontend/admin_visor.html: tabla completa en escritorio; en móvil, cada factura muestra número, fecha, período, importe, estado y un control de descarga amplio. Se escapan los datos y se limitan los enlaces PDF a HTTPS del mismo sitio o de DoWISP.
 * **Verificación:** script inline del visor y compactador con sintaxis correcta; en la ficha publicada se muestran las seis columnas y los enlaces PDF de las 20 facturas, sin “Ver más”.
 ### [2026-10-16 17:36] - Lectura clara del registro de llamadas en el visor
 * **Objetivo:** Mejorar la lectura de fechas, destinos, duración, tipo y coste en el historial de llamadas.
 * **Causa Raíz / Contexto:** La compactación global de listados ocultaba columnas y añadía “Ver más” dentro de la celda de fecha, incluso en el registro de llamadas del visor.
 * **Acciones Realizadas:**
-  - rontend/js/admin_compact_tables.js: excluida la tabla de llamadas de la compactación genérica.
-  - rontend/admin_visor.html: tabla completa en escritorio y filas compactas etiquetadas en móvil; mejor jerarquía visual de fecha, destino, duración y coste. Escapado de los valores dinámicos y duración legible también para llamadas de menos de un minuto.
+  - 
+rontend/js/admin_compact_tables.js: excluida la tabla de llamadas de la compactación genérica.
+  - 
+rontend/admin_visor.html: tabla completa en escritorio y filas compactas etiquetadas en móvil; mejor jerarquía visual de fecha, destino, duración y coste. Escapado de los valores dinámicos y duración legible también para llamadas de menos de un minuto.
 * **Verificación:** sintaxis de los scripts inline del visor y del compactador comprobada. Desplegado y revisado en la ficha publicada: desapareció “Ver más” y se muestran todas las columnas de llamadas en escritorio; se preparó presentación móvil etiquetada.
 ### [2026-10-16 17:21] - Mayorista visible en el Visor de Clientes
 * **Objetivo:** Mostrar el operador mayorista en la ficha del visor sin tener que abrir el detalle técnico de la línea.
 * **Causa Raíz / Contexto:** El dato ya llegaba al visor y aparecía en el detalle de consumo, pero quedaba fuera del resumen de cliente y del selector inicial de líneas.
 * **Acciones Realizadas:**
-  - rontend/admin_visor.html: añadido el mayorista de la línea seleccionada en las etiquetas del encabezado; para resúmenes multilínea indica si hay un mayorista común o varios. Cada selector de línea incluye también su mayorista.
+  - 
+rontend/admin_visor.html: añadido el mayorista de la línea seleccionada en las etiquetas del encabezado; para resúmenes multilínea indica si hay un mayorista común o varios. Cada selector de línea incluye también su mayorista.
   - Escape HTML del valor del operador en el selector.
 * **Verificación:** desplegado sin reinicio; abierta la ficha publicada y confirmada la etiqueta “Mayorista: Fi Network” en el resumen, además del distintivo en el selector de línea.
 ### [2026-10-16 17:19] - Correos corporativos y contexto de servicio en tickets
@@ -699,7 +717,9 @@
 * **Acciones Realizadas:**
   - ackend/server.py: nueva solicitud, respuesta y cambio de estado usan generar_html_corporativo (logo, pie de privacidad RGPD/LOPDGDD y CTA). La respuesta en texto plano incluye el aviso correspondiente.
   - El endpoint administrativo de detalle añade nombre, proveedor, tarifa, líneas móviles asociadas y enlace a la ficha maestra; omite DNI, PUK e ICCID. Cuando hay ID comercial disponible, incluye enlace al registro correspondiente.
-  - rontend/admin_tickets.html y rontend/js/admin_tickets.js: panel de cliente y servicios, enlaces directos y lista desplegable de líneas relacionadas, adaptados a móvil.
+  - 
+rontend/admin_tickets.html y 
+rontend/js/admin_tickets.js: panel de cliente y servicios, enlaces directos y lista desplegable de líneas relacionadas, adaptados a móvil.
 * **Verificación:** py_compile y 
 ode --check correctos. Render HTML corporativo verificado (logo, RGPD/LOPDGDD, cuerpo y CTA). VPS arrancó y /health devolvió 200; en el panel publicado el ticket mostró titular, proveedor, tarifa y los enlaces a ficha/registro. Sin enviar correos ni modificar tickets.
 ### [2026-10-16 17:18] - Correos corporativos y contexto completo de tickets
@@ -708,15 +728,19 @@ ode --check correctos. Render HTML corporativo verificado (logo, RGPD/LOPDGDD, c
 * **Acciones Realizadas:**
   - ackend/server.py: las notificaciones de nueva solicitud, respuesta y cambio de estado reutilizan generar_html_corporativo, logotipo y texto legal RGPD/LOPDGDD; se conservan el envío en cola y Reply-To.
   - La API de detalle añade nombre, proveedor, tarifa y líneas móviles asociadas desde la base maestra, excluyendo DNI, PUK e ICCID; incluye enlace directo al visor de cliente y, cuando hay identificador, a su ficha comercial.
-  - rontend/admin_tickets.html y rontend/js/admin_tickets.js: contexto del cliente, resumen de servicio, enlaces a ficha y listado desplegable de líneas asociadas, con adaptación móvil.
+  - 
+rontend/admin_tickets.html y 
+rontend/js/admin_tickets.js: contexto del cliente, resumen de servicio, enlaces a ficha y listado desplegable de líneas asociadas, con adaptación móvil.
 * **Verificación:** py_compile y 
 ode --check correctos. Renderizada la plantilla corporativa y comprobados logo, aviso RGPD/LOPDGDD, contenido y CTA. Sin enviar correos ni modificar tickets.
 ### [2026-10-16 17:12] - Acciones rápidas de estado en tickets
 * **Objetivo:** Agilizar la respuesta al cliente y el cierre o seguimiento de una consulta desde su detalle.
 * **Causa Raíz / Contexto:** El estado estaba en la cabecera, separado del cuadro de respuesta, y obligaba a cambiar de contexto para dejar una gestión pendiente o cerrarla.
 * **Acciones Realizadas:**
-  - rontend/js/admin_tickets.js: estado visible como etiqueta; selector debajo del campo de respuesta; botones para dejar pendiente o cerrar que guardan solo el estado y no envían el borrador; contador de pendientes actualizado inmediatamente.
-  - rontend/admin_tickets.html: estilos adaptables a móvil para el selector y las tres acciones, y versión de JS actualizada para evitar caché antigua.
+  - 
+rontend/js/admin_tickets.js: estado visible como etiqueta; selector debajo del campo de respuesta; botones para dejar pendiente o cerrar que guardan solo el estado y no envían el borrador; contador de pendientes actualizado inmediatamente.
+  - 
+rontend/admin_tickets.html: estilos adaptables a móvil para el selector y las tres acciones, y versión de JS actualizada para evitar caché antigua.
 * **Verificación:** 
 ode --check frontend/js/admin_tickets.js correcto. Despliegue y revisión visual pendientes.
 ### [2026-10-16 14:05] - Unificación de Tareas de Sincronización y Auditoría Anti-Fuga (Protección Anti-Baneo DoWISP)
@@ -2422,6 +2446,23 @@ ode --check frontend/js/admin_tickets.js correcto. Despliegue y revisión visual
 * **Verificación:** Ficha ID 2 e historial consultados en navegador; el pre-vuelo del conector local y la petición al origen respondieron con redirección `/admin/login/`.
 
 # 📓 Bitácora Técnica de MásKFundas Clientes y Telecomunicaciones
+## [2026-11-11 10:25] - Seguridad Apple Developer y Despliegue MasKFundas v2.0 (com.dowisp.com)
+
+### 1. Hardening & Seguridad Apple Developer
+- **Problema:** En la cuenta Apple Developer (`UNAJ7R44N2`) figuraban desarrolladores externos con rol ADMIN (`info@dowisp.com` de DoWISP y `shankaranp20@gmail.com` de Red Mercantil).
+- **Acción ejecutada:** Eliminación definitiva vía App Store Connect API (`DELETE /v1/users/{id}`).
+- **Resultado:** Único usuario con acceso es `MANUEL ESMERALDO DOMINGUEZ GIL` (`maskfundas@gmail.com`) como `ACCOUNT_HOLDER` y `ADMIN`. Invitaciones pendientes: 0.
+
+### 2. Configuración MasKFundas v2.0 en App Store Connect
+- **Versión creada:** 2.0 (ID: `f7d5db88-b4cc-496c-9020-b87432e89281`) sobre la App ya aprobada en 2023 (`MasKFundas`, App ID: `6447867161`, Bundle ID: `com.dowisp.com`).
+- **Provisioning Profile:** Generado y descargado `MasKFundas com.dowisp.com App Store Profile` (UUID: `b8ee8fce-05f4-484e-a39e-465b04aefa57`).
+- **Capturas de pantalla:** Reemplazadas las capturas obsoletas de 2023 por 8 capturas actualizadas de alta resolución (4 para iPhone 6.7" y 4 para iPad Pro 12.9"). Todas en estado `COMPLETE`.
+- **Metadatos y URLs:** Actualizados textos de soporte, política de privacidad y notas de revisión de prueba (`600000000` / `123456`).
+
+### 3. Pipeline CI/CD GitHub Actions
+- **Incidencia:** La cadena base64 insertada en el workflow contenía caracteres no-base64 provenientes de la serialización del payload, corrompiendo el archivo `.mobileprovision` al decodificarlo.
+- **Solución:** Se descargó el `.mobileprovision` binario oficial de la API de Apple, se incluyó directamente en `ios/App/MasKFundas_com_dowisp_com_App_Store_Profile.mobileprovision` y se configuró en `.github/workflows/build-ios.yml` para instalarse limpiamente en el runner macOS. Disparado Run #15.
+
 
 Este documento registra cronológicamente las intervenciones técnicas, decisiones de arquitectura, resolución de incidencias y despliegues realizados en la plataforma.
 Se actualiza de forma continua siguiendo la directriz de la skill [auto-documenter](file:///.agents/skills/auto-documenter/SKILL.md) (entradas más recientes al principio).
@@ -2772,4 +2813,3 @@ Se actualiza de forma continua siguiendo la directriz de la skill [auto-document
   - Permitido `baja_cuenta` en el endpoint de solicitudes y actualizado el formulario para diferenciar la eliminación del portal de la baja de telecomunicaciones.
   - Actualizada la documentación `android/PLAY_RELEASE.md` y `android/store_listing_es.md` con el AAB, cuenta de revisión y bloqueos que requieren Play Console.
 * **Verificación:** `py_compile` de `backend/server.py` y `backend/client_push.py`; `node --check frontend/js/app.js`; `jarsigner -verify` confirma el AAB firmado. Desplegados solo siete archivos previstos con `python vps.py sync --only ...`; producción devuelve `200` para `/privacidad` y `/login`, y `302` para `/eliminar-cuenta`. Play Console aún no confirma carga ni publicación.
-

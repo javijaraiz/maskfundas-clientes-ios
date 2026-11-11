@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/styles.css?v=19">
+    <link rel="stylesheet" href="/static/css/styles.css?v=20">
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -53,6 +53,21 @@
         <div class="login-main-card">
             <!-- Step 1: Identificación por teléfono y verificación por correo -->
             <div id="stepPhone" class="login-step">
+                <!-- Acceso directo destacado con Huella / Face ID si el dispositivo está disponible -->
+                <div id="biometricQuickAccess" style="display: none; margin-bottom: 1.25rem;">
+                    <button class="btn-login-bio" id="btnBiometricLogin" type="button" onclick="iniciarSesionPasskey()">
+                        <span class="btn-bio-icon"><i class="fa-solid fa-fingerprint"></i></span>
+                        <div class="btn-bio-text">
+                            <strong>Iniciar con Huella o Face ID</strong>
+                            <small>Acceso rápido en este dispositivo</small>
+                        </div>
+                        <span class="btn-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                    </button>
+                    <div class="login-divider">
+                        <span>o entra con tu número</span>
+                    </div>
+                </div>
+
                 <div class="step-header">
                     <div class="step-badge">Paso 1 de 2</div>
                     <h2 class="step-title">Entra en tu área cliente</h2>
@@ -83,10 +98,6 @@
                         <span class="btn-icon"><i class="fa-solid fa-envelope"></i></span>
                         <span>Enviar código al correo</span>
                         <span class="btn-arrow"><i class="fa-solid fa-arrow-right"></i></span>
-                    </button>
-                    <button class="btn-login-secondary" id="btnBiometricLogin" type="button" onclick="iniciarSesionPasskey()" style="display: none;">
-                        <span class="btn-icon"><i class="fa-solid fa-fingerprint"></i></span>
-                        <span>Acceder con huella o Face ID</span>
                     </button>
                 </div>
             </div>
@@ -146,6 +157,7 @@
         </div>
         <div class="login-help-line"><i class="fa-regular fa-circle-question" aria-hidden="true"></i><span>¿Necesitas ayuda?</span> <a href="https://wa.me/34666677773" target="_blank" rel="noopener noreferrer">Contacta con Atención al Cliente</a></div>
         <p class="login-legal-copy">MásKFundas · Telefonía Plasencia · C/ Sol, 60</p>
+        <nav class="login-privacy-links" aria-label="Información legal"><a href="/privacidad">Privacidad</a><span aria-hidden="true">·</span><a href="/eliminar-cuenta">Eliminar cuenta</a></nav>
         </div>
     </main>
 
@@ -276,25 +288,30 @@
         });
 
         async function comprobarSoportePasskey() {
-            const btnBio = document.getElementById('btnBiometricLogin');
-            if (!btnBio || !window.MFPasskeys?.supported()) return;
+            const bioContainer = document.getElementById('biometricQuickAccess');
+            if (!bioContainer || !window.MFPasskeys?.supported()) return;
             try {
                 const response = await fetch('/api/auth/passkeys/availability', { cache: 'no-store' });
                 const data = await response.json();
-                if (data.available) btnBio.style.display = 'flex';
+                if (data.available) {
+                    bioContainer.style.display = 'block';
+                }
             } catch (_) { /* El acceso por correo sigue disponible. */ }
         }
 
         async function iniciarSesionPasskey() {
             const btn = document.getElementById('btnBiometricLogin');
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Verificando en este dispositivo…</span>'; }
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="btn-bio-icon"><i class="fa-solid fa-spinner fa-spin"></i></span><div class="btn-bio-text"><strong>Verificando…</strong><small>Usa tu huella, Face ID o PIN</small></div>'; }
             try {
                 await window.MFPasskeys.login();
-                mostrarToast('Acceso verificado. Bienvenido.');
-                setTimeout(() => window.location.assign('/app'), 350);
+                mostrarToast('¡Acceso verificado! Bienvenido.');
+                setTimeout(() => window.location.assign('/app'), 300);
             } catch (error) {
-                mostrarToast(error.message || 'No se pudo acceder con passkey.');
-                if (btn) { btn.disabled = false; btn.innerHTML = '<span class="btn-icon"><i class="fa-solid fa-fingerprint"></i></span><span>Acceder con huella o Face ID</span>'; }
+                mostrarToast(error.message || 'No se pudo verificar la huella o Face ID.');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="btn-bio-icon"><i class="fa-solid fa-fingerprint"></i></span><div class="btn-bio-text"><strong>Iniciar con Huella o Face ID</strong><small>Acceso rápido en este dispositivo</small></div><span class="btn-arrow"><i class="fa-solid fa-arrow-right"></i></span>';
+                }
             }
         }
 
@@ -329,10 +346,12 @@
                 localStorage.removeItem('mg_user_phone');
                 
                 mostrarToast('¡Acceso verificado con éxito!');
-                if (window.MFPasskeys?.supported()) {
-                    ofrecerActivacionPasskey();
-                } else {
+                const tel = raw;
+                // En modo demo (600000000), omitir diálogo de huella/passkey e ir directamente a la ficha
+                if (tel === '600000000' || !window.MFPasskeys?.supported()) {
                     window.location.assign('/app');
+                } else {
+                    ofrecerActivacionPasskey();
                 }
             }).catch(err => {
                 mostrarToast('Error de conexión al verificar el código');

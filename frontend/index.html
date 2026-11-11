@@ -16,7 +16,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/styles.css?v=19">
+    <link rel="stylesheet" href="/static/css/styles.css?v=20">
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -62,6 +62,7 @@
 
         <!-- Viewport Principal con las 4 Pantallas -->
         <main class="app-viewport">
+            <aside id="reviewDemoBanner" class="review-demo-banner" role="status" hidden>Cuenta de revisión: todos los datos mostrados son ejemplos ficticios y no corresponden a clientes, consumos ni facturas reales.</aside>
 
             <!-- ══════════════════════════════════════════════════
                  PANTALLA 1: INICIO (HOME)
@@ -347,6 +348,7 @@
                 <div class="page-title-row">
                     <h1 class="page-title">Más</h1>
                 </div>
+                <a class="mas-menu-item" href="/privacidad"><div class="mas-item-left"><i class="fa-solid fa-shield-halved mas-item-icon"></i><div><div class="mas-item-title">Privacidad</div><div class="mas-item-subtitle">Política de privacidad y eliminación de cuenta</div></div></div><i class="fa-solid fa-arrow-up-right-from-square mas-item-chevron"></i></a>
 
                 <!-- Menú Utilitario con Hairlines -->
                 <div class="mas-menu-list">
@@ -434,7 +436,7 @@
                     </button>
 
                     <!-- Acceso local con passkeys (huella / Face ID) -->
-                    <button type="button" class="mas-menu-item" onclick="gestionarPasskeys()">
+                    <button type="button" class="mas-menu-item" id="menuItemPasskeys" onclick="gestionarPasskeys()">
                         <div class="mas-item-left">
                             <i class="fa-solid fa-fingerprint mas-item-icon"></i>
                             <div>
@@ -668,7 +670,7 @@
     <div id="appToast" class="app-toast">¡Copiado al portapapeles!</div>
 
     <script src="/static/js/passkeys.js?v=1"></script>
-    <script src="/static/js/app.js?v=20"></script>
+    <script src="/static/js/app.js?v=21"></script>
     <script src="/static/js/notifications.js?v=1"></script>
 </body>
 </html>

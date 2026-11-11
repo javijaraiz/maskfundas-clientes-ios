@@ -12,6 +12,7 @@ let state = {
     solicitudActualTipo: '',
     esTitular: true,
     dniCliente: '',
+    demo: false,
     mesesConsumo: [],
     mesConsumoActivoIdx: 0,
     mesConsumoSeleccionado: ''
@@ -284,6 +285,20 @@ async function cargarLineasCliente() {
             // Guardar flag de titular y DNI que devuelve el backend
             state.esTitular = data.es_titular !== undefined ? data.es_titular : true;
             state.dniCliente = data.dni || '';
+            state.demo = data.demo === true;
+
+            // Guardar en caché offline para resiliencia total
+            try {
+                localStorage.setItem('mg_offline_lineas', JSON.stringify(data.lineas));
+                localStorage.setItem('mg_offline_productos', JSON.stringify(state.productos));
+            } catch (_) {}
+
+            const demoBanner = document.getElementById('reviewDemoBanner');
+            if (demoBanner) demoBanner.hidden = !state.demo;
+
+            // Ocultar opción de Passkeys/huella en modo demo para simplificar revisión
+            const passkeysItem = document.getElementById('menuItemPasskeys');
+            if (passkeysItem) passkeysItem.style.display = state.demo ? 'none' : 'flex';
             renderizarLineaActiva();
             renderizarListaServicios();
             // Ocultar pestaña de facturas si no es titular
@@ -294,6 +309,20 @@ async function cargarLineasCliente() {
         return false;
     } catch (err) {
         console.error('Error cargando líneas:', err);
+        // Recuperar de caché offline si no hay red (Modo Avión / Sin cobertura)
+        try {
+            const cachedLineas = localStorage.getItem('mg_offline_lineas');
+            if (cachedLineas) {
+                const parsed = JSON.parse(cachedLineas);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    state.lineas = parsed;
+                    state.lineaActiva = parsed.find(l => l.tipo === 'movil') || parsed[0];
+                    renderizarLineaActiva();
+                    mostrarAvisoConexion(false);
+                    return true;
+                }
+            }
+        } catch (_) {}
         mostrarToast('No se pudieron cargar tus líneas. Comprueba la conexión e inténtalo de nuevo.');
         return false;
     }
@@ -321,9 +350,39 @@ function controlarAccesoFacturas() {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// RESPUESTA HÁPTICA NATIVA (CAPACITOR / WEB HAPTICS API)
+// ─────────────────────────────────────────────────────────────────────────────
+function triggerHaptic(type = 'light') {
+    try {
+        if (window.Capacitor && window.Capacitor.isPluginAvailable('Haptics')) {
+            const { Haptics, ImpactStyle, NotificationType } = window.Capacitor.Plugins;
+            if (type === 'success') {
+                Haptics.notification({ type: NotificationType.SUCCESS });
+            } else if (type === 'warning') {
+                Haptics.notification({ type: NotificationType.WARNING });
+            } else if (type === 'heavy') {
+                Haptics.impact({ style: ImpactStyle.Heavy });
+            } else if (type === 'medium') {
+                Haptics.impact({ style: ImpactStyle.Medium });
+            } else {
+                Haptics.impact({ style: ImpactStyle.Light });
+            }
+            return;
+        }
+        if (navigator && typeof navigator.vibrate === 'function') {
+            if (type === 'success') navigator.vibrate([15, 60, 20]);
+            else if (type === 'warning') navigator.vibrate([30, 80, 30]);
+            else if (type === 'medium') navigator.vibrate(20);
+            else navigator.vibrate(10);
+        }
+    } catch (_) {}
+}
+
 function cambiarTab(tabId) {
     const tabs = ['inicio', 'consumo', 'facturas', 'mas'];
     if (!tabs.includes(tabId)) return;
+    triggerHaptic('light');
 
     tabs.forEach(t => {
         const pane = document.getElementById(`pane${t.charAt(0).toUpperCase() + t.slice(1)}`);
@@ -1913,11 +1972,11 @@ function abrirModalSolicitud(tipo) {
         body.innerHTML = `
             <div class="roaming-line-pill" style="margin-bottom: 12px;">
                 <i class="fa-solid fa-user-shield" style="color: #64748b;"></i>
-                <span>Titular: <strong>${escapeHtml(state.clienteDni || numActual)}</strong></span>
+                <span>Cuenta: <strong>${escapeHtml(state.dniCliente || numActual)}</strong></span>
             </div>
 
             <p class="modal-desc" style="margin-bottom: 14px; font-size: 0.85rem; color: var(--text-muted); line-height: 1.45;">
-                Conforme al RGPD y las directrices de privacidad de Apple, puedes solicitar el borrado de tu cuenta de acceso o la baja de tus servicios:
+                Puedes pedir la eliminación del acceso y de los datos del portal que ya no deban conservarse. Esta solicitud es independiente de la baja de tus líneas o contrato de telecomunicaciones:
             </p>
 
             <div class="support-ticket-form">
@@ -1925,7 +1984,6 @@ function abrirModalSolicitud(tipo) {
                     <label class="custom-field-label" for="selectTipoBaja">TIPO DE SOLICITUD</label>
                     <select id="selectTipoBaja" class="form-select" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color, #cbd5e1); font-size: 0.85rem;">
                         <option value="Eliminación de cuenta y credenciales del portal">Eliminación de cuenta y datos de acceso al portal</option>
-                        <option value="Baja definitiva de líneas y servicios">Baja definitiva de servicios y líneas</option>
                         <option value="Derecho de supresión / olvido RGPD">Ejercicio de derecho de supresión (RGPD)</option>
                     </select>
                 </div>
@@ -1943,7 +2001,7 @@ function abrirModalSolicitud(tipo) {
 
             <p class="support-meta-note">
                 <i class="fa-solid fa-lock" style="margin-right: 4px; color: #64748b;"></i>
-                El equipo de protección de datos y administración tramitará tu solicitud en un plazo máximo de 48h hábiles.
+                Recibirás una referencia para consultar el estado. La eliminación del acceso al portal no cancela automáticamente tus líneas o contrato; el equipo verificará tu identidad y atenderá la solicitud conforme a los plazos legales.
             </p>
         `;
     }
@@ -2014,7 +2072,7 @@ async function enviarSolicitudServicio() {
     } else if (tipo === 'baja_cuenta') {
         const sel = document.getElementById('selectTipoBaja')?.value || 'Baja de cuenta';
         const txt = document.getElementById('supportRequestDetails')?.value.trim() || 'Sin observaciones';
-        detalles = `[RGPD/APPLE] Solicitud: ${sel} | Detalle: ${txt}`;
+        detalles = `[PRIVACIDAD] Solicitud: ${sel} | Detalle: ${txt}`;
     } else if (tipo === 'soporte' || tipo === 'cambio_tarifa') {
         detalles = document.getElementById('supportRequestDetails')?.value.trim() || '';
     }
@@ -2117,8 +2175,10 @@ function copiarTexto(elementId) {
     if (!el) return;
     const text = el.textContent.replace(/\s+/g, '');
     navigator.clipboard.writeText(text).then(() => {
+        triggerHaptic('success');
         mostrarToast(`¡Copiado al portapapeles! (${text})`);
     }).catch(err => {
+        triggerHaptic('medium');
         mostrarToast(`Copiado: ${text}`);
     });
 }

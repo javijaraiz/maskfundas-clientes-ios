@@ -2214,6 +2214,93 @@ body.dark-theme .loading-logo-glow img {
 .btn-login-secondary { width:100%; min-height:54px; margin-top:.1rem; border:1.5px solid #27292e; border-radius:13px; background:transparent; color:#202228; padding:.8rem 1rem; font:700 .93rem var(--font-sans); cursor:pointer; align-items:center; justify-content:center; gap:.6rem; transition:background .15s ease,transform .15s ease; }
 .btn-login-secondary:hover { background:rgba(255,255,255,.55); }
 .btn-login-secondary:active { transform:scale(.99); }
+
+/* Botón Destacado de Acceso Rápido Biomátrico (Huella / Face ID) */
+.btn-login-bio {
+    width: 100%;
+    min-height: 60px;
+    background: #111827;
+    color: #FFFFFF;
+    border: 1.5px solid #1f2937;
+    border-radius: 14px;
+    padding: 0.85rem 1.15rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(17, 24, 39, 0.12);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: left;
+}
+.btn-login-bio:hover {
+    background: #1f2937;
+    border-color: #374151;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(17, 24, 39, 0.18);
+}
+.btn-login-bio:active {
+    transform: scale(0.985);
+}
+.btn-bio-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(244, 90, 28, 0.18);
+    color: #f45a1c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+}
+.btn-bio-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.btn-bio-text strong {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.25;
+}
+.btn-bio-text small {
+    font-size: 0.76rem;
+    color: #9ca3af;
+    font-weight: 500;
+    margin-top: 2px;
+}
+.btn-login-bio .btn-arrow {
+    color: #9ca3af;
+    font-size: 0.88rem;
+    transition: transform 0.2s ease;
+}
+.btn-login-bio:hover .btn-arrow {
+    color: #FFFFFF;
+    transform: translateX(3px);
+}
+
+.login-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.25rem 0 0.5rem;
+    color: #9ca3af;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e5e7eb;
+}
+.login-divider span {
+    padding: 0 0.85rem;
+}
 .btn-login-primary:focus-visible, .btn-login-secondary:focus-visible, .btn-text-link:focus-visible, .phone-control-box:focus-within { outline:3px solid rgba(244,90,28,.3); outline-offset:2px; }
 .btn-login-primary:disabled, .btn-login-secondary:disabled { opacity:.65; cursor:wait; transform:none; }
 .login-help-line { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:.3rem; margin-top:.85rem; color:#69676a; font-size:.76rem; text-align:center; }
@@ -2377,6 +2464,9 @@ body.dark-theme .loading-logo-glow img {
 }
 
 @media (min-width: 760px) {
+    :root {
+        --app-max-width: 780px;
+    }
     .login-shell { display:flex; align-items:center; justify-content:center; padding-top:2.5rem; padding-bottom:2.5rem; }
     .login-content { width:min(100%, 650px); }
     .login-intro { display:grid; grid-template-columns: 1fr 300px; align-items:center; gap:0; padding-top:2.4rem; }
@@ -2464,6 +2554,11 @@ body.dark-theme .product-row-selected .product-mark { background:var(--brand-ora
 .tracking-message.from-customer { align-self:flex-end; border-left:0; border-right:2px solid var(--brand-orange); }
 .tracking-message > span { color:var(--text-muted); font-size:.68rem; }
 .tracking-message p { margin:.35rem 0 0; color:var(--text-main); font-size:.85rem; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; }
+.review-demo-banner { margin:.75rem 1rem; padding:.8rem .9rem; border:1px solid #d7a43a; border-radius:12px; background:#fff5d9; color:#5b430d; font-size:.82rem; line-height:1.45; }
+.review-demo-banner[hidden] { display:none; }
+.login-privacy-links { display:flex; justify-content:center; gap:.55rem; margin:.75rem 0; font-size:.78rem; }
+.login-privacy-links a { color:var(--text-muted); text-decoration:underline; text-underline-offset:3px; }
+body.dark-theme .review-demo-banner { background:#453713; border-color:#84651c; color:#fff1c4; }
 .tracking-no-messages,.tracking-closed-note { color:var(--text-muted); font-size:.82rem; line-height:1.5; }
 .tracking-reply-form { display:flex; flex-direction:column; gap:.55rem; padding-top:.25rem; }
 .tracking-reply-form textarea { width:100%; min-height:92px; padding:.7rem; border:1px solid var(--surface-hairline, #ddd); border-radius:10px; background:var(--surface-card, #fff); color:var(--text-main); font:inherit; font-size:.86rem; resize:vertical; }
