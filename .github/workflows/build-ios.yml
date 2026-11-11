@@ -66,11 +66,9 @@ jobs:
           fi
           security set-key-partition-list -S apple-tool:,apple: -s -k "$BUILD_KEYCHAIN_PASSWORD" build.keychain
 
-      - name: Build Xcode Archive
+            - name: Build Xcode Archive
         run: |
           cd ios/App
-          echo "=== CHECKING INSTALLED PROFILES ==="
-          ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
           echo "=== RUNNING XCODEBUILD ==="
           xcodebuild -workspace App.xcworkspace \
             -scheme App \
@@ -81,10 +79,14 @@ jobs:
             DEVELOPMENT_TEAM="UNAJ7R44N2" \
             CODE_SIGN_STYLE="Manual" \
             CODE_SIGN_IDENTITY="Apple Distribution" > build.log 2>&1 || {
-              echo "=== BUILD FAILED! SHOWING ERRORS ==="
-              grep -E -i "error:|failed|provisioning|signing" build.log | tail -n 50
-              echo "=== LAST 80 LINES OF BUILD LOG ==="
-              tail -n 80 build.log
+              echo "=== PUSHING BUILD LOG TO GIT FOR INSTANT ACCESS ==="
+              git config user.name "GitHub Actions"
+              git config user.email "actions@github.com"
+              git checkout -B debug-logs
+              git add -f build.log
+              git commit -m "xcodebuild failure log"
+              git push -f origin debug-logs
+              echo "=== BUILD FAILED ==="
               exit 1
             }
 
