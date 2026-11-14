@@ -33,8 +33,15 @@ jobs:
           API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
         run: |
           mkdir -p ~/.appstoreconnect/private_keys ~/.private_keys
-          echo "$API_KEY_P8" > ~/.appstoreconnect/private_keys/AuthKey_${API_KEY_ID}.p8
-          cp ~/.appstoreconnect/private_keys/AuthKey_${API_KEY_ID}.p8 ~/.private_keys/
+          KEY_FILE="$HOME/.appstoreconnect/private_keys/AuthKey_${API_KEY_ID}.p8"
+          if echo "$API_KEY_P8" | grep -q "BEGIN"; then
+            printf '%s\n' "$API_KEY_P8" > "$KEY_FILE"
+          else
+            printf '%s' "$API_KEY_P8" | base64 --decode > "$KEY_FILE" 2>/dev/null || printf '%s\n' "$API_KEY_P8" > "$KEY_FILE"
+          fi
+          cp "$KEY_FILE" "$HOME/.private_keys/"
+          chmod 600 "$KEY_FILE" "$HOME/.private_keys/AuthKey_${API_KEY_ID}.p8"
+          echo "AuthKey installed: AuthKey_${API_KEY_ID}.p8 (size: $(wc -c < "$KEY_FILE") bytes)"
 
       - name: Set up Keychain & Install Certificates
         env:
@@ -140,11 +147,20 @@ jobs:
             -f "$IPA_PATH" \
             -t ios \
             --apiKey "$API_KEY_ID" \
-            --apiIssuer "$API_ISSUER_ID" 2>&1)
+            --apiIssuer "$API_ISSUER_ID" \
+            --verbose 2>&1)
           STATUS=$?
           echo "$UPLOAD_OUTPUT"
+          echo "$UPLOAD_OUTPUT" > ../../upload_result.txt
           echo "### Resultado Subida App Store Connect" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "$UPLOAD_OUTPUT" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           exit $STATUS
+
+      - name: Upload Logs Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-store-upload-log
+          path: upload_result.txt
