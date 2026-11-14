@@ -72,8 +72,11 @@ jobs:
           fi
 
           PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$PROFILE_PLIST")
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' "$PROFILE_PLIST")
           cp "$PROFILE_PATH" "$PROFILE_DIR/"
           cp "$PROFILE_PATH" "$PROFILE_DIR/$PROFILE_UUID.mobileprovision"
+          echo "IOS_PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
+          echo "IOS_PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
           echo "Provisioning profile installed to ~/Library/MobileDevice/Provisioning Profiles/"
           ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
 
@@ -98,14 +101,18 @@ jobs:
             archive \
             DEVELOPMENT_TEAM="UNAJ7R44N2" \
             CODE_SIGN_STYLE="Manual" \
-            CODE_SIGN_IDENTITY="Apple Distribution"
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="$IOS_PROFILE_UUID"
 
       - name: Export App Store IPA
         run: |
           cd ios/App
+          EXPORT_OPTIONS="$RUNNER_TEMP/ExportOptions.plist"
+          cp ExportOptions.plist "$EXPORT_OPTIONS"
+          /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.dowisp.com $IOS_PROFILE_UUID" "$EXPORT_OPTIONS"
           xcodebuild -exportArchive \
             -archivePath build/App.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
+            -exportOptionsPlist "$EXPORT_OPTIONS" \
             -exportPath build/out
 
       - name: Upload IPA Artifact to GitHub
