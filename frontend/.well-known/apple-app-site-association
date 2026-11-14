@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "UNAJ7R44N2.es.maskfundas.clientes",
+        "appID": "UNAJ7R44N2.com.dowisp.com",
         "paths": [
           "/app*",
           "/login*"
@@ -13,7 +13,7 @@
   },
   "webcredentials": {
     "apps": [
-      "UNAJ7R44N2.es.maskfundas.clientes"
+      "UNAJ7R44N2.com.dowisp.com"
     ]
   }
 }
