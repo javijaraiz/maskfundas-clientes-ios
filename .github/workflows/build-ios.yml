@@ -49,10 +49,31 @@ jobs:
           security unlock-keychain -p "$BUILD_KEYCHAIN_PASSWORD" build.keychain
           security set-keychain-settings -lut 3600 build.keychain
 
-          # Install Provisioning Profile
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp ios/App/MasKFundas_com_dowisp_com_App_Store_Profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
-          cp ios/App/MasKFundas_com_dowisp_com_App_Store_Profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/1f53b3bd-aab2-42f2-9215-710e33d351a5.mobileprovision
+          # Install the profile configured in GitHub when available. The checked-in
+          # profile is a fallback for older repository setups, but must include
+          # Associated Domains for passkeys to work in the iOS app.
+          PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILE_DIR"
+          PROFILE_PATH="$RUNNER_TEMP/app-store-profile.mobileprovision"
+          if [ -n "$PROV_PROFILE" ]; then
+            printf '%s' "$PROV_PROFILE" | base64 --decode > "$PROFILE_PATH" || true
+            if ! security cms -D -i "$PROFILE_PATH" >/dev/null 2>&1; then
+              printf '%s' "$PROV_PROFILE" > "$PROFILE_PATH"
+            fi
+          else
+            cp ios/App/MasKFundas_com_dowisp_com_App_Store_Profile.mobileprovision "$PROFILE_PATH"
+          fi
+
+          PROFILE_PLIST="$RUNNER_TEMP/app-store-profile.plist"
+          security cms -D -i "$PROFILE_PATH" > "$PROFILE_PLIST"
+          if ! /usr/libexec/PlistBuddy -c 'Print :Entitlements:com.apple.developer.associated-domains' "$PROFILE_PLIST" >/dev/null 2>&1; then
+            echo "::error::The App Store provisioning profile is missing Associated Domains. Enable this capability for com.dowisp.com, regenerate the App Store profile, and update the APPLE_PROVISIONING_PROFILE GitHub secret with its base64 content."
+            exit 1
+          fi
+
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$PROFILE_PLIST")
+          cp "$PROFILE_PATH" "$PROFILE_DIR/"
+          cp "$PROFILE_PATH" "$PROFILE_DIR/$PROFILE_UUID.mobileprovision"
           echo "Provisioning profile installed to ~/Library/MobileDevice/Provisioning Profiles/"
           ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
 
