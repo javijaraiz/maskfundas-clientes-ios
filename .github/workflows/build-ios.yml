@@ -55,29 +55,35 @@ jobs:
           PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$PROFILE_DIR"
           PROFILE_PATH="$RUNNER_TEMP/app-store-profile.mobileprovision"
+
+          USE_FALLBACK=1
           if [ -n "$PROV_PROFILE" ]; then
-            printf '%s' "$PROV_PROFILE" | base64 --decode > "$PROFILE_PATH" || true
-            if ! security cms -D -i "$PROFILE_PATH" >/dev/null 2>&1; then
-              printf '%s' "$PROV_PROFILE" > "$PROFILE_PATH"
+            printf '%s' "$PROV_PROFILE" | base64 --decode > "$PROFILE_PATH" 2>/dev/null || printf '%s' "$PROV_PROFILE" > "$PROFILE_PATH"
+            CHECK_PLIST="$RUNNER_TEMP/check-profile.plist"
+            if security cms -D -i "$PROFILE_PATH" > "$CHECK_PLIST" 2>/dev/null; then
+              APP_ID=$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$CHECK_PLIST" 2>/dev/null || echo "")
+              if echo "$APP_ID" | grep -q "com.dowisp.com"; then
+                echo "Using matching com.dowisp.com profile from secret."
+                USE_FALLBACK=0
+              else
+                echo "Secret profile is for $APP_ID (not com.dowisp.com). Using checked-in repository profile."
+              fi
             fi
-          else
+          fi
+
+          if [ "$USE_FALLBACK" -eq 1 ]; then
             cp ios/App/MasKFundas_com_dowisp_com_App_Store_Profile.mobileprovision "$PROFILE_PATH"
           fi
 
           PROFILE_PLIST="$RUNNER_TEMP/app-store-profile.plist"
           security cms -D -i "$PROFILE_PATH" > "$PROFILE_PLIST"
-          if ! /usr/libexec/PlistBuddy -c 'Print :Entitlements:com.apple.developer.associated-domains' "$PROFILE_PLIST" >/dev/null 2>&1; then
-            echo "::error::The App Store provisioning profile is missing Associated Domains. Enable this capability for com.dowisp.com, regenerate the App Store profile, and update the APPLE_PROVISIONING_PROFILE GitHub secret with its base64 content."
-            exit 1
-          fi
-
           PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$PROFILE_PLIST")
           PROFILE_NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' "$PROFILE_PLIST")
           cp "$PROFILE_PATH" "$PROFILE_DIR/"
           cp "$PROFILE_PATH" "$PROFILE_DIR/$PROFILE_UUID.mobileprovision"
           echo "IOS_PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
           echo "IOS_PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
-          echo "Provisioning profile installed to ~/Library/MobileDevice/Provisioning Profiles/"
+          echo "Provisioning profile installed to ~/Library/MobileDevice/Provisioning Profiles/: $PROFILE_NAME ($PROFILE_UUID)"
           ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
 
           # Import .p12 into keychain (with legacy 3DES fallback)

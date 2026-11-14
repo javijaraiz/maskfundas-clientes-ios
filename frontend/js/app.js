@@ -20,6 +20,21 @@ let state = {
 
 let lineModalReturnFocus = null;
 
+function normalizarProductos(productos) {
+    const seen = new Set();
+    return (Array.isArray(productos) ? productos : []).filter(product => {
+        const tipo = String(product.tipo || '').toLowerCase();
+        const numero = String(product.numero || product.telefono || '').replace(/\D/g, '');
+        const direccion = String(product.direccion || '').trim().toLowerCase();
+        const key = tipo === 'movil' || tipo === 'fijo'
+            ? `${tipo}:${numero}`
+            : `${tipo}:${numero}:${direccion}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, char => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -43,6 +58,8 @@ async function gestionarPasskeys() {
     if (!modal || !list) return;
     modal.style.display = 'flex';
     list.innerHTML = '<p class="request-empty-state">Cargando dispositivos…</p>';
+    const addButton = modal.querySelector('.primary-modal-btn');
+    if (addButton) addButton.hidden = true;
     try {
         const response = await fetch('/api/auth/passkeys', { credentials: 'same-origin', cache: 'no-store' });
         const data = await response.json();
@@ -50,6 +67,19 @@ async function gestionarPasskeys() {
         const passkeys = data.passkeys || [];
         list.innerHTML = passkeys.length ? passkeys.map(item => `<div class="passkey-row"><div><strong>${escapeHtml(item.device_name || 'Dispositivo')}</strong><small>Registrado ${escapeHtml(String(item.created_at || '').slice(0, 10))}</small></div><button type="button" class="passkey-remove" data-passkey-id="${Number(item.id)}" data-passkey-name="${escapeHtml(item.device_name || 'Dispositivo')}">Quitar</button></div>`).join('') : '<p class="request-empty-state">Aún no has activado el acceso con passkey.</p>';
         list.querySelectorAll('[data-passkey-id]').forEach(button => button.addEventListener('click', () => eliminarPasskey(button.dataset.passkeyId, button.dataset.passkeyName)));
+        const canRegister = data.can_register !== false;
+        const registrationSupported = await (window.MFPasskeys?.supportsRegistration?.() || Promise.resolve(false));
+        if (addButton) {
+            addButton.hidden = !registrationSupported;
+            addButton.disabled = !canRegister;
+            addButton.textContent = canRegister ? 'Añadir este dispositivo' : 'Volver a entrar para activar';
+        }
+        if (!canRegister) {
+            list.insertAdjacentHTML('beforeend', '<p class="request-empty-state">Por seguridad, la autorización ha caducado. Cierra sesión y vuelve a entrar con el código del correo; después podrás activar Face ID o huella durante 10 minutos.</p>');
+        }
+        if (!registrationSupported) {
+            list.insertAdjacentHTML('beforeend', '<p class="request-empty-state">La autenticación biométrica (Face ID / huella) no está disponible o no está activada en este dispositivo.</p>');
+        }
     } catch (error) {
         list.innerHTML = `<p class="request-empty-state">${escapeHtml(error.message)}</p>`;
     }
@@ -57,15 +87,19 @@ async function gestionarPasskeys() {
 
 function cerrarModalPasskeys() {
     const modal = document.getElementById('passkeysModal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
 async function registrarPasskeyDesdeApp() {
     const button = document.querySelector('#passkeysModal .primary-modal-btn');
-    if (!window.MFPasskeys?.supported()) { mostrarToast('Tu navegador no permite el acceso con passkey.'); return; }
+    if (!await (window.MFPasskeys?.supportsRegistration?.() || Promise.resolve(false))) { mostrarToast('El sensor biométrico no está disponible en este dispositivo.'); return; }
+    if (button?.disabled) return;
     if (button) button.disabled = true;
     try {
         const result = await window.MFPasskeys.register();
+        localStorage.setItem('mf_passkey_enabled', '1');
         mostrarToast(result.message || 'Dispositivo registrado.');
         await gestionarPasskeys();
     } catch (error) {
@@ -85,6 +119,13 @@ async function eliminarPasskey(id, name) {
         const data = await response.json();
         if (!response.ok) throw new Error(data.detail || 'No se pudo quitar el dispositivo.');
         mostrarToast('Llave de acceso eliminada.');
+        try {
+            const checkRes = await fetch('/api/auth/passkeys', { credentials: 'same-origin', cache: 'no-store' });
+            const checkData = await checkRes.json();
+            if (!checkData.passkeys || checkData.passkeys.length === 0) {
+                localStorage.removeItem('mf_passkey_enabled');
+            }
+        } catch (_) {}
         await gestionarPasskeys();
     } catch (error) { mostrarToast(error.message || 'No se pudo quitar el dispositivo.'); }
 }
@@ -126,41 +167,7 @@ function toggleTheme() {
     aplicarTema(isDark ? 'light' : 'dark');
 }
 
-let loadingInterval = null;
-
-function iniciarAnimacionFrasesCarga() {
-    const frases = [
-        { main: 'Login seguro', sub: 'Verificando sesión cifrada...' },
-        { main: 'Desencriptando datos', sub: 'Descargando líneas contratadas y gigas...' },
-        { main: 'Procesando datos', sub: 'Calculando consumos en tiempo real...' },
-        { main: 'Disfrutando del mejor servicio', sub: '¡Todo listo para ti!' }
-    ];
-
-    let idx = 0;
-    const mainEl = document.getElementById('loadingMainText');
-    const subEl = document.getElementById('loadingSubText');
-
-    if (loadingInterval) clearInterval(loadingInterval);
-    loadingInterval = setInterval(() => {
-        idx = (idx + 1) % frases.length;
-        if (mainEl && subEl) {
-            mainEl.style.transition = 'opacity 0.25s ease';
-            subEl.style.transition = 'opacity 0.25s ease';
-            mainEl.style.opacity = '0';
-            subEl.style.opacity = '0';
-            setTimeout(() => {
-                mainEl.textContent = frases[idx].main;
-                subEl.textContent = frases[idx].sub;
-                mainEl.style.opacity = '1';
-                subEl.style.opacity = '1';
-            }, 250);
-        }
-    }, 1600);
-}
-
 async function inicializarApp() {
-    iniciarAnimacionFrasesCarga();
-
     // Si no hay teléfono o token válido en sesión, redirigir a login
     if (!state.telefonoUsuario) {
         window.location.href = '/login';
@@ -197,10 +204,6 @@ async function inicializarApp() {
 }
 
 function ocultarCapaCarga() {
-    if (loadingInterval) {
-        clearInterval(loadingInterval);
-        loadingInterval = null;
-    }
     const overlay = document.getElementById('appLoadingOverlay');
     if (overlay) {
         overlay.classList.add('fade-out');
@@ -280,7 +283,7 @@ async function cargarLineasCliente() {
         const data = await res.json();
         if (data.status === 'ok' && data.lineas && data.lineas.length > 0) {
             state.lineas = data.lineas;
-            state.productos = Array.isArray(data.productos) && data.productos.length ? data.productos : data.lineas;
+            state.productos = normalizarProductos(Array.isArray(data.productos) && data.productos.length ? data.productos : data.lineas);
             state.lineaActiva = state.lineas.find(l => l.tipo === 'movil') || state.lineas[0];
             // Guardar flag de titular y DNI que devuelve el backend
             state.esTitular = data.es_titular !== undefined ? data.es_titular : true;
@@ -300,7 +303,6 @@ async function cargarLineasCliente() {
             const passkeysItem = document.getElementById('menuItemPasskeys');
             if (passkeysItem) passkeysItem.style.display = state.demo ? 'none' : 'flex';
             renderizarLineaActiva();
-            renderizarListaServicios();
             // Ocultar pestaña de facturas si no es titular
             controlarAccesoFacturas();
             return true;
@@ -443,6 +445,18 @@ function renderizarLineaActiva() {
         }
     }
 
+    const homeMobilePlans = document.getElementById('homeMobilePlans');
+    if (homeMobilePlans) {
+        const mobileProducts = normalizarProductos(state.productos.filter(product => product.tipo === 'movil'));
+        homeMobilePlans.innerHTML = mobileProducts.length
+            ? mobileProducts.map(product => {
+                const number = product.numero || product.telefono || '';
+                const plan = product.tarifa || product.nombre || 'Tarifa móvil';
+                return `<div class="hairline-row"><div class="hairline-row-left"><i class="fa-solid fa-mobile-screen hairline-row-icon"></i><span class="hairline-row-name">${escapeHtml(formatearTelefono(number))}${plan ? ` · ${escapeHtml(plan)}` : ''}</span></div><span class="status-pill status-ok">Todo OK</span></div>`;
+            }).join('')
+            : `<div class="hairline-row"><div class="hairline-row-left"><i class="fa-solid fa-mobile-screen hairline-row-icon"></i><span class="hairline-row-name">${escapeHtml(formatearTelefono(l.numero))} · ${escapeHtml(l.tarifa || 'Tarifa Activa')}</span></div><span class="status-pill status-ok">Todo OK</span></div>`;
+    }
+
     // Fecha de renovación de ciclo mensual
     const ahora = new Date();
     const proximoMes = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 1);
@@ -509,36 +523,11 @@ function renderizarGraficoBarrasConsumo() {
     renderizarHistogramaMes(obtenerConsumoMes(state.mesConsumoSeleccionado));
 }
 
-function renderizarListaServicios() {
-    const container = document.getElementById('servicesListContainer');
-    if (!container) return;
-    const products = Array.isArray(state.productos) ? state.productos : [];
-    const count = document.getElementById('productsCountLabel');
-    if (count) count.textContent = `${products.length} ${products.length === 1 ? 'servicio' : 'servicios'}`;
-    if (!products.length) {
-        container.innerHTML = '<p class="products-empty">No encontramos productos activos asociados a tu cuenta.</p>';
-        return;
-    }
-    container.innerHTML = products.map(product => {
-        const mobile = product.tipo === 'movil';
-        const lineIndex = mobile ? state.lineas.findIndex(line => String(line.numero) === String(product.numero)) : -1;
-        const selected = lineIndex >= 0 && state.lineaActiva && String(state.lineaActiva.numero) === String(product.numero);
-        const title = mobile ? `Línea móvil · ${formatearTelefono(product.numero)}` : 'Fibra óptica';
-        const detail = [product.tarifa, mobile ? null : (product.velocidad_mbps ? `${product.velocidad_mbps} Mb` : null), product.direccion].filter(Boolean).join(' · ');
-        const tag = mobile && product.numero ? `<span class="product-number">${escapeHtml(formatearTelefono(product.numero))}</span>` : '';
-        const content = `<span class="product-mark" aria-hidden="true"><i class="fa-solid ${mobile ? 'fa-mobile-screen' : 'fa-wifi'}"></i></span><span class="product-copy"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(detail || product.numero || '')}</span>${tag}</span><span class="product-state">Activo</span>${lineIndex >= 0 ? '<i class="fa-solid fa-chevron-right product-chevron" aria-hidden="true"></i>' : ''}`;
-        return lineIndex >= 0
-            ? `<button type="button" class="product-row ${selected ? 'product-row-selected' : ''}" onclick="seleccionarLineaPorIndex(${lineIndex})">${content}</button>`
-            : `<div class="product-row">${content}</div>`;
-    }).join('');
-}
-
 function seleccionarLineaPorIndex(index) {
     if (state.lineas[index]) {
         state.lineaActiva = state.lineas[index];
         state.llamadas = null;
         renderizarLineaActiva();
-        renderizarListaServicios();
         cerrarModalLineas();
         mostrarToast(`Mostrando línea ${state.lineaActiva.numero}`);
     }

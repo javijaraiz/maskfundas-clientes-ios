@@ -1,3 +1,159 @@
+### [2026-11-14 02:05] - Integración de Biometría Nativa (Touch ID / Face ID) estilo Red Mercantil y Desbloqueo de CI iOS
+* **Objetivo:** Resolver definitivamente el fallo de autenticación biométrica en la App iOS implementando la arquitectura nativa probada de Red Mercantil (`LocalAuthentication` + `iOS Keychain`) y eliminando el bloqueo de firma de Xcode en GitHub Actions causado por `Associated Domains`.
+* **Causa Raíz:**
+  - Se había intentado forzar WebAuthn/Passkeys dentro de WKWebView en iOS, lo que obligaba a configurar `Associated Domains` (`webcredentials`), un entitlement que requiere que el perfil de aprovisionamiento en Apple Developer tenga esa capacidad explícita.
+  - Al no tener el perfil App Store de `com.dowisp.com` dicha capacidad, Xcode abortaba la compilación en CI con error de firma.
+* **Componentes Implementados:**
+  1. **iOS Nativo (`ios/App/App/AppDelegate.swift`):**
+     - Integración del plugin Capacitor nativo `@objc(BiometricAuthPlugin)` de Red Mercantil utilizando `LocalAuthentication` (`LAContext`) y el Llavero protegido por hardware (`SecItemAdd`, `SecItemCopyMatching` con `.biometryAny`).
+     - Soporte para Touch ID y Face ID sin requerir permisos especiales ni Associated Domains.
+     - Registro en `capacitor.config.json` bajo `packageClassList`.
+  2. **Desbloqueo de Compilación Xcode:**
+     - Eliminado `App.entitlements` y la directiva `CODE_SIGN_ENTITLEMENTS` en `ios/App/App.xcodeproj/project.pbxproj`.
+     - Ajustado `.github/workflows/build-ios.yml` para priorizar automáticamente el perfil de `com.dowisp.com` y eliminar la comprobación bloqueante de `associated-domains`.
+  3. **Backend y Persistencia (`backend/client_biometrics.py` y `backend/routes/auth_routes.py`):**
+     - Tabla `client_biometric_tokens` para almacenar hashes SHA-256 de los tokens criptográficos de hardware.
+     - Endpoints `/api/auth/biometric/register`, `/api/auth/biometric/login`, `/api/auth/biometric/delete` y `/api/auth/biometric/status`.
+  4. **Frontend Unificado (`frontend/js/passkeys.js`, `frontend/login.html`, `frontend/js/app.js`):**
+     - Si la app corre en iOS nativo, interactúa directamente con `BiometricAuthPlugin`. Si corre en navegador web de escritorio, mantiene el fallback de WebAuthn estándar.
+* **Verificación y Pruebas:**
+  - Sintaxis Python compilada correctamente con `python -m py_compile`.
+  - Endpoint en producción `https://clientes.maskfundas.es/api/auth/biometric/login` probado y validado con HTTP 400 (Bad Request al enviar token vacío) confirmando despliegue activo en VPS.
+  - Desplegado en VPS Debian (`93.93.115.93`) con `python vps.py sync` y reiniciado con `python vps.py restart`.
+
+### [2026-11-14 02:00] - Historial de CDR descargados por mayorista y estado de última sincronización
+* **Objetivo:** Mostrar en «CDRs y Backups Diarios» qué ficheros CDR procesa cada mayorista, cuántos registros aporta y cuándo fue la última descarga correcta.
+* **Causa Raíz / Contexto:** Las tarjetas solo mostraban la última prueba de conexión. El histórico de cron registraba ejecuciones generales, sin el fichero ni el recuento por operador.
+* **Acciones Realizadas:** `backend/sync_cron.py` emite eventos por fichero y estado final por mayorista; `backend/cron_run_log.py` los persiste en `resumen_json`; `backend/facturacion/services/cdr_config_service.py` expone el último intento y el último fichero válido; `frontend/facturacion/index.html` presenta el estado en cada tarjeta y un historial descendente por sincronización. Sin cambios de datos ni de credenciales.
+* **Verificación:** Pendiente de despliegue para que la próxima sincronización CDR genere el historial visible. Se realizará comprobación estática de sintaxis antes de publicar.
+
+### [2026-11-13 22:45] - Batería de Pruebas de Ciclo Completo End-to-End con Playwright MCP & QA Betatester
+* **Objetivo:** Ejecutar una batería exhaustiva de pruebas funcionales y de integración como betatester experto sobre el CRM / Facturación en producción (`https://admin.maskfundas.es/admin/facturacion`), validando los 4 nuevos módulos estratégicos: Stock de Tarjetas SIM (1A), Conciliación Paralela Dual-Run (1E), Cobro en Mostrador/Tienda (1D) y Aprovisionamiento Mayorista 1-Clic (1B).
+* **Entorno y Herramientas:**
+  - Navegador automatizado Chromium headless mediante Playwright MCP con sesión autenticada de administrador.
+  - Suite de pruebas de integración automatizadas en backend (`backend/test_nuevos_modulos_qa.py`) ejecutada en contenedor Docker `portal-clientes`.
+* **Depuración y Correcciones Realizadas durante la Sesión:**
+  1. **Excepciones de Ámbito Alpine.js en Frontend:**
+     - Error: `Uncaught ReferenceError: factura is not defined` y `listaClientes is not defined` en el arranque de `frontend/facturacion/index.html`.
+     - Corrección: Se inicializaron `factura: { lineas: [] }` y `listaClientes: []` en el estado reactivo `crmApp()`, y se añadió encadenamiento opcional `factura?.lineas || []` en los cálculos de subtotal. Errores de consola reducidos a 0.
+  2. **Resolución de Dependencia de Autenticación en Router de Facturación:**
+     - Error: `NameError: name 'is_admin_authenticated' is not defined` en `backend/facturacion/router.py`.
+     - Corrección: Se importó `is_admin_authenticated` desde `backend.server` con fallback de verificación de sesión cookie/header.
+  3. **Codificación de Flujo en Generación de Códigos QR SVG:**
+     - Error: `[SIM-STOCK] No se pudo generar QR con segno: string argument expected, got 'bytes'`.
+     - Corrección: Sustituido `io.StringIO()` por `io.BytesIO()` en `sim_stock_service.py` con decodificación `.decode('utf-8')`.
+  4. **Parámetro de Registro de SIM:**
+     - Compatibilidad de alias `usuario: Optional[str] = None` con `escaneado_por` en `SimStockService.registrar_sim()`.
+  5. **Integración Completa Stock SIM con Alta de Línea Móvil:**
+     - Se integró un selector reactivo de stock disponible (`simStockLista`) en el modal *"Añadir Línea / Fibra"* (`modalNuevaLineaAbierto`).
+     - Al seleccionar una SIM disponible, se auto-rellenan de inmediato el ICCID, PIN y PUK.
+     - En el backend (`POST /api/admin/facturacion/servicios`), al crear el servicio móvil se marca automáticamente la tarjeta SIM como `ASIGNADA` en `crm_sim_stock` con la fecha y el ID de servicio.
+* **Resultados de las Pruebas de Ciclo Completo:**
+  - **Prueba 1 (Stock de SIMs y QR 24h):** Navegación fluida a la sección de inventario, tarjetas KPI renderizadas con datos reales, apertura del modal de escáner QR móvil, renderizado exitoso de código QR SVG vectorial y generación de enlace seguro con token HMAC de 24 horas.
+  - **Prueba 2 (Conciliación Dual-Run Facturación vs DoWISP):** Acceso a auditoría en tiempo real, KPIs globales correctos (86,8% coincidencia, 531 de 612 clientes sincronizados), filtrado instantáneo por discrepancias y líneas huérfanas sin errores de renderizado.
+  - **Prueba 3 (Cobro Presencial en Tienda / TPV):** Apertura de ficha de cliente (Maria), apertura del modal de cobro en mostrador mostrando desglose de facturas (241,00 €), selección de método Efectivo, entrada de 250,00 € entregados, cálculo reactivo exacto de cambio a devolver (9,00 €) y selector de turno de caja abierto.
+  - **Prueba 4 (Aprovisionamiento Mayorista 1-Clic):** Despliegue del modal de aprovisionamiento, consulta reactiva del stock de SIMs disponibles en tienda física (`893407605640672630 · AIRENETWORKS · PLASENCIA`), selección de operador donante y verificación de avisos legales y de firma digital (SMS Signaturit para AireNetworks y Hoja 2 para FiNetwork).
+  - **Estado Final de Consola Web:** 0 errores en consola durante todo el ciclo de pruebas.
+* **Archivos Modificados y Sincronizados:**
+  - `frontend/facturacion/index.html`
+  - `backend/server.py`
+  - `backend/facturacion/router.py`
+  - `backend/facturacion/services/sim_stock_service.py`
+  - `backend/test_nuevos_modulos_qa.py`
+
+### [2026-11-13 22:30] - Aprovisionamiento 1-Clic, Cobros en Tienda (TPV/Efectivo) y Conciliación Dual-Run
+* **Objetivo:** Culminar los tres pilares estratégicos acordados para superar operativamente a DoWISP en el nuevo CRM/Facturación de MásKFundas: Aprovisionamiento Mayorista en 1-clic (1B), Cobros en Mostrador de Tienda Física con ticket térmico y arqueos (1D) y Conciliación Paralela Dual-Run Facturación vs DoWISP (1E).
+* **Componentes Implementados:**
+  1. **1B - Aprovisionamiento Mayorista en 1-Clic (`ProvisioningService`):**
+     - Módulo centralizado `backend/facturacion/services/provisioning_service.py` que tramita altas nuevas y portabilidades ante los operadores mayoristas directamente desde la ficha de servicio/cliente.
+     - **AireNetworks (Ion Mobile):** Integración nativa con la API SOAP oficial (`gestMOVIL_2.php`). Soluciona la regla crítica de bloqueo CNMC: toda solicitud nace en estado `0 LINEA NO PROCESADA` (bloqueo `0008` documental); el servicio dispara inmediatamente el envío de contrato/portabilidad vía SMS con firma biométrica digital mediante Signaturit (`enviar_documento_sms`), pasando de inmediato a `1 PROCESANDO`.
+     - **Lemonvil (Orange):** Integración con la API REST (`resmes.lemonvil.com`) mediante `create_new_portability` y `create_new_line`.
+     - **FiNetwork (Vodafone):** Control estricto del requerimiento de estampación de firma del cliente en la hoja 2 del contrato antes de liberar el pedido.
+     - **Vincular Stock SIM:** Reserva automática de la tarjeta SIM física desde `crm_sim_stock`, marcándola como `ASIGNADA` y vinculándola al servicio y cliente correspondientes.
+     - Trazabilidad y auditoría completa en `crm_servicios_historial`.
+     - UI: Botón "Aprovisionar (1-Clic)" en la ficha de servicios móviles y modal `modalAprovisionarVisible` en `frontend/facturacion/index.html`.
+  2. **1D - Módulo de Cobros en Tienda / Mostrador (`TiendaCobrosService`):**
+     - Módulo `backend/facturacion/services/tienda_cobros_service.py` para recepción de pagos presenciales en las tiendas de Plasencia, Navalmoral y Béjar.
+     - Soporte para **Ventanilla Efectivo** (con cálculo automático de cambio a devolver) y **Tarjeta TPV / Datáfono** (con número de referencia de operación).
+     - Actualización transaccional de la cartera de efectos (`billing_cartera_efectos`), marcando efectos como `COBRADO` con `fecha_cobro_real`.
+     - Registro detallado de movimientos de cobro en `billing_pagos_movimientos` con trazabilidad de tienda y usuario cajero.
+     - Actualización del estado de cobro en `billing_facturas` (`estado_cobro = 'PAGADO'`, conservando el estado inmutable `EMITIDA` bajo la Ley Antifraude 11/2021).
+     - Integración con los turnos de caja abiertos (`billing_cajas_arqueos`), sumando la recaudación en tiempo real a `total_efectivo`, `total_tarjeta` y `total_esperado`.
+     - Emisión y generación del Justificante Oficial de Cobro (recibo térmico 80mm con tipografía monoespaciada para impresora de tickets o formato PDF/A4 para imprimir).
+     - UI: Botón "Cobrar en Tienda / TPV" en cabecera de cliente y junto a facturas pendientes, modal `modalCobroTiendaVisible` y visor de recibo imprimible `modalReciboVisible`.
+  3. **1E - Conciliación Paralela Dual-Run (`DualRunService`):**
+     - Módulo `backend/facturacion/services/dual_run_service.py` para comparar en tiempo real, cliente a cliente y línea a línea, el nuevo sistema de Facturación Propia frente a DoWISP (`portal_master.db` y `master_cache.json`).
+     - Detecta discrepancias de precio o PVP cuota mensual, discrepancias de titularidad/DNI, líneas huérfanas en DoWISP no dadas de alta en Facturación y posibles fugas de margen comercial.
+     - Resultados auditados en producción: 612 clientes analizados (531 coincidentes al 100%, 81 con discrepancias leves o líneas históricas dadas de baja, 45 líneas huérfanas identificadas).
+     - UI: Nueva pestaña "Conciliación Dual-Run" en el menú de Servicios de `frontend/facturacion/index.html` con KPIs de coincidencia, filtros rápidos (Discrepancias, Coincidentes) y tabla detallada con comparador lado a lado.
+  4. **Optimización de Login Móvil e iOS:**
+     - Modificado `frontend/login.html` para anclar los mensajes y notificaciones de toast en la parte superior de la pantalla (`top: calc(env(safe-area-inset-top, 16px) + 16px)`), evitando que queden ocultos detrás del teclado virtual táctil de iOS Safari.
+     - Añadido desenfoque automático del teclado (`document.activeElement.blur()`) al solicitar código o verificar OTP.
+     - Añadidas cajas de mensaje de error en línea (`#phoneErrorMsg` y `#otpErrorMsg`) para feedback visual directo e inequívoco.
+     - Ampliado `maxlength` a 16 caracteres en el campo de teléfono para permitir pegar números con código de país `+34` sin recorte prematuro.
+* **Verificación y Pruebas:**
+  - `TiendaCobrosService`: Verificado mediante script automatizado en el contenedor de producción (`portal-clientes`), comprobando actualización en `billing_facturas` (`PAGADO`), `billing_cartera_efectos` (`COBRADO`), `billing_pagos_movimientos` y generación de recibo térmico con cambio exacto.
+  - `DualRunService`: Ejecutada auditoría completa sobre los 612 clientes del sistema.
+  - Sincronizado y desplegado en producción en VPS Debian (`93.93.115.93`) con `python vps.py sync` y reinicio sin incidencias.
+
+### [2026-11-13 19:15] - Mensaje de reautenticación de passkeys y diagnóstico del icono iOS
+* **Objetivo:** Evitar que el alta de Face ID/huella falle con un botón aparentemente activo y revisar el icono anterior que muestra la app.
+* **Causa Raíz / Contexto:** El registro exige autenticación fuerte en los últimos 10 minutos, pero la interfaz no consultaba esa condición. El catálogo iOS referencia un icono PNG universal de 1024×1024, compilado dentro de la app.
+* **Acciones Realizadas:** `backend/routes/auth_routes.py` informa si la sesión aún puede registrar passkeys; `frontend/js/app.js` desactiva el alta al caducar la autorización y explica que hay que volver a entrar. Revisados el asset catalog, el PNG y la configuración Xcode sin modificarlos.
+* **Verificación:** `py_compile` y `node --check` correctos; `git diff --check` limpio. `pytest`/FastAPI no están instalados en este entorno. No se construyó ni publicó una nueva versión de iOS.
+### [2026-11-13 19:00] - Sistema de Stock de Tarjetas SIM y Escáner con Cámara Móvil (QR Magic Link 24h)
+* **Objetivo:** Permitir la recepción ágil de remesas de tarjetas SIM escaneando directamente con la cámara de cualquier móvil (iOS y Android), leyendo código de barras (ICCID) y OCR (PIN/PUK) sin instalar apps y sin login en el móvil, poblando automáticamente el inventario del CRM.
+* **Componentes Implementados:**
+  1. **Base de Datos MySQL (`crm_sim_stock`):**
+     - Almacenamiento indexado de `uuid`, `iccid` (único, 19-20 dígitos), `pin`, `puk`, `pin2`, `puk2`, `mayorista` (AireNetworks, Lemonvil, FiNetwork, T-Móvil, Otro), `tienda` (Plasencia, Navalmoral, Béjar, Almacén Central), `formato_sim` (Triple SIM, eSIM, Nano SIM), `estado` (DISPONIBLE, ASIGNADA, RESERVADA, DEFECTUOSA, BAJA), `lote_recepcion`, `fecha_entrada` y `escaneado_por`.
+     - Migración idempotente en `backend/facturacion/schema_migrator.py` y `backend/facturacion/services/sim_stock_service.py`.
+  2. **Servicio y Seguridad de Token 24h (`sim_stock_service.py`):**
+     - Generación de token HMAC-SHA256 con payload `{scope: "sim_scanner", user: "admin", iat, exp, nonce}` con caducidad exacta de 24 horas.
+     - Generación del código QR en formato SVG vectorial mediante `segno` para ser escaneado directamente desde la pantalla del ordenador.
+     - Parámetros de preselección de tienda y mayorista en la URL.
+     - Autorización en `backend/server.py` (`verify_admin_access`) mediante cabecera `X-Scanner-Token` o query param `?token=...` en endpoints `/api/admin/facturacion/sim-stock/*`.
+  3. **Aplicación Web Móvil (`frontend/scanner_sim.html`):**
+     - Totalmente compatible con navegadores Safari iOS y Chrome Android vía `navigator.mediaDevices.getUserMedia` con autofoco y selector de cámara trasera/antorcha.
+     - Detección de código de barras 128 (ICCID) mediante API nativa `BarcodeDetector` con fallback automático a biblioteca `@zxing/library`.
+     - Detección y OCR de códigos PIN y PUK mediante `tesseract.js` con expresiones regulares especializadas.
+     - Sintetizador Web Audio API para pitidos de confirmación (tono agudo 880Hz éxito, tono grave 220Hz error/duplicado) y vibración háptica.
+     - Contador de sesión y lista en tiempo real de últimas tarjetas registradas.
+     - Prevención activa de duplicados que alerta de inmediato si una tarjeta ya existe en stock.
+  4. **Panel de Facturación (`frontend/facturacion/index.html`):**
+     - Nuevo acceso en la barra superior "📱 Escanear SIMs" y nueva pestaña "Stock Tarjetas SIM" en el menú de Servicios.
+     - Cuadro de mando con KPIs (Disponibles, Asignadas, Escaneadas Hoy, Desglose por Mayorista).
+     - Filtros dinámicos por estado, mayorista, tienda y búsqueda instantánea por ICCID, PIN o PUK.
+     - Modal de código QR 24h con selector de tienda y mayorista de destino, y enlace directo para copiar o abrir.
+     - Modal de entrada manual para tarjetas con código de barras dañado o eSIMs.
+* **Verificación y Pruebas:**
+  - Tabla creada y probada con inserción, consulta filtrada, comprobación de duplicados y borrado.
+  - Verificación HTTP en `https://admin.maskfundas.es/admin/scanner-sim?token=...` devolviendo `HTTP 200 OK` con librerías ZXing y Tesseract activas.
+  - Sincronización y despliegue en producción en VPS (`93.93.115.93`) con Zero-Downtime mediante `python vps.py sync`.
+
+### [2026-11-13 15:30] - Resolución de Incidencias en Login iOS (Envío OTP y Visibilidad Biométrica)
+* **Objetivo:** Resolver el fallo al pulsar "Enviar código al correo" y corregir la visualización prematura de "Iniciar con Huella o Face ID" en dispositivos sin credencial registrada.
+* **Causa Raíz / Contexto:**
+  1. En `backend/routes/auth_routes.py`, `clear_security_state` y `record_security_failure` no estaban expuestas desde `_srv`, y faltaba `import asyncio`, provocando `NameError: name 'clear_security_state' is not defined` (HTTP 500) en `/api/auth/send-otp`.
+  2. Al fallar la petición con error 500, el frontend mostraba un toast que era invisible porque `frontend/css/styles.css` solo tenía la clase `.app-toast.visible`, mientras el JS aplicaba `.app-toast.show`. Las pulsaciones repetidas del usuario alcanzaron el umbral de seguridad de 5 envíos por cuenta.
+  3. En `frontend/login.html`, `comprobarSoportePasskey()` mostraba el botón biométrico siempre que el servidor tuviera alguna passkey global registrada (`credential_count() > 0`), en lugar de comprobar si el dispositivo local tenía passkey activada.
+  4. En `backend/routes/cliente_routes.py`, faltaban imports de `re`, `secrets`, `datetime` y `run_in_threadpool`.
+* **Acciones Realizadas:**
+  - `backend/routes/auth_routes.py`: importado `asyncio`, expuestas `clear_security_state` y `record_security_failure` mediante `_srv`.
+  - `backend/routes/cliente_routes.py`: importados `re`, `secrets`, `datetime` y `run_in_threadpool`.
+  - `frontend/css/styles.css`: unificadas clases `.app-toast.visible, .app-toast.show`, añadido soporte multi-línea legible y márgenes seguros.
+  - `frontend/login.html`: el botón "Iniciar con Huella o Face ID" ahora solo se muestra si el usuario ha completado previamente el registro en ese dispositivo (`mf_passkey_enabled === '1'`). Sanitización robusta de prefijo `+34` en entrada de teléfono.
+  - `frontend/js/app.js`: sincronización de `mf_passkey_enabled` en registro y eliminación de passkeys.
+  - Desbloqueado el contador de intentos en `auth_security_state` para la cuenta del usuario.
+* **Verificación:** Prueba directa contra `/api/auth/send-otp` en el VPS devuelve `200 OK`, emite código OTP y envía correo verificado desde `pbx@maskfundas.es`.
+
+### [2026-11-13 00:00] - Correcciones de acceso y productos en la app iOS
+* **Objetivo:** Reutilizar el código de correo al reenviarlo, ofrecer Face ID/huella tras el primer acceso y corregir productos ausentes o duplicados.
+* **Causa Raíz / Contexto:** Cada petición OTP emitía un código nuevo; el inicio resumía un único móvil y la lista combinaba productos de fuentes distintas; la vista de passkeys no explicaba cuando el WebView no ofrecía WebAuthn.
+* **Acciones Realizadas:**
+  - `backend/routes/auth_routes.py`: reenvíos reutilizan el OTP vigente (10 minutos) y no consumen el cupo de emisión de códigos nuevos.
+  - `frontend/js/app.js`, `frontend/index.html` y `frontend/login.html`: resumen de todas las líneas móviles, deduplicación de productos, consentimiento de passkey de primer acceso y estado explicativo si el entorno no soporta WebAuthn.
+  - `frontend/sw.js`: actualización de caché y versiones de recursos para que la app cargue los cambios.
+* **Verificación:** Compilación Python y `node --check frontend/js/app.js` correctos; `git diff --check` revisado. No se enviaron correos ni se modificaron datos de clientes. No se verificó Face ID en un dispositivo físico ni se desplegó una nueva versión de iOS.
 ## [2026-11-08] - Resubmission iOS App Store (Guideline 2.1 Resolution)
 - **Causa:** Requerimiento de informacin de Apple (Guideline 2.1 - Performance: App Completeness) solicitando vdeo demostrativo en dispositivo fsico y descripcin de los 6 puntos de negocio/operador.
 - **Acciones Realizadas:**
@@ -2813,3 +2969,32 @@ Se actualiza de forma continua siguiendo la directriz de la skill [auto-document
   - Permitido `baja_cuenta` en el endpoint de solicitudes y actualizado el formulario para diferenciar la eliminación del portal de la baja de telecomunicaciones.
   - Actualizada la documentación `android/PLAY_RELEASE.md` y `android/store_listing_es.md` con el AAB, cuenta de revisión y bloqueos que requieren Play Console.
 * **Verificación:** `py_compile` de `backend/server.py` y `backend/client_push.py`; `node --check frontend/js/app.js`; `jarsigner -verify` confirma el AAB firmado. Desplegados solo siete archivos previstos con `python vps.py sync --only ...`; producción devuelve `200` para `/privacidad` y `/login`, y `302` para `/eliminar-cuenta`. Play Console aún no confirma carga ni publicación.
+### [2026-11-13 19:30] - Prompt biométrico después del login y splash iOS de marca
+* **Objetivo:** Preguntar tras iniciar sesión si se desea activar Face ID/huella y quitar el símbolo genérico de Capacitor de la pantalla de inicio.
+* **Causa Raíz / Contexto:** El consentimiento se suprimía tras omitirlo una vez; los assets `Splash` eran una pantalla blanca con el icono de Capacitor.
+* **Acciones Realizadas:** `frontend/login.html` vuelve a ofrecer el acceso biométrico en cada login compatible; los PNG del `Splash.imageset` ahora muestran una composición de MásKFundas sobre fondo azul marino. Actualizada la versión de recursos web y caché.
+* **Verificación:** Splash renderizada e inspeccionada; `node --check` y `git diff --check` correctos. El icono se incorpora en una nueva build iOS, aún no compilada ni publicada.
+
+### [2026-11-13 22:32] - Eliminada sección duplicada y ajustado arranque/passkey iOS
+* **Objetivo:** Quitar “Mis productos”, limpiar la pantalla de conexión y corregir el mensaje del alta biométrica en iOS.
+* **Causa Raíz / Contexto:** La lista de productos repetía las líneas y la fibra del resumen “Tu línea”; el overlay rotaba dos mensajes sobre fondo claro; WKWebView reportaba `NotAllowedError` como una cancelación del usuario.
+* **Acciones Realizadas:** Eliminada la sección y su renderizado/estilos; el overlay ahora usa fondo azul marino, marca MásK y un solo mensaje; la comprobación previa de passkey oculta el alta cuando no hay autenticador de plataforma y el error de iOS ahora indica el siguiente paso. `vps.py sync --only` no encontró hashes pendientes; la verificación HTTPS confirmó que la app y el login de producción ya sirven los cambios.
+* **Verificación:** Sintaxis JavaScript correcta. `https://clientes.maskfundas.es/app` sirve el overlay actualizado, sin la sección duplicada y con versiones `app.js?v=24`/`styles.css?v=24`; el login remoto contiene la pregunta de acceso biométrico. No se probó Face ID en un dispositivo físico.
+### [2026-11-14 01:31] - Evitado el salto que omitía el prompt de acceso biométrico
+* **Objetivo:** Mantener visible la pregunta de Face ID/huella después de iniciar sesión por correo.
+* **Causa Raíz / Contexto:** El login redirigía directamente al área si `supportsRegistration()` devolvía falso en el WebView de iOS, antes de mostrar la pantalla de decisión.
+* **Acciones Realizadas:** `frontend/login.html` ahora espera el flujo del prompt; solo omite la pregunta para la cuenta demo o si ya hay passkey registrada. Si el entorno no admite biometría, muestra la limitación y permite continuar. Desplegado con `python vps.py sync --only frontend/login.html`.
+* **Verificación:** `node --check` sobre el script inline y `git diff --check` correctos. La página de login en producción devuelve HTTP 200 e incluye el prompt y la rama de soporte no disponible.
+
+### [2026-11-14 01:34] - Splash nativa iOS con fondo de marca y build 4
+* **Objetivo:** Quitar el fondo blanco que aún aparece al abrir la app instalada.
+* **Causa Raíz / Contexto:** El launch screen se compila dentro de iOS; los cambios web no actualizan el binario ya instalado. El storyboard mantenía el fondo del sistema blanco.
+* **Acciones Realizadas:** `ios/App/App/Base.lproj/LaunchScreen.storyboard` usa ahora fondo azul marino; se preparó `CURRENT_PROJECT_VERSION = 4` en Debug y Release. Se conservan los assets Splash de marca ya generados.
+* **Verificación:** XML del storyboard válido; los tres PNG son 2732×2732 y comienzan con el color esperado. No se compiló ni publicó una IPA en este entorno Windows.
+
+### [2026-11-14 01:36] - Corregida asociación iOS de passkeys con el bundle publicado
+* **Objetivo:** Diagnosticar y mejorar por qué Face ID/passkeys no se ofrecen o no se registran en la app iOS.
+* **Causa Raíz / Contexto:** Apple requiere Associated Domains para passkeys en `WKWebView`; producción declaraba `UNAJ7R44N2.es.maskfundas.clientes`, pero el bundle de Xcode es `com.dowisp.com`, y faltaba el entitlement `webcredentials` en el proyecto.
+* **Acciones Realizadas:** Actualizado AASA para `UNAJ7R44N2.com.dowisp.com`, desplegado sin reinicio; añadido `ios/App/App/App.entitlements` con `applinks` y `webcredentials` y vinculado en Debug/Release.
+* **Verificación:** AASA remoto HTTP 200 con ambos servicios y el App ID actual; JSON/plists válidos. El entitlement requiere una nueva build firmada e instalada; no se compiló ni subió la IPA.
+

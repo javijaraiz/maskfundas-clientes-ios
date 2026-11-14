@@ -24,5 +24,8 @@
     "scheme": "App",
     "contentInset": "always",
     "preferredContentMode": "mobile"
-  }
+  },
+  "packageClassList": [
+    "BiometricAuthPlugin"
+  ]
 }

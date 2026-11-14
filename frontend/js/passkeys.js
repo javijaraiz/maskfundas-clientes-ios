@@ -1,5 +1,35 @@
-/* WebAuthn client helpers shared by the login and client app. */
+/* WebAuthn and Native Biometric (LocalAuthentication) client helpers shared by login and client app.
+   Compatible con la App nativa iOS (Touch ID / Face ID) y navegadores web estándar. */
 window.MFPasskeys = (() => {
+  let _nativeBioPlugin = null;
+
+  const getBiometricPlugin = () => {
+    if (_nativeBioPlugin) return _nativeBioPlugin;
+    if (typeof window.Capacitor === 'undefined') return null;
+
+    if (window.Capacitor.Plugins && window.Capacitor.Plugins.BiometricAuth) {
+      _nativeBioPlugin = window.Capacitor.Plugins.BiometricAuth;
+      return _nativeBioPlugin;
+    }
+
+    if (typeof window.Capacitor.registerPlugin === 'function') {
+      try {
+        const plugin = window.Capacitor.registerPlugin('BiometricAuth');
+        if (plugin) {
+          if (!window.Capacitor.Plugins) window.Capacitor.Plugins = {};
+          window.Capacitor.Plugins.BiometricAuth = plugin;
+          _nativeBioPlugin = plugin;
+          return plugin;
+        }
+      } catch (e) {
+        console.warn('[MFPasskeys] Error registrando BiometricAuth:', e);
+      }
+    }
+    return null;
+  };
+
+  const isNativeBiometric = () => getBiometricPlugin() !== null;
+
   const fromB64Url = value => {
     const base64 = String(value).replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - value.length % 4) % 4);
     const raw = atob(base64);
@@ -26,7 +56,7 @@ window.MFPasskeys = (() => {
       body: JSON.stringify(body)
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.detail || 'No se pudo completar el acceso con passkey.');
+    if (!response.ok) throw new Error(data.detail || data.error || 'No se pudo completar el acceso.');
     return data;
   };
   const readCsrf = () => {
@@ -56,31 +86,90 @@ window.MFPasskeys = (() => {
   };
   const deviceName = () => {
     const ua = navigator.userAgent;
-    if (/iPhone|iPad/i.test(ua)) return 'iPhone o iPad';
-    if (/Android/i.test(ua)) return 'Android';
+    if (/iPhone|iPad/i.test(ua)) return 'iPhone Touch ID / Face ID';
+    if (/Android/i.test(ua)) return 'Android Biométrico';
     if (/Windows/i.test(ua)) return 'Windows Hello';
-    if (/Mac/i.test(ua)) return 'Mac';
+    if (/Mac/i.test(ua)) return 'Mac Touch ID';
     return 'Este dispositivo';
   };
-  const supported = () => window.isSecureContext && !!window.PublicKeyCredential && !!navigator.credentials;
+  const supported = () => isNativeBiometric() || (window.isSecureContext && !!window.PublicKeyCredential && !!navigator.credentials);
+
+  async function supportsRegistration() {
+    const bioPlugin = getBiometricPlugin();
+    if (bioPlugin) {
+      try {
+        const info = await bioPlugin.isAvailable();
+        return !!(info && (info.hasBiometrics || info.isAvailable));
+      } catch (_) {
+        return false;
+      }
+    }
+    if (!supported()) return false;
+    try {
+      if (typeof window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
+        if (!await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()) return false;
+      }
+      if (typeof window.PublicKeyCredential.getClientCapabilities === 'function') {
+        const capabilities = await window.PublicKeyCredential.getClientCapabilities();
+        if (capabilities && capabilities.userVerifyingPlatformAuthenticator === false) return false;
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   async function register() {
-    if (!supported()) throw new Error('Este navegador no permite passkeys. Actualízalo o usa el acceso por correo.');
+    const bioPlugin = getBiometricPlugin();
+    if (bioPlugin) {
+      // Flujo nativo 100% como Red Mercantil (Face ID / Touch ID al Llavero del iPhone)
+      await bioPlugin.authenticate({
+        reason: 'Confirma tu huella o Face ID para activar el acceso biométrico en MásKFundas'
+      });
+      const regResp = await post('/api/auth/biometric/register', { device_name: deviceName() });
+      if (!regResp || !regResp.token) {
+        throw new Error(regResp?.error || 'No se pudo registrar la biometría en el servidor.');
+      }
+      await bioPlugin.setCredentials({
+        phone: regResp.phone || 'cliente_maskfundas',
+        token: regResp.token
+      });
+      localStorage.setItem('mf_passkey_enabled', '1');
+      return { success: true, message: 'Touch ID / Face ID configurado correctamente en este dispositivo.' };
+    }
+
+    // Flujo WebAuthn estándar para navegadores web
+    if (!await supportsRegistration()) throw new Error('Este navegador no ofrece Face ID/huella.');
     const { options } = await post('/api/auth/passkeys/register/options', { device_name: deviceName() });
     let credential;
     try { credential = await navigator.credentials.create({ publicKey: decodeOptions(options) }); }
     catch (error) {
-      if (error.name === 'NotAllowedError') throw new Error('Registro cancelado. Puedes activarlo cuando quieras desde Más.');
-      if (error.name === 'InvalidStateError') throw new Error('Este dispositivo ya tiene una passkey para la cuenta.');
+      if (error.name === 'NotAllowedError') throw new Error('Se canceló la activación de Face ID/huella.');
+      if (error.name === 'InvalidStateError') throw new Error('Este dispositivo ya tiene una llave para la cuenta.');
       throw error;
     }
-    if (!credential) throw new Error('El dispositivo no creó la passkey.');
+    if (!credential) throw new Error('El dispositivo no creó la llave.');
     const payload = credentialJson(credential);
     payload.device_name = deviceName();
-    return post('/api/auth/passkeys/register/verify', payload);
+    const result = await post('/api/auth/passkeys/register/verify', payload);
+    localStorage.setItem('mf_passkey_enabled', '1');
+    return result;
   }
 
   async function login() {
+    const bioPlugin = getBiometricPlugin();
+    if (bioPlugin) {
+      // Flujo nativo: abre sensor Face ID / Touch ID y extrae credencial del Llavero
+      const creds = await bioPlugin.getCredentials({
+        reason: 'Inicia sesión con tu huella o Face ID en MásKFundas'
+      });
+      if (!creds || !creds.success || !creds.token) {
+        throw new Error(creds?.error || 'No hay huella o Face ID registrado en este dispositivo. Entra con código para activarla.');
+      }
+      return post('/api/auth/biometric/login', { token: creds.token });
+    }
+
+    // Flujo WebAuthn estándar
     if (!supported()) throw new Error('Este navegador no permite passkeys. Puedes entrar con el código enviado a tu correo.');
     const { options } = await post('/api/auth/passkeys/login/options');
     let credential;
@@ -93,5 +182,5 @@ window.MFPasskeys = (() => {
     return post('/api/auth/passkeys/login/verify', credentialJson(credential));
   }
 
-  return { supported, register, login, deviceName };
+  return { getBiometricPlugin, isNativeBiometric, supported, supportsRegistration, register, login, deviceName };
 })();
