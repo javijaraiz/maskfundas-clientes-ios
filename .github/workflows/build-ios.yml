@@ -134,9 +134,17 @@ jobs:
         run: |
           cd ios/App
           IPA_PATH=$(ls build/out/*.ipa | head -n 1)
-          echo "Subiendo $IPA_PATH a App Store Connect..."
-          xcrun altool --upload-app \
+          echo "Subiendo $IPA_PATH a App Store Connect con altool..."
+          set +e
+          UPLOAD_OUTPUT=$(xcrun altool --upload-app \
             -f "$IPA_PATH" \
             -t ios \
             --apiKey "$API_KEY_ID" \
-            --apiIssuer "$API_ISSUER_ID"
+            --apiIssuer "$API_ISSUER_ID" 2>&1)
+          STATUS=$?
+          echo "$UPLOAD_OUTPUT"
+          echo "### Resultado Subida App Store Connect" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$UPLOAD_OUTPUT" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          exit $STATUS
